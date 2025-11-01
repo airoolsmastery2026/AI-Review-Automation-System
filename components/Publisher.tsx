@@ -1,21 +1,23 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import type { ProductWithContent, RenderJob, VideoModelSelection, AudioVoiceSelection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
 import { AlertTriangle, Upload, X, KeyRound, ExternalLink } from './LucideIcons';
+import { useNotifier } from '../contexts/NotificationContext';
 import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
-// Fix: Define the AIStudio interface to resolve the global type conflict for `window.aistudio`.
-interface AIStudio {
-    hasSelectedApiKey: () => Promise<boolean>;
-    openSelectKey: () => Promise<void>;
-}
-
+// Fix: The AIStudio interface was defined in the module scope, causing type conflicts.
+// Moved it into `declare global` to make it a single, mergeable global type, resolving the error.
 declare global {
+    interface AIStudio {
+        hasSelectedApiKey: () => Promise<boolean>;
+        openSelectKey: () => Promise<void>;
+    }
     interface Window {
         aistudio: AIStudio;
     }
@@ -126,6 +128,7 @@ export const Publisher: React.FC<{
     const [modelSelections, setModelSelections] = useState<Record<string, { videoModel: VideoModelSelection; audioVoice: AudioVoiceSelection }>>({});
     const [hasApiKey, setHasApiKey] = useState(false);
     const { t } = useI18n();
+    const notifier = useNotifier();
 
     useEffect(() => {
         const checkApiKey = async () => {
@@ -212,7 +215,7 @@ export const Publisher: React.FC<{
         } catch (error: any) {
             logger.error(`Video/Audio generation failed for ${product.name}`, { error: error.message });
             if (error.message.includes("API key not valid") || error.message.includes("not found") || error.message.includes("billing") || error.message.includes("Requested entity was not found")) {
-                alert(`${t('publisher.apiKeyErrorTitle')}\n\n${t('publisher.apiKeyErrorMessage')}`);
+                notifier.error(`${t('publisher.apiKeyErrorTitle')}: ${t('publisher.apiKeyErrorMessage')}`);
                 setHasApiKey(false); // Force re-selection of key on failure
             }
         } finally {

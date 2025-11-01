@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlatformLogo } from './PlatformLogo';
@@ -6,6 +7,7 @@ import { useI18n } from '../hooks/useI18n';
 import { Button } from './common/Button';
 import { ExternalLink, KeyRound, Save, X, Info, Trash, User, FilePenLine, CheckCircle, BookOpen, AlertTriangle } from './LucideIcons';
 import { logger } from '../services/loggingService';
+import { useNotifier } from '../contexts/NotificationContext';
 import type { AccountConnection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 
@@ -56,10 +58,10 @@ const ConnectionModal: React.FC<{
     onEdit: (connection: AccountConnection) => void;
 }> = ({ platform, existingConnection, platformAccounts, onClose, onSave, onDelete, onEdit }) => {
     const { t } = useI18n();
+    const notifier = useNotifier();
     const isEditing = !!existingConnection;
     const [formData, setFormData] = useState<Record<string, string>>({});
     const [isSaving, setIsSaving] = useState(false);
-    const [isJustSaved, setIsJustSaved] = useState(false);
 
     useEffect(() => {
         const initialData: Record<string, string> = { username: existingConnection?.username || '' };
@@ -93,13 +95,13 @@ const ConnectionModal: React.FC<{
         setIsSaving(false);
 
         if (isEditing) {
+            notifier.success(t('notifications.connectionSaved'));
             onClose();
         } else {
+            notifier.success(t('notifications.connectionSaved'));
             const clearedData: Record<string, string> = { username: '' };
             platform.credentials.forEach(cred => { clearedData[cred.id] = ''; });
             setFormData(clearedData);
-            setIsJustSaved(true);
-            setTimeout(() => setIsJustSaved(false), 2500);
         }
     };
     
@@ -195,12 +197,6 @@ const ConnectionModal: React.FC<{
                                     {t('connections.viewDocs')}
                                 </Button>
                             </a>
-                             {isJustSaved && (
-                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-green-400 text-sm flex items-center ml-4">
-                                    <CheckCircle className="w-4 h-4 mr-2"/>
-                                    <span>{t('connections.savedMessage')}</span>
-                                </motion.div>
-                            )}
                         </div>
                         <div className="flex space-x-2">
                             {isEditing && (
@@ -261,6 +257,7 @@ export const Connections: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
     const [editingConnection, setEditingConnection] = useState<AccountConnection | null>(null);
+    const notifier = useNotifier();
     
     useEffect(() => {
         try {
@@ -316,6 +313,7 @@ export const Connections: React.FC = () => {
         if (window.confirm(t('connections.confirmRemove', { platform: name, username: accountToRemove.username }))) {
             const updatedAccounts = accounts.filter(acc => acc.id !== accountId);
             saveAccounts(updatedAccounts);
+            notifier.success(t('notifications.connectionRemoved'));
             logger.info(`Removed connection ${accountId}`);
             setIsModalOpen(false);
             setEditingConnection(null);

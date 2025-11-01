@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
@@ -19,6 +20,7 @@ import { AppGuide } from './components/AppGuide';
 import { SystemStatus } from './components/SystemStatus';
 import { ProjectRoadmap } from './components/ProjectRoadmap';
 import { Starfield } from './components/common/Starfield';
+import { ToastContainer } from './components/ToastContainer';
 import type { Product, GeneratedContent, RenderJob, ScoutedProduct, AutomationSettings, ProductWithContent, ProductFinancials, PlatformPerformance } from './types';
 import { Page } from './types';
 import { scoutForProducts } from './services/geminiService';
@@ -261,6 +263,7 @@ const App: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-transparent text-gray-100">
+            <ToastContainer />
             <Starfield mouseX={mousePosition.x} mouseY={mousePosition.y} />
             <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
             <div className="flex-1 flex flex-col overflow-hidden">

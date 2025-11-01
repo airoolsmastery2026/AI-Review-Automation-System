@@ -1,11 +1,14 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { Download } from './LucideIcons';
+import { Copy } from './LucideIcons';
 import type { RenderJob } from '../types';
 import { useI18n } from '../hooks/useI18n';
 import { getVideoOperationStatus, downloadVideo } from '../services/geminiService';
 import { logger } from '../services/loggingService';
+import { useNotifier } from '../contexts/NotificationContext';
 
 interface RenderQueueProps {
     jobs: RenderJob[];
@@ -94,6 +97,7 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
     const activePolls = useRef<Set<string>>(new Set()).current;
     const [downloadingJobId, setDownloadingJobId] = useState<number | null>(null);
     const [audioUrls, setAudioUrls] = useState<Record<number, string>>({});
+    const notifier = useNotifier();
 
     useEffect(() => {
         const pollStatus = async (job: RenderJob) => {
@@ -162,6 +166,7 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
         }
 
         setDownloadingJobId(job.id);
+        notifier.info(t('notifications.downloadStarting'));
         try {
             const blob = await downloadVideo(job.videoUrl);
             const url = window.URL.createObjectURL(blob);
@@ -195,6 +200,15 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
         } catch (error) {
             logger.error(`Error downloading audio for "${job.productName}"`, { error });
         }
+    }
+
+    const handleCopyUrl = (url: string | undefined) => {
+        if (!url) return;
+        navigator.clipboard.writeText(url)
+            .then(() => {
+                notifier.success(t('notifications.copiedToClipboard'));
+            })
+            .catch(err => logger.error("Failed to copy URL", { error: err }));
     }
 
     return (
@@ -251,6 +265,16 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
                                                 <Download className="h-4 w-4 mr-2" />
                                                 {t('renderQueue.downloadAudio')}
                                             </Button>
+                                        )}
+                                        {job.videoUrl && (
+                                             <Button 
+                                                size="sm" 
+                                                variant="ghost" 
+                                                onClick={() => handleCopyUrl(job.videoUrl)}
+                                                title="Copy Video URL"
+                                            >
+                                                <Copy className="h-4 w-4" />
+                                             </Button>
                                         )}
                                         <Button 
                                             size="sm" 

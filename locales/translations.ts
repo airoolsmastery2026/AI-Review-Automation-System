@@ -9,6 +9,14 @@ export const translations = {
     commission: "Commission",
     localeCode: "en-US",
     
+    // Notifications
+    notifications: {
+      copiedToClipboard: "Copied to clipboard!",
+      downloadStarting: "Download starting...",
+      connectionSaved: "Connection saved successfully!",
+      connectionRemoved: "Connection removed.",
+    },
+    
     // Sidebar Page Names (used as keys)
     Dashboard: "Dashboard",
     Automation: "Automation",
@@ -282,7 +290,6 @@ export const translations = {
       notConfigured: "Not Configured",
       alreadyConnected: "Accounts for this Platform",
       editAction: "Edit",
-      savedMessage: "Saved! Feel free to add another.",
       historyTitle: "Connection History",
       historyDescription: "A log of all successfully configured accounts.",
       tablePlatform: "Platform",
@@ -422,6 +429,14 @@ export const translations = {
     conversions: "lượt chuyển đổi",
     commission: "Hoa hồng",
     localeCode: "vi-VN",
+
+    // Notifications
+    notifications: {
+      copiedToClipboard: "Đã sao chép vào clipboard!",
+      downloadStarting: "Đang bắt đầu tải xuống...",
+      connectionSaved: "Đã lưu kết nối thành công!",
+      connectionRemoved: "Đã xóa kết nối.",
+    },
 
     // Sidebar Page Names
     Dashboard: "Bảng Điều Khiển",
@@ -694,7 +709,6 @@ export const translations = {
       notConfigured: "Chưa cấu hình",
       alreadyConnected: "Các tài khoản cho nền tảng này",
       editAction: "Sửa",
-      savedMessage: "Đã lưu! Bạn có thể thêm tài khoản khác.",
       historyTitle: "Lịch Sử Kết Nối",
       historyDescription: "Nhật ký tất cả các tài khoản đã được cấu hình thành công.",
       tablePlatform: "Nền tảng",

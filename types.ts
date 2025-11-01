@@ -165,3 +165,12 @@ export interface AutomationSettings {
     scoutAgent: AgentSettings;
     autoApproveThreshold: number;
 }
+
+export type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Notification {
+    id: string;
+    type: NotificationType;
+    message: string;
+    duration?: number;
+}
