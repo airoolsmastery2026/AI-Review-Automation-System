@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
@@ -68,8 +70,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         }, {} as Record<string, PlatformPerformance>)
     );
 
-    // Fix: Correctly typed the reduce accumulator and initial value to ensure proper type inference for `monthlyViewsData` and resolve downstream errors.
-    const monthlyViewsData = publishedProducts.reduce((acc: Record<string, { name: string; views: number; date: Date }>, p) => {
+    // Fix: Corrected the `reduce` call by removing the problematic generic and adding a type assertion to the initial value.
+    const monthlyViewsData = publishedProducts.reduce((acc, p) => {
         if (p.financials && p.performance) {
             const date = new Date(p.financials.publishedAt);
             const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
@@ -84,7 +86,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         return acc;
     }, {} as Record<string, { name: string; views: number; date: Date }>);
     
-    const sortedViewsData = Object.values(monthlyViewsData).sort((a,b) => a.date.getTime() - b.date.getTime());
+    // Fix: Added a type assertion to `Object.values` to resolve the 'unknown' type error in the `sort` callback.
+    const sortedViewsData = (Object.values(monthlyViewsData) as { name: string; views: number; date: Date }[]).sort((a,b) => a.date.getTime() - b.date.getTime());
 
     return (
         <div className="space-y-6">
