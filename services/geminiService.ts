@@ -1,48 +1,68 @@
 
-import { GoogleGenAI, Type } from "@google/genai";
-import type { Product, Trend } from '../types';
+
+
+import { Type, Operation } from "@google/genai";
+import type { Product, Trend, ScoutedProduct } from '../types';
 import { logger } from './loggingService';
 
-// Fix: Initialize the GoogleGenAI client once, sourcing the API key directly from environment variables as per guidelines.
-const ai = process.env.API_KEY ? new GoogleGenAI({ apiKey: process.env.API_KEY }) : null;
+const BACKEND_URL = 'http://localhost:3001';
 
-if (!ai) {
-    const msg = "Gemini API key not found in process.env.API_KEY. AI features will be mocked.";
-    console.warn(msg);
-    logger.warn(msg);
-}
+const callBackend = async (endpoint: string, body: object): Promise<any> => {
+    try {
+        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
 
-const RETRY_COUNT = 3;
-const RETRY_DELAY_MS = 1000;
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
-
-const generateContentWithRetry = async (params: { model: string, contents: any, config?: any }, identifier: string): Promise<string> => {
-    if (!ai) {
-       await sleep(500); // Simulate API call
-       const mockedResponse = `This is a mocked response for ${identifier}. Prompt: "${String(params.contents).substring(0, 100)}..."`;
-       logger.warn('Gemini API mocked response generated.', { identifier });
-       return mockedResponse;
-    }
-
-    for (let i = 0; i < RETRY_COUNT; i++) {
-        try {
-            logger.info(`Gemini API call attempt #${i + 1} for: ${identifier}`);
-            const response = await ai.models.generateContent(params);
-            logger.info(`Gemini API call successful for: ${identifier}`);
-            return response.text;
-        } catch (error: any) {
-            logger.error(`Gemini API call failed for: ${identifier}`, { attempt: i + 1, error: error.message });
-            if (i === RETRY_COUNT - 1) {
-                return `Error: Could not generate content for ${identifier} after ${RETRY_COUNT} attempts. Please check your API key and network connection.`;
-            }
-            await sleep(RETRY_DELAY_MS * (i + 1)); // Exponential backoff
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
         }
+        return await response.json();
+    } catch (error: any) {
+        logger.error(`Failed to call backend at ${endpoint}`, { error: error.message });
+        if (endpoint === '/api/gemini') {
+            return { text: `Error: Could not connect to the backend service. Is it running? Details: ${error.message}` };
+        }
+        throw error;
     }
-    return `Error: Unexpected failure to generate content for ${identifier}.`;
 };
 
-export const scoutForProducts = async (topic: string): Promise<Product[]> => {
+const generateContentWithProxy = async (params: { model: string, contents: any, config?: any }, identifier: string): Promise<string> => {
+    logger.info(`Proxying Gemini API call for: ${identifier}`);
+    const response = await callBackend('/api/gemini', { params, type: identifier });
+    return response.text;
+};
+
+const analyzeRpmPotential = async (productName: string, topic: string): Promise<'Low' | 'Medium' | 'High'> => {
+    const prompt = `Analyze the RPM (Revenue Per Mille / ad revenue) potential for a YouTube Shorts video about a product called "${productName}" in the niche "${topic}". 
+    Consider audience value to advertisers and general interest.
+    Respond with only one word: Low, Medium, or High.`;
+    
+    // In a real backend setup, we don't need to mock this. If the backend call fails, it will throw an error.
+    // For now, let's keep a simple fallback for robustness.
+    try {
+        const responseText = await generateContentWithProxy({
+            model: "gemini-2.5-flash",
+            contents: prompt
+        }, `Analyze RPM for ${productName}`);
+
+        const cleanedResponse = responseText.trim();
+        if (cleanedResponse === 'Low' || cleanedResponse === 'Medium' || cleanedResponse === 'High') {
+            return cleanedResponse;
+        }
+        logger.warn(`Unexpected response for RPM analysis: "${cleanedResponse}". Defaulting to Medium.`);
+        return 'Medium';
+    } catch (error) {
+        logger.error(`Error in analyzeRpmPotential, defaulting to Medium.`, { error });
+        return 'Medium';
+    }
+}
+
+export const scoutForProducts = async (topic: string): Promise<ScoutedProduct[]> => {
     const prompt = `
 Act as an expert affiliate marketing researcher. Find 5 trending and high-converting digital products or AI tools related to the topic: "${topic}".
 For each product, provide a concise name, a compelling description for a YouTube video, a list of 3-4 key features (as a string), a plausible-looking affiliate link, an estimated commission percentage (as a number), a user rating out of 5 (as a number), and an estimated number of conversions.
@@ -67,16 +87,10 @@ Ensure the response is a valid JSON array matching the provided schema.
         }
     };
 
-    if (!ai) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return [
-            { id: 'mockProduct1', name: `Mock AI Tool for ${topic}`, description: 'A great mock tool.', features: 'Feature A, Feature B', affiliateLink: 'https://mock.link/1', commission: 50, rating: 4.5, conversions: 1500 },
-            { id: 'mockProduct2', name: `Mock Digital Course for ${topic}`, description: 'Learn all about mock things.', features: 'Module 1, Module 2', affiliateLink: 'https://mock.link/2', commission: 40, rating: 4.8, conversions: 2200 },
-        ];
-    }
-
+    let baseProducts: Product[] = [];
+    
     try {
-        const responseText = await generateContentWithRetry({
+        const responseText = await generateContentWithProxy({
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
@@ -86,16 +100,41 @@ Ensure the response is a valid JSON array matching the provided schema.
         }, `Scout for products on "${topic}"`);
         
         if (responseText.startsWith("Error:")) {
-            logger.error("scoutForProducts received an error response from Gemini.", { responseText });
+            logger.error("scoutForProducts received an error response from backend.", { responseText });
             return [];
         }
         
         const jsonText = responseText.trim();
-        return JSON.parse(jsonText);
+        baseProducts = JSON.parse(jsonText);
     } catch (error) {
         logger.error("Error parsing JSON from scoutForProducts", { error });
         return [];
     }
+
+    // Enrich products with financial analysis
+    const enrichedProducts: ScoutedProduct[] = await Promise.all(baseProducts.map(async (p): Promise<ScoutedProduct> => {
+        const rpmPotential = await analyzeRpmPotential(p.name, topic);
+        const affiliateScore = (p.commission || 0) * (p.conversions || 0) / 1000; // Simplified score
+
+        const rpmValue = { 'Low': 30, 'Medium': 60, 'High': 90 }[rpmPotential];
+        
+        // Normalize affiliate score to be roughly in the same range as RPM
+        const normalizedAffiliateScore = Math.min(affiliateScore, 100);
+
+        const opportunityScore = Math.round((normalizedAffiliateScore * 0.6) + (rpmValue * 0.4)); // 60% affiliate, 40% RPM
+
+        return {
+            ...p,
+            status: 'pending',
+            foundAt: Date.now(),
+            rpmPotential,
+            affiliateScore: parseFloat(affiliateScore.toFixed(2)),
+            opportunityScore
+        };
+    }));
+    
+    logger.info(`Enriched ${enrichedProducts.length} products with financial analysis.`, { topic });
+    return enrichedProducts;
 };
 
 export const huntForTrends = async (): Promise<Trend[]> => {
@@ -118,16 +157,8 @@ Ensure the response is a valid JSON array of objects, where each object has "top
         }
     };
 
-    if (!ai) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return [
-            { topic: 'Mock Trend: AI Video Tools', description: 'This is a mocked trend description because the API key is not configured.' },
-            { topic: 'Mock Trend: Sustainable Tech', description: 'Another mocked trend for eco-friendly gadgets.' },
-        ];
-    }
-
     try {
-        const responseText = await generateContentWithRetry({
+        const responseText = await generateContentWithProxy({
             model: "gemini-2.5-flash",
             contents: prompt,
             config: {
@@ -137,7 +168,7 @@ Ensure the response is a valid JSON array of objects, where each object has "top
         }, "Hunt for trends");
 
         if (responseText.startsWith("Error:")) {
-            logger.error("huntForTrends received an error response from Gemini.", { responseText });
+            logger.error("huntForTrends received an error response from backend.", { responseText });
             return [];
         }
 
@@ -160,19 +191,21 @@ Structure:
 2. Intro – what the product does
 3. 3 Key Features – short, impactful
 4. Real-world benefits – why it matters
-5. Call to Action (CTA) – encourage viewers to try via affiliate link
+5. Social Proof – Weave in user testimonials or social proof. Mention its high rating or popularity to build trust.
+6. Call to Action (CTA) – encourage viewers to try via affiliate link
 
 Product data:
 - product_name: ${product.name}
 - description: ${product.description}
 - main_features: ${product.features}
 - affiliate_link: ${product.affiliateLink}
+- social_proof_data: This product has a user rating of ${product.rating || 'excellent'} out of 5 from over ${product.conversions || 'thousands of'} users. Use this information to create compelling social proof.
 
 Tone: friendly, engaging, natural.
 Language: English.
 Avoid over-promotional language.
 `;
-    return generateContentWithRetry({
+    return generateContentWithProxy({
         model: 'gemini-2.5-flash',
         contents: prompt
     }, `Generate script for ${product.name}`);
@@ -188,7 +221,7 @@ Include curiosity or emotional hooks, e.g.:
 
 Format the output as a numbered list. Do not add any extra text or explanations.
 `;
-    const response = await generateContentWithRetry({
+    const response = await generateContentWithProxy({
         model: 'gemini-2.5-flash',
         contents: prompt
     }, `Generate titles for ${productName}`);
@@ -211,7 +244,7 @@ Include:
 Keep it concise, informative, and optimized for search.
 Use [YOUR AFFILIATE LINK HERE] as a placeholder.
 `;
-    return generateContentWithRetry({
+    return generateContentWithProxy({
         model: 'gemini-2.5-flash',
         contents: prompt
     }, `Generate SEO description for ${productName}`);
@@ -230,7 +263,7 @@ IMPORTANT: Format the output strictly as follows, with each on a new line:
 Caption: [Your generated caption here]
 Hashtags: [Your generated hashtags here, separated by spaces]
 `;
-    const response = await generateContentWithRetry({
+    const response = await generateContentWithProxy({
         model: 'gemini-2.5-flash',
         contents: prompt
     }, `Generate captions for ${productName}`);
@@ -247,4 +280,26 @@ Hashtags: [Your generated hashtags here, separated by spaces]
     const hashtags = hashtagsLine.replace(/hashtags:/i, '').trim().split(/\s+/).filter(h => h.startsWith('#'));
 
     return { caption, hashtags };
+};
+
+export const generateVideo = async (script: string): Promise<Operation | { name: string, done: false }> => {
+    logger.info("Starting video generation via backend proxy.");
+    try {
+        const operation = await callBackend('/api/generate-video', { script });
+        logger.info("Video generation operation started via backend.", { operationName: operation.name });
+        return operation;
+    } catch (error: any) {
+        logger.error("Failed to start video generation via backend.", { error: error.message });
+        throw error;
+    }
+};
+
+export const getVideoOperationStatus = async (operationName: string): Promise<Operation> => {
+    logger.info(`Polling video operation status via backend for: ${operationName}`);
+     try {
+        return await callBackend('/api/video-status', { operationName });
+    } catch (error: any) {
+         logger.error(`Failed to get video operation status from backend for ${operationName}`, { error: error.message });
+        throw error;
+    }
 };

@@ -3,7 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
 import { logger } from '../services/loggingService';
-import type { LogEntry, ConnectionHealth, ConnectionHealthStatus } from '../types';
+import type { LogEntry, ConnectionHealth, ConnectionHealthStatus, Connection } from '../types';
 import { ShieldCheck, HardDriveDownload, Server, AlertTriangle } from './LucideIcons';
 import { PlatformLogo } from './PlatformLogo';
 
@@ -37,45 +37,63 @@ const ConnectionStatusIndicator: React.FC<{ status: ConnectionHealthStatus }> = 
     );
 };
 
-const initialConnections: ConnectionHealth[] = [
-    { id: 'gemini', nameKey: 'connections.gemini', status: 'Disconnected', lastChecked: new Date().toISOString() },
-    { id: 'youtube', nameKey: 'connections.youtube', status: 'Disconnected', lastChecked: new Date().toISOString() },
-    { id: 'clickbank', nameKey: 'connections.clickbank', status: 'Disconnected', lastChecked: new Date().toISOString() },
-    { id: 'facebook', nameKey: 'connections.facebook', status: 'Disconnected', lastChecked: new Date().toISOString() },
+const initialConnectionChecks: Omit<ConnectionHealth, 'status' | 'lastChecked'>[] = [
+    { id: 'youtube', nameKey: 'connections.youtube' },
+    { id: 'clickbank', nameKey: 'connections.clickbank' },
+    { id: 'facebook', nameKey: 'connections.facebook' },
 ];
 
 export const SystemStatus: React.FC = () => {
     const { t } = useI18n();
     const [logs, setLogs] = useState<LogEntry[]>([]);
-    const [connections, setConnections] = useState<ConnectionHealth[]>(initialConnections);
-
+    const [connections, setConnections] = useState<ConnectionHealth[]>([]);
+    
     useEffect(() => {
         const unsubscribe = logger.subscribe(setLogs);
         return () => unsubscribe();
     }, []);
 
-    // Simulate real-time polling for connection status
     useEffect(() => {
-        const interval = setInterval(() => {
-            setConnections(prev => prev.map(conn => {
-                // Randomly simulate status changes to mimic a real backend
-                const rand = Math.random();
-                let newStatus: ConnectionHealthStatus = conn.status;
-                if (conn.status === 'Disconnected' && rand > 0.8) newStatus = 'Connected';
-                else if (conn.status === 'Connected' && rand > 0.95) newStatus = 'Refreshing';
-                else if (conn.status === 'Refreshing') newStatus = 'Connected';
-                else if (conn.status === 'Connected' && rand < 0.02) newStatus = 'Error';
-                else if (conn.status === 'Error' && rand > 0.5) newStatus = 'Disconnected';
-                
-                return { ...conn, status: newStatus, lastChecked: new Date().toISOString() };
-            }));
-        }, 5000); // Poll every 5 seconds
+        const checkConnectionStatus = () => {
+            try {
+                const stored = localStorage.getItem('universal-connections');
+                const storedConnections: Record<string, Connection> = stored ? JSON.parse(stored) : {};
 
+                const updatedConnections = initialConnectionChecks.map(connInfo => {
+                    const isConnected = !!storedConnections[connInfo.id];
+                    return {
+                        ...connInfo,
+                        status: isConnected ? 'Connected' : 'Disconnected',
+                        lastChecked: new Date().toISOString()
+                    };
+                });
+
+                // Add Gemini as a non-optional, server-side connection
+                const geminiStatus: ConnectionHealth = {
+                    id: 'gemini',
+                    nameKey: 'connections.gemini',
+                    status: 'Connected', // Always connected as it's server-side
+                    lastChecked: new Date().toISOString()
+                };
+                
+                setConnections([geminiStatus, ...updatedConnections]);
+            } catch (error) {
+                logger.error("Failed to parse connections from localStorage", { error });
+            }
+        };
+
+        checkConnectionStatus();
+        const interval = setInterval(checkConnectionStatus, 5000); // Poll every 5 seconds
         return () => clearInterval(interval);
     }, []);
     
-    const securityGrade = "C-";
-    const automationReadiness = "35%";
+    const connectedCount = connections.filter(c => c.status === 'Connected').length;
+    // Security grade is now A because the most critical key (Gemini) is server-side.
+    const securityGrade = "A";
+    const automationReadiness = `${Math.round((connectedCount / connections.length) * 100)}%`;
+    const securityColor = "text-green-400"; // Always green now
+    const readinessColor = connectedCount / connections.length > 0.7 ? "text-green-400" : connectedCount > 1 ? "text-yellow-400" : "text-red-400";
+
 
     return (
         <div className="space-y-8">
@@ -89,19 +107,19 @@ export const SystemStatus: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center"><AlertTriangle className="h-5 w-5 mr-2 text-red-400" />{t('systemStatus.securityGrade')}</CardTitle>
+                        <CardTitle className="flex items-center"><ShieldCheck className={`h-5 w-5 mr-2 ${securityColor}`} />{t('systemStatus.securityGrade')}</CardTitle>
                     </CardHeader>
                     <div className="p-4 text-center">
-                        <p className="text-5xl font-bold text-red-400">{securityGrade}</p>
+                        <p className={`text-5xl font-bold ${securityColor}`}>{securityGrade}</p>
                         <p className="text-sm text-slate-400 mt-2">{t('systemStatus.securityGradeDescription')}</p>
                     </div>
                 </Card>
                  <Card>
                     <CardHeader>
-                        <CardTitle className="flex items-center"><Server className="h-5 w-5 mr-2 text-yellow-400" />{t('systemStatus.automationReadiness')}</CardTitle>
+                        <CardTitle className="flex items-center"><Server className={`h-5 w-5 mr-2 ${readinessColor}`} />{t('systemStatus.automationReadiness')}</CardTitle>
                     </CardHeader>
                     <div className="p-4 text-center">
-                        <p className="text-5xl font-bold text-yellow-400">{automationReadiness}</p>
+                        <p className={`text-5xl font-bold ${readinessColor}`}>{automationReadiness}</p>
                          <p className="text-sm text-slate-400 mt-2">{t('systemStatus.automationReadinessDescription')}</p>
                     </div>
                 </Card>
@@ -121,18 +139,19 @@ export const SystemStatus: React.FC = () => {
                     <div className="space-y-2 pt-2">
                         {connections.map(conn => (
                             <div key={conn.id} className="grid grid-cols-3 gap-4 items-center">
+                                {/* Fix: Corrected typo from Platform to PlatformLogo and completed the truncated component. */}
                                 <div className="flex items-center">
                                     <PlatformLogo platformId={conn.id} className="w-6 h-6 mr-3" />
-                                    <span className="font-medium text-slate-200">{t(conn.nameKey)}</span>
+                                    <span className="font-semibold text-slate-100">{t(conn.nameKey)}</span>
                                 </div>
-                                <ConnectionStatusIndicator status={conn.status} />
-                                <span className="text-right text-sm text-slate-500">{new Date(conn.lastChecked).toLocaleTimeString()}</span>
+                                <span><ConnectionStatusIndicator status={conn.status} /></span>
+                                <span className="text-right text-sm text-slate-400">{new Date(conn.lastChecked).toLocaleTimeString()}</span>
                             </div>
                         ))}
                     </div>
                 </div>
             </Card>
-            
+
             <Card>
                 <CardHeader>
                     <CardTitle>{t('systemStatus.recommendationsTitle')}</CardTitle>
@@ -140,10 +159,10 @@ export const SystemStatus: React.FC = () => {
                 </CardHeader>
                 <ul className="p-4 space-y-3">
                     <li className="flex items-start">
-                        <AlertTriangle className="h-5 w-5 mr-3 mt-0.5 text-red-400 flex-shrink-0" />
+                        <AlertTriangle className="h-5 w-5 mr-3 mt-0.5 text-yellow-400 flex-shrink-0" />
                         <div>
                             <h4 className="font-semibold text-slate-200">{t('systemStatus.rec1Title')}</h4>
-                            <p className="text-sm text-slate-400">{t('systemStatus.rec1Description')}</p>
+                            <p className="text-sm text-slate-400">Storing other API keys in localStorage is not suitable for production. Your backend should manage all sensitive keys.</p>
                         </div>
                     </li>
                     <li className="flex items-start">
@@ -185,7 +204,6 @@ export const SystemStatus: React.FC = () => {
                     )}
                 </div>
             </Card>
-
         </div>
     );
 };

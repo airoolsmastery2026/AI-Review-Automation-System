@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import type { Product, ScoutedProduct, RenderJob, Trend } from '../types';
+import React, { useState, useEffect } from 'react';
+import type { Product, ScoutedProduct, Trend } from '../types';
 import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { Search, Star, Clock, Check, X, SkipForward, Bot, TrendingUp } from './LucideIcons';
+import { Search, Star, Clock, Check, X, SkipForward, Bot, TrendingUp, DollarSign } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 import { scoutForProducts, huntForTrends } from '../services/geminiService';
 import { Spinner } from './common/Spinner';
@@ -39,32 +39,19 @@ const CountdownTimer: React.FC<{ foundAt: number }> = ({ foundAt }) => {
         return () => clearInterval(interval);
     }, [foundAt, t]);
 
-    return <p className="text-xs text-slate-700 flex items-center"><Clock className="h-3 w-3 mr-1" /> {timeLeft}</p>;
+    return <p className="text-xs text-gray-400 flex items-center mt-1"><Clock className="h-3 w-3 mr-1" /> {timeLeft}</p>;
 };
 
-const StatusBadge: React.FC<{ status: ScoutedProduct['status'] }> = ({ status }) => {
+const RpmBadge: React.FC<{ level: 'Low' | 'Medium' | 'High' | undefined }> = ({ level }) => {
     const { t } = useI18n();
+    if (!level) return null;
     const styles = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        skipped: 'bg-slate-200 text-slate-600',
-        'auto-producing': 'bg-blue-100 text-blue-800',
+        Low: 'bg-red-500/20 text-red-300',
+        Medium: 'bg-yellow-500/20 text-yellow-300',
+        High: 'bg-green-500/20 text-green-300',
     };
-    const icons = {
-        pending: <Clock className="h-3 w-3 mr-1" />,
-        skipped: <SkipForward className="h-3 w-3 mr-1" />,
-        'auto-producing': <Bot className="h-3 w-3 mr-1" />,
-    }
-
-    if (status === 'approved' || status === 'declined') return null;
-
-    return (
-        <span className={`px-2 py-1 text-xs font-semibold rounded-full inline-flex items-center ${styles[status]}`}>
-            {icons[status]}
-            {t(`productScout.${status}`)}
-        </span>
-    );
-};
-
+    return <span className={`px-2 py-0.5 text-xs font-semibold rounded-full inline-flex items-center ${styles[level]}`}>{t(`productScout.rpm_${level}`)}</span>;
+}
 
 const ApprovalCard: React.FC<{ 
     product: ScoutedProduct, 
@@ -73,30 +60,43 @@ const ApprovalCard: React.FC<{
 }> = ({ product, onApprove, onDecline }) => {
     const { t } = useI18n();
     const isActionable = product.status === 'pending';
+    const scoreColor = (product.opportunityScore || 0) > 75 ? 'text-green-400' : (product.opportunityScore || 0) > 50 ? 'text-yellow-400' : 'text-red-400';
 
     return (
         <li className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between transition-opacity duration-300">
             <div className="flex-1 mb-4 sm:mb-0 sm:pr-4">
-                <p className="text-lg font-semibold text-slate-800">{product.name}</p>
-                <p className="text-sm text-slate-700 mb-2">{t('productScout.suggestedPlan')}</p>
-                <div className="flex items-center space-x-4 text-sm text-slate-600">
-                    <span className="font-bold text-green-600">${product.commission} {t('commission')}</span>
-                    <div className="flex items-center">
-                        <Star className="mr-1 h-4 w-4 fill-yellow-500 text-yellow-500" />
-                        <span>{product.rating}</span>
+                <p className="text-lg font-semibold text-gray-100">{product.name}</p>
+                <div className="flex items-center space-x-4 text-sm text-gray-400 mt-2">
+                   <div className="text-center">
+                        <p className={`text-2xl font-bold ${scoreColor}`}>{product.opportunityScore || 'N/A'}</p>
+                        <p className="text-xs font-medium text-gray-500">{t('productScout.opportunityScore')}</p>
+                    </div>
+                     <div className="border-l border-gray-700 pl-4 space-y-1">
+                        <div className="flex items-center" title={t('productScout.affiliateScore')}>
+                            <DollarSign className="h-4 w-4 mr-2 text-green-500" />
+                            <span className="font-semibold">{product.affiliateScore?.toFixed(2) || 'N/A'}</span>
+                        </div>
+                        <div className="flex items-center" title={t('productScout.rpmPotential')}>
+                            <TrendingUp className="h-4 w-4 mr-2 text-blue-500" />
+                            <RpmBadge level={product.rpmPotential} />
+                        </div>
                     </div>
                 </div>
                 {isActionable && <CountdownTimer foundAt={product.foundAt} />}
             </div>
-            <div className="flex items-center space-x-2">
-                <StatusBadge status={product.status} />
-                {isActionable && (
-                    <>
-                        <Button size="sm" variant="ghost" className="text-red-500 hover:bg-red-100" onClick={() => onDecline(product.id)}><X className="h-4 w-4" /></Button>
+            <div className="flex flex-col items-end space-y-2">
+                 {isActionable ? (
+                    <div className="flex items-center space-x-2">
+                        <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={() => onDecline(product.id)}><X className="h-4 w-4" /></Button>
                         <Button size="sm" onClick={() => onApprove(product.id)} icon={<Bot className="h-4 w-4"/>}>
                            {t('productScout.approveAndGenerate')}
                         </Button>
-                    </>
+                    </div>
+                ) : (
+                    <span className={`px-2 py-1 text-xs font-semibold rounded-full inline-flex items-center ${product.status === 'skipped' ? 'bg-gray-700 text-gray-300' : 'bg-blue-500/20 text-blue-300'}`}>
+                        {product.status === 'skipped' ? <SkipForward className="h-3 w-3 mr-1" /> : <Bot className="h-3 w-3 mr-1" />}
+                        {t(`productScout.${product.status}`)}
+                    </span>
                 )}
             </div>
         </li>
@@ -106,14 +106,14 @@ const ApprovalCard: React.FC<{
 
 interface ProductScoutProps {
     onApproveAndGenerate: (product: Product) => void;
-    onAddRenderJob: (job: Omit<RenderJob, 'id'>) => void;
+    pendingProducts: ScoutedProduct[];
+    setPendingProducts: React.Dispatch<React.SetStateAction<ScoutedProduct[]>>;
 }
 
-export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate, onAddRenderJob }) => {
+export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate, pendingProducts, setPendingProducts }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isHunting, setIsHunting] = useState(false);
     const [trends, setTrends] = useState<Trend[]>([]);
-    const [pendingProducts, setPendingProducts] = useState<ScoutedProduct[]>([]);
     const [topic, setTopic] = useState('');
     const { t } = useI18n();
 
@@ -128,12 +128,7 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
         if (!topic.trim()) return;
         setIsLoading(true);
         const products = await scoutForProducts(topic);
-        const scoutedProducts: ScoutedProduct[] = products.map(p => ({
-            ...p,
-            status: 'pending',
-            foundAt: Date.now()
-        }));
-        setPendingProducts(prev => [...prev, ...scoutedProducts]);
+        setPendingProducts(prev => [...prev, ...products]);
         setIsLoading(false);
     };
 
@@ -148,50 +143,6 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
     const handleDecline = (id: string) => {
         setPendingProducts(prev => prev.filter(p => p.id !== id));
     };
-    
-    const processAutoActions = useCallback(() => {
-        const autoApprovedProduct = pendingProducts.find(p => p.status === 'auto-producing');
-
-        if (autoApprovedProduct) {
-            onApproveAndGenerate(autoApprovedProduct);
-            onAddRenderJob({
-                productName: autoApprovedProduct.name,
-                status: 'Queued',
-                progress: 0,
-                createdAt: new Date().toISOString(),
-                models: ['VEO 3.1', 'Suno']
-            });
-            setPendingProducts(prev => prev.filter(p => p.id !== autoApprovedProduct.id));
-        }
-    }, [pendingProducts, onApproveAndGenerate, onAddRenderJob]);
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            const now = Date.now();
-            let hasChanged = false;
-            const updatedProducts = pendingProducts.map((p): ScoutedProduct => {
-                if (p.status === 'pending') {
-                    const elapsed = now - p.foundAt;
-                    if (elapsed >= TWO_HOURS) {
-                        hasChanged = true;
-                        return { ...p, status: 'auto-producing' };
-                    } else if (elapsed >= FIFTEEN_MINUTES) {
-                        hasChanged = true;
-                        return { ...p, status: 'skipped' };
-                    }
-                }
-                return p;
-            });
-            if (hasChanged) {
-                setPendingProducts(updatedProducts);
-            }
-        }, 5000);
-        
-        processAutoActions();
-
-        return () => clearInterval(timer);
-    }, [pendingProducts, processAutoActions]);
-
 
     return (
         <div className="space-y-6">
@@ -202,7 +153,7 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
                 </CardHeader>
                 <div className="p-4 space-y-4">
                     <div>
-                        <label htmlFor="product-niche" className="block text-sm font-medium text-slate-700 mb-2">
+                        <label htmlFor="product-niche" className="block text-sm font-medium text-gray-300 mb-2">
                            {t('productScout.nicheLabel')}
                         </label>
                         <input
@@ -211,7 +162,7 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
                             value={topic}
                             onChange={(e) => setTopic(e.target.value)}
                             placeholder={t('productScout.nichePlaceholder')}
-                            className="w-full bg-white/50 border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                            className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
                         />
                     </div>
                     <div className="flex justify-center">
@@ -247,14 +198,14 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
                     {isHunting && <div className="flex justify-center py-4"><Spinner /></div>}
                     {trends.length > 0 && (
                         <div className="space-y-2">
-                            <h4 className="text-sm font-semibold text-slate-700">{t('productScout.suggestedTrends')}</h4>
+                            <h4 className="text-sm font-semibold text-gray-300">{t('productScout.suggestedTrends')}</h4>
                             <div className="flex flex-wrap gap-2">
                                 {trends.map((trend) => (
                                     <button
                                         key={trend.topic}
                                         onClick={() => setTopic(trend.topic)}
                                         title={trend.description}
-                                        className="px-3 py-1.5 text-sm bg-primary-500/10 text-primary-700 rounded-full hover:bg-primary-500/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
+                                        className="px-3 py-1.5 text-sm bg-primary-500/10 text-primary-300 rounded-full hover:bg-primary-500/20 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500"
                                     >
                                         {trend.topic}
                                     </button>
@@ -271,7 +222,7 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
                         <CardTitle>{t('productScout.approvalTitle')}</CardTitle>
                         <CardDescription>{t('productScout.approvalDescription')}</CardDescription>
                     </CardHeader>
-                    <ul className="divide-y divide-slate-200">
+                    <ul className="divide-y divide-gray-700">
                         {pendingProducts.map((product) => (
                             <ApprovalCard 
                                 key={product.id}

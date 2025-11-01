@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { RenderJob } from '../types';
 import { useI18n } from '../hooks/useI18n';
-// Fix: Import Search and Video from LucideIcons, and EditIcon and PublishIcon from Icons
 import { EditIcon, PublishIcon } from './Icons';
 import { Search, Video } from './LucideIcons';
 

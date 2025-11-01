@@ -1,20 +1,24 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { Download } from './LucideIcons';
 import type { RenderJob } from '../types';
 import { useI18n } from '../hooks/useI18n';
+import { getVideoOperationStatus } from '../services/geminiService';
+import { logger } from '../services/loggingService';
 
 interface RenderQueueProps {
     jobs: RenderJob[];
     setJobs: React.Dispatch<React.SetStateAction<RenderJob[]>>;
 }
 
+const POLLING_INTERVAL = 10000; // 10 seconds
+
 const statusColors: Record<RenderJob['status'], string> = {
-    'Queued': 'bg-slate-100 text-slate-700',
-    'Rendering': 'bg-blue-100 text-blue-800',
-    'Completed': 'bg-green-100 text-green-800',
-    'Failed': 'bg-red-100 text-red-800',
+    'Queued': 'bg-gray-600 text-gray-100',
+    'Rendering': 'bg-blue-500/20 text-blue-300',
+    'Completed': 'bg-green-500/20 text-green-300',
+    'Failed': 'bg-red-500/20 text-red-300',
 };
 
 const modelColors: Record<string, string> = {
@@ -26,31 +30,85 @@ const modelColors: Record<string, string> = {
     'ElevenLabs Voice AI': 'border-cyan-500'
 };
 
+const getProgressText = (progress: number, t: (key: string) => string): string => {
+    if (progress < 30) return t('renderQueue.progress_initializing');
+    if (progress < 80) return t('renderQueue.progress_generating');
+    if (progress < 100) return t('renderQueue.progress_finalizing');
+    return t('renderQueue.Completed');
+};
 
 export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
     const { t } = useI18n();
-    
+    const activePolls = useRef<Set<string>>(new Set()).current;
+    const [downloadingJobId, setDownloadingJobId] = useState<number | null>(null);
+
     useEffect(() => {
+        const pollStatus = async (job: RenderJob) => {
+            if (!job.operationName || activePolls.has(job.operationName)) return;
+
+            activePolls.add(job.operationName);
+            try {
+                const operation = await getVideoOperationStatus(job.operationName);
+                if (operation.done) {
+                    const videoUrl = operation.response?.generatedVideos?.[0]?.video?.uri;
+                    setJobs(prev => prev.map(j => 
+                        j.id === job.id ? { ...j, status: 'Completed', progress: 100, videoUrl } : j
+                    ));
+                     logger.info(`Video job for "${job.productName}" completed.`, { videoUrl });
+                } else {
+                     setJobs(prev => prev.map(j => 
+                        j.id === job.id ? { ...j, progress: Math.min(j.progress + 10, 95) } : j
+                    ));
+                }
+            } catch (error) {
+                logger.error(`Polling failed for job "${job.productName}"`, { error });
+                 setJobs(prev => prev.map(j => 
+                    j.id === job.id ? { ...j, status: 'Failed' } : j
+                ));
+            } finally {
+                 activePolls.delete(job.operationName);
+            }
+        };
+
         const interval = setInterval(() => {
-            setJobs(prevJobs => 
-                prevJobs.map(job => {
-                    if (job.status === 'Rendering' && job.progress < 100) {
-                        return { ...job, progress: Math.min(job.progress + Math.floor(Math.random() * 10), 100) };
-                    }
-                    if (job.progress === 100 && job.status === 'Rendering') {
-                        return { ...job, status: 'Completed' };
-                    }
-                    if (job.status === 'Queued') {
-                         return { ...job, status: 'Rendering' };
-                    }
-                    return job;
-                })
-            );
-        }, 2000);
+            jobs.forEach(job => {
+                if (job.status === 'Rendering' && job.progress < 100) {
+                    pollStatus(job);
+                }
+            });
+        }, POLLING_INTERVAL);
 
         return () => clearInterval(interval);
-    }, [setJobs]);
+    }, [jobs, setJobs, activePolls]);
 
+    const handleDownload = async (job: RenderJob) => {
+        if (!job.videoUrl || !process.env.API_KEY) {
+            logger.error("Download failed: Video URL or API key is missing.", { job });
+            return;
+        }
+
+        setDownloadingJobId(job.id);
+        try {
+            const response = await fetch(`${job.videoUrl}&key=${process.env.API_KEY}`);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch video: ${response.statusText}`);
+            }
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `${job.productName.replace(/ /g, '_')}_video.mp4`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            logger.info(`Video for "${job.productName}" downloaded successfully.`);
+        } catch (error) {
+            logger.error(`Error downloading video for "${job.productName}"`, { error });
+        } finally {
+            setDownloadingJobId(null);
+        }
+    };
 
     return (
         <Card>
@@ -59,44 +117,50 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
                 <CardDescription>{t('renderQueue.description')}</CardDescription>
             </CardHeader>
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200">
-                    <thead className="bg-slate-50">
+                <table className="min-w-full divide-y divide-gray-700">
+                    <thead className="bg-gray-800">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">{t('renderQueue.product')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">{t('renderQueue.status')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">{t('renderQueue.progress')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">{t('renderQueue.models')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">{t('renderQueue.created')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-slate-700 uppercase tracking-wider">{t('renderQueue.actions')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.product')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.status')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.progress')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.models')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.created')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.actions')}</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200">
+                    <tbody className="divide-y divide-gray-700">
                         {jobs.length > 0 ? jobs.map(job => (
-                            <tr key={job.id}>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-800">{job.productName}</td>
+                            <tr key={job.id} className="hover:bg-gray-800/40">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-100">{job.productName}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusColors[job.status]}`}>
                                         {t(`renderQueue.${job.status}`)}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                     <div className="flex items-center">
-                                        <div className="w-full bg-slate-200 rounded-full h-2.5">
+                                        <div className="w-full bg-gray-700 rounded-full h-2.5 mr-3">
                                             <div className="bg-primary-500 h-2.5 rounded-full" style={{ width: `${job.progress}%` }}></div>
                                         </div>
-                                        <span className="ml-3">{job.progress}%</span>
+                                        <span className="w-24 text-right text-xs">{job.status === 'Rendering' ? getProgressText(job.progress, t) : `${job.progress}%`}</span>
                                     </div>
                                 </td>
-                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-600">
+                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                     <div className="flex flex-wrap gap-1">
                                         {job.models.map(model => (
-                                            <span key={model} className={`px-2 py-0.5 text-xs rounded border ${modelColors[model] || 'border-slate-400'}`}>{model}</span>
+                                            <span key={model} className={`px-2 py-0.5 text-xs rounded border ${modelColors[model] || 'border-gray-500'}`}>{model}</span>
                                         ))}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700">{new Date(job.createdAt).toLocaleString()}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{new Date(job.createdAt).toLocaleString()}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <Button size="sm" variant="ghost" disabled={job.status !== 'Completed'}>
+                                    <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        disabled={job.status !== 'Completed'}
+                                        isLoading={downloadingJobId === job.id}
+                                        onClick={() => handleDownload(job)}
+                                    >
                                         <Download className="h-4 w-4 mr-2" />
                                         {t('renderQueue.download')}
                                     </Button>
@@ -104,7 +168,7 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
                             </tr>
                         )) : (
                             <tr>
-                                <td colSpan={6} className="px-6 py-4 text-center text-sm text-slate-500">
+                                <td colSpan={6} className="px-6 py-4 text-center text-sm text-gray-500">
                                     {t('renderQueue.noJobs')}
                                 </td>
                             </tr>

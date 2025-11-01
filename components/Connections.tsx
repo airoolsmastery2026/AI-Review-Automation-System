@@ -8,21 +8,14 @@ import {
     HardDriveDownload,
     HardDriveUpload,
     X as XIcon,
-    AlertTriangle
+    AlertTriangle,
+    CheckCircle
 } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 import { PlatformLogo } from './PlatformLogo';
 import { logger } from '../services/loggingService';
-
-type ConnectionStatus = 'connected' | 'disconnected' | 'refreshing';
-
-interface Connection {
-    id: string;
-    username: string;
-    status: ConnectionStatus;
-    autoMode: boolean;
-    credentials: Record<string, string>;
-}
+// Fix: Import Connection and ConnectionStatus from the central types file.
+import type { Connection, ConnectionStatus } from '../types';
 
 interface Platform {
     id: string;
@@ -33,7 +26,6 @@ interface Platform {
 }
 
 const platforms: Record<string, Platform> = {
-    gemini: { id: "gemini", nameKey: "connections.gemini", icon: <PlatformLogo platformId="gemini" />, fields: [{name: 'API_KEY', type: 'password'}], docsUrl: 'https://ai.google.dev/gemini-api/docs/api-key' },
     youtube: { id: "youtube", nameKey: "connections.youtube", icon: <PlatformLogo platformId="youtube" />, fields: [{name: 'CLIENT_ID', type: 'text'}, {name: 'CLIENT_SECRET', type: 'password'}], docsUrl: 'https://console.cloud.google.com/apis/credentials' },
     tiktok: { id: "tiktok", nameKey: "connections.tiktok", icon: <PlatformLogo platformId="tiktok" />, fields: [{name: 'ACCESS_TOKEN', type: 'password'}], docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/' },
     facebook: { id: "facebook", nameKey: "connections.facebook", icon: <PlatformLogo platformId="facebook" />, fields: [{name: 'PAGE_ID', type: 'text'}, {name: 'ACCESS_TOKEN', type: 'password'}], docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started' },
@@ -64,7 +56,7 @@ const platforms: Record<string, Platform> = {
 const platformCategories = [
     { 
         nameKey: 'connections.category_ai', 
-        platforms: ['gemini']
+        platforms: [] // Gemini is now server-side
     },
     {
         nameKey: 'connections.category_social',
@@ -95,12 +87,15 @@ const StatusIndicator: React.FC<{status: ConnectionStatus}> = ({ status }) => {
 const ConnectionModal: React.FC<{
     platform: Platform;
     connection: Connection | null;
-    onSave: (connectionData: Connection) => void;
-    onDisconnect: (id: string) => void;
+    onSave: (connectionData: Connection) => Promise<void>;
+    onDisconnect: (id: string) => Promise<void>;
     onClose: () => void;
 }> = ({ platform, connection, onSave, onDisconnect, onClose }) => {
     const { t } = useI18n();
     const [credentials, setCredentials] = useState<Record<string, string>>({});
+    const [error, setError] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isDisconnecting, setIsDisconnecting] = useState(false);
     const modalRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -119,19 +114,50 @@ const ConnectionModal: React.FC<{
         };
     }, [onClose]);
 
-    const handleSave = () => {
-        const newConnection = {
-            id: platform.id,
-            username: `${t(platform.nameKey)} User`,
-            status: 'connected' as ConnectionStatus,
-            autoMode: true,
-            credentials,
-        };
-        onSave(newConnection);
-        logger.info(`Connection saved for platform: ${platform.id}`);
-        onClose();
+    const handleSave = async () => {
+        const isInvalid = platform.fields.some(field => !credentials[field.name]?.trim());
+        if (isInvalid) {
+            setError(t('connections.allFieldsRequired'));
+            return;
+        }
+        setIsSaving(true);
+        try {
+            const newConnection = {
+                id: platform.id,
+                username: `${t(platform.nameKey)} User`,
+                status: 'connected' as ConnectionStatus,
+                autoMode: true,
+                credentials,
+            };
+            await onSave(newConnection);
+            logger.info(`Connection saved for platform: ${platform.id}`);
+            onClose();
+        } catch (e) {
+            logger.error(`Failed to save connection for ${platform.id}`, { error: e });
+            setError('Failed to save connection.');
+        } finally {
+            setIsSaving(false);
+        }
     };
     
+    const handleDisconnectClick = async () => {
+        setIsDisconnecting(true);
+        try {
+            await onDisconnect(platform.id);
+        } catch(e) {
+            logger.error(`Failed to disconnect from ${platform.id}`, { error: e });
+        } finally {
+            setIsDisconnecting(false);
+        }
+    };
+
+    const handleInputChange = (fieldName: string, value: string) => {
+        if (error) {
+            setError(null);
+        }
+        setCredentials(prev => ({ ...prev, [fieldName]: value }));
+    };
+
     const isConnected = connection?.status === 'connected' || connection?.status === 'refreshing';
     
     return (
@@ -165,6 +191,12 @@ const ConnectionModal: React.FC<{
                     </p>
                 </div>
             )}
+
+            {error && (
+                <div className="bg-red-900/40 border border-red-500/30 p-3 rounded-lg text-center text-sm text-red-300">
+                    {error}
+                </div>
+            )}
             
             {!isConnected && platform.fields.map(field => (
                 <div key={field.name}>
@@ -173,18 +205,18 @@ const ConnectionModal: React.FC<{
                         type={field.type}
                         className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm"
                         value={credentials[field.name] || ''}
-                        onChange={(e) => setCredentials(prev => ({ ...prev, [field.name]: e.target.value }))}
+                        onChange={(e) => handleInputChange(field.name, e.target.value)}
                     />
                 </div>
             ))}
 
             <div className="flex justify-end space-x-2 pt-2">
                 {isConnected ? (
-                     <Button size="sm" variant="secondary" onClick={() => onDisconnect(platform.id)} icon={<Trash className="h-3 w-3" />}>{t('connections.disconnect')}</Button>
+                     <Button size="sm" variant="secondary" onClick={handleDisconnectClick} isLoading={isDisconnecting} icon={<Trash className="h-3 w-3" />}>{t('connections.disconnect')}</Button>
                 ) : (
                     <>
                         <Button size="sm" variant="ghost" onClick={onClose}>{t('connections.cancel')}</Button>
-                        <Button size="sm" onClick={handleSave} icon={<Save className="h-3 w-3"/>}>{t('connections.saveAndConnect')}</Button>
+                        <Button size="sm" onClick={handleSave} isLoading={isSaving} icon={<Save className="h-3 w-3"/>}>{t('connections.saveAndConnect')}</Button>
                     </>
                 )}
             </div>
@@ -230,11 +262,11 @@ export const Connections: React.FC = () => {
         }
     });
     const [activePlatformId, setActivePlatformId] = useState<string | null>(null);
+    const [isRestoring, setIsRestoring] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
         const timers: ReturnType<typeof setTimeout>[] = [];
-// Fix: Explicitly type `conn` as `Connection` to resolve type errors, making the loop more robust against state pollution from untyped sources.
         Object.values(connections).forEach((conn: Connection) => {
             if (conn.status === 'connected') {
                 const timer = setTimeout(() => {
@@ -262,11 +294,13 @@ export const Connections: React.FC = () => {
         }
     };
 
-    const handleSave = (connData: Connection) => {
+    const handleSave = async (connData: Connection) => {
+        await new Promise(resolve => setTimeout(resolve, 300));
         saveConnections({ ...connections, [connData.id]: connData });
     };
     
-    const handleDisconnect = (id: string) => {
+    const handleDisconnect = async (id: string) => {
+        await new Promise(resolve => setTimeout(resolve, 300));
         const {[id]: _, ...rest} = connections;
         saveConnections(rest);
         setActivePlatformId(null);
@@ -294,19 +328,25 @@ export const Connections: React.FC = () => {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (!file) return;
+        setIsRestoring(true);
         const reader = new FileReader();
         reader.onload = (e) => {
             try {
                 if (typeof e.target?.result === 'string') {
-                    // Fix: Add a type assertion to ensure the parsed JSON from the restored file conforms to the expected type. This prevents type errors when the state is updated with potentially unstructured data.
                     const restoredConnections = JSON.parse(e.target.result) as Record<string, Connection>;
                     saveConnections(restoredConnections);
                     logger.info("Connections successfully restored from file.");
                 }
             } catch (err) { 
                 logger.error("Failed to restore connections from file.", { error: err });
+            } finally {
+                setIsRestoring(false);
             }
         };
+        reader.onerror = () => {
+            logger.error("Error reading restore file.");
+            setIsRestoring(false);
+        }
         reader.readAsText(file);
         event.target.value = ''; // Reset file input
     };
@@ -322,14 +362,33 @@ export const Connections: React.FC = () => {
                         <CardDescription>{t('connections.hubDescription')}</CardDescription>
                         <div className="flex justify-center space-x-2 mt-4">
                             <Button variant="secondary" onClick={handleBackup} icon={<HardDriveDownload className="h-4 w-4"/>} title={t('connections.backupTooltip')}>{t('connections.backup')}</Button>
-                            <Button variant="secondary" onClick={handleRestoreClick} icon={<HardDriveUpload className="h-4 w-4"/>} title={t('connections.restoreTooltip')}>{t('connections.restore')}</Button>
+                            <Button variant="secondary" onClick={handleRestoreClick} isLoading={isRestoring} icon={<HardDriveUpload className="h-4 w-4"/>} title={t('connections.restoreTooltip')}>{t('connections.restore')}</Button>
                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".json" />
                         </div>
                     </CardHeader>
                 </Card>
 
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                    {platformCategories.map(category => (
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>{t('connections.category_ai')}</CardTitle>
+                        </CardHeader>
+                        <div className="p-4">
+                            <div className="glass-card p-4 rounded-lg flex items-center">
+                                <PlatformLogo platformId="gemini" className="w-10 h-10" />
+                                <div className="ml-4 flex-1">
+                                    <h3 className="font-bold text-gray-100">{t('connections.gemini')}</h3>
+                                    <p className="text-xs text-gray-400">Connection is managed by the backend server for enhanced security.</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                    <span className="text-sm font-semibold text-green-300">Connected</span>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {platformCategories.filter(c => c.platforms.length > 0).map(category => (
                         <Card key={category.nameKey}>
                             <CardHeader>
                                 <CardTitle>{t(category.nameKey)}</CardTitle>

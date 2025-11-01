@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useCallback, useEffect } from 'react';
 import type { Product, GeneratedContent } from '../types';
 import { GenerationType } from '../types';
@@ -32,7 +29,7 @@ const GenerationSection: React.FC<{
 }> = ({ title, children, onGenerate, isLoading, isGenerated }) => {
     const { t } = useI18n();
     return (
-        <Card className="bg-slate-50/50">
+        <Card>
             <CardHeader className="flex justify-between items-center">
                 <div>
                     <CardTitle>{title}</CardTitle>
@@ -45,7 +42,7 @@ const GenerationSection: React.FC<{
                 </Button>
             </CardHeader>
             {isLoading && !isGenerated && <div className="flex justify-center p-8"><Spinner/></div>}
-            {isGenerated && <div className="prose prose-sm max-w-none p-4 bg-slate-100/50 rounded-b-lg text-slate-800 prose-headings:text-slate-900 prose-strong:text-slate-900">{children}</div>}
+            {isGenerated && <div className="prose prose-sm max-w-none p-4 bg-gray-800/50 rounded-b-lg text-gray-300 prose-headings:text-gray-100 prose-strong:text-gray-100 prose-invert">{children}</div>}
         </Card>
     );
 };
@@ -121,10 +118,10 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                     <CardDescription>{t('contentGenerator.description')}</CardDescription>
                 </CardHeader>
                 <div className="p-4">
-                    <label htmlFor="product-select" className="block text-sm font-medium text-slate-700 mb-2">{t('contentGenerator.selectLabel')}</label>
+                    <label htmlFor="product-select" className="block text-sm font-medium text-gray-300 mb-2">{t('contentGenerator.selectLabel')}</label>
                     <select
                         id="product-select"
-                        className="w-full bg-white border border-slate-300 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-slate-900"
+                        className="w-full bg-gray-800 border border-gray-600 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-gray-50"
                         value={selectedProductId || ''}
                         onChange={(e) => setSelectedProductId(e.target.value)}
                         disabled={products.length === 0}
@@ -179,7 +176,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                             <p className="font-bold">{t('contentGenerator.caption')}</p>
                             <p>{selectedProductContent?.captions?.caption}</p>
                             <p className="font-bold mt-4">{t('contentGenerator.hashtags')}</p>
-                            <p className="text-primary-600">{selectedProductContent?.captions?.hashtags.join(' ')}</p>
+                            <p className="text-primary-400">{selectedProductContent?.captions?.hashtags.join(' ')}</p>
                        </div>
                     </GenerationSection>
                 </div>

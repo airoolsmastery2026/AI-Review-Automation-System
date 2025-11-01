@@ -1,13 +1,7 @@
-
-
-
-
-
-
 import React from 'react';
 import { Page } from '../types';
 import { AnalyticsIcon, DashboardIcon, EditIcon, PublishIcon, SearchIcon, CloseIcon, SparklesIcon, ConnectIcon, TemplateIcon } from './Icons';
-import { Video, BookOpen, Code, ShieldCheck, GitBranch } from './LucideIcons';
+import { Video, BookOpen, Code, ShieldCheck, GitBranch, CreditCard } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 
 const Logo = () => {
@@ -34,6 +28,7 @@ const navigation = [
     { name: Page.RENDER_QUEUE, icon: Video },
     { name: Page.CONNECTIONS, icon: ConnectIcon },
     { name: Page.ANALYTICS, icon: AnalyticsIcon },
+    { name: Page.FINANCE, icon: CreditCard },
     { name: Page.SYSTEM_STATUS, icon: ShieldCheck },
     { name: Page.PROJECT_ROADMAP, icon: GitBranch },
     { name: Page.APP_GUIDE, icon: BookOpen },

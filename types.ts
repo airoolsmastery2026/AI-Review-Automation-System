@@ -8,10 +8,11 @@ export enum Page {
     RENDER_QUEUE = 'Render Queue',
     CONNECTIONS = 'Connections',
     ANALYTICS = 'Analytics',
-    SYSTEM_STATUS = 'System Status & Audit',
+    SYSTEM_STATUS = 'System Status',
     PROJECT_ROADMAP = 'Project Roadmap',
     APP_GUIDE = 'App Guide',
     LLAMA_CODER_GUIDE = 'LlamaCoder Guide',
+    FINANCE = 'Finance',
 }
 
 export interface Product {
@@ -35,8 +36,16 @@ export interface GeneratedContent {
     };
 }
 
+export interface ProductFinancials {
+    productionCost: number;
+    affiliateRevenue: number;
+    publishedAt: string;
+}
+
 export interface ProductWithContent extends Product {
     content: GeneratedContent;
+    financials?: ProductFinancials;
+    performance?: PlatformPerformance[];
 }
 
 export enum GenerationType {
@@ -73,6 +82,8 @@ export interface RenderJob {
   progress: number;
   createdAt: string;
   models: AIModel[];
+  operationName?: string;
+  videoUrl?: string;
 }
 
 export type ScoutStatus = 'pending' | 'approved' | 'declined' | 'skipped' | 'auto-producing';
@@ -80,6 +91,9 @@ export type ScoutStatus = 'pending' | 'approved' | 'declined' | 'skipped' | 'aut
 export interface ScoutedProduct extends Product {
     status: ScoutStatus;
     foundAt: number; // Timestamp
+    opportunityScore?: number;
+    rpmPotential?: 'Low' | 'Medium' | 'High';
+    affiliateScore?: number;
 }
 
 export interface Trend {
@@ -92,6 +106,17 @@ export interface LogEntry {
     level: 'INFO' | 'WARN' | 'ERROR';
     message: string;
     context?: object;
+}
+
+// Fix: Moved ConnectionStatus and Connection from components/Connections.tsx to types.ts to resolve import errors.
+export type ConnectionStatus = 'connected' | 'disconnected' | 'refreshing';
+
+export interface Connection {
+    id: string;
+    username: string;
+    status: ConnectionStatus;
+    autoMode: boolean;
+    credentials: Record<string, string>;
 }
 
 export type ConnectionHealthStatus = 'Connected' | 'Refreshing' | 'Disconnected' | 'Error';
@@ -117,4 +142,16 @@ export interface ChangelogEntry {
     version: string;
     date: string;
     changeKeys: string[];
+}
+
+export interface AgentSettings {
+    enabled: boolean;
+    frequencyMinutes: number;
+    defaultTopic: string;
+}
+
+export interface AutomationSettings {
+    masterEnabled: boolean;
+    scoutAgent: AgentSettings;
+    autoApproveThreshold: number;
 }

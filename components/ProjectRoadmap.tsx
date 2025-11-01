@@ -26,31 +26,31 @@ const changelogEntries: ChangelogEntry[] = [
 ];
 
 const tagColors: Record<string, string> = {
-    'Backend': 'bg-red-200 text-red-800',
-    'Security': 'bg-red-200 text-red-800',
-    'Critical': 'bg-red-200 text-red-800',
-    'Analytics': 'bg-blue-200 text-blue-800',
-    'UI/UX': 'bg-blue-200 text-blue-800',
-    'Video': 'bg-purple-200 text-purple-800',
-    'Feature': 'bg-purple-200 text-purple-800',
-    'i18n': 'bg-yellow-200 text-yellow-800',
-    'AI': 'bg-yellow-200 text-yellow-800',
-    'System': 'bg-green-200 text-green-800',
-    'Monitoring': 'bg-green-200 text-green-800',
-    'Frontend': 'bg-indigo-200 text-indigo-800',
-    'Architecture': 'bg-gray-300 text-gray-800',
-    'Core Feature': 'bg-green-200 text-green-800',
+    'Backend': 'bg-red-500/20 text-red-300',
+    'Security': 'bg-red-500/20 text-red-300',
+    'Critical': 'bg-red-500/20 text-red-300',
+    'Analytics': 'bg-blue-500/20 text-blue-300',
+    'UI/UX': 'bg-blue-500/20 text-blue-300',
+    'Video': 'bg-purple-500/20 text-purple-300',
+    'Feature': 'bg-purple-500/20 text-purple-300',
+    'i18n': 'bg-yellow-500/20 text-yellow-300',
+    'AI': 'bg-yellow-500/20 text-yellow-300',
+    'System': 'bg-green-500/20 text-green-300',
+    'Monitoring': 'bg-green-500/20 text-green-300',
+    'Frontend': 'bg-indigo-500/20 text-indigo-300',
+    'Architecture': 'bg-gray-500/20 text-gray-300',
+    'Core Feature': 'bg-green-500/20 text-green-300',
 };
 
 const RoadmapCard: React.FC<{ task: RoadmapTask }> = ({ task }) => {
     const { t } = useI18n();
     return (
-        <div className="bg-white/80 p-4 rounded-lg shadow-md border border-slate-200">
-            <h3 className="font-bold text-slate-800 text-base">{t(task.titleKey)}</h3>
-            <p className="text-sm text-slate-600 my-2">{t(task.descriptionKey)}</p>
+        <div className="glass-card p-4 rounded-lg shadow-md border border-gray-700">
+            <h3 className="font-bold text-gray-100 text-base">{t(task.titleKey)}</h3>
+            <p className="text-sm text-gray-400 my-2">{t(task.descriptionKey)}</p>
             <div className="flex flex-wrap gap-2 mt-3">
                 {task.tags.map(tag => (
-                    <span key={tag} className={`px-2 py-0.5 text-xs font-semibold rounded-full ${tagColors[tag] || 'bg-gray-200 text-gray-800'}`}>
+                    <span key={tag} className={`px-2 py-0.5 text-xs font-semibold rounded-full ${tagColors[tag] || 'bg-gray-500/20 text-gray-300'}`}>
                         {tag}
                     </span>
                 ))}
@@ -66,8 +66,8 @@ const RoadmapColumn: React.FC<{ title: string, tasks: RoadmapTask[], status: Roa
         'Completed': 'border-t-green-500',
     };
     return (
-        <div className={`flex-1 min-w-[300px] bg-slate-100 rounded-lg shadow-inner ${statusColors[status]}`}>
-            <h2 className="text-lg font-semibold text-slate-700 p-4 border-b border-slate-200 sticky top-0 bg-slate-100/80 backdrop-blur-sm rounded-t-lg">{title}</h2>
+        <div className={`flex-1 min-w-[300px] bg-gray-800/60 rounded-lg shadow-inner ${statusColors[status]}`}>
+            <h2 className="text-lg font-semibold text-gray-200 p-4 border-b border-gray-700 sticky top-0 bg-gray-800/80 backdrop-blur-sm rounded-t-lg">{title}</h2>
             <div className="p-4 space-y-4">
                 {tasks.map(task => <RoadmapCard key={task.id} task={task} />)}
             </div>
@@ -91,7 +91,7 @@ export const ProjectRoadmap: React.FC = () => {
 
             <Card>
                 <CardHeader className="flex items-center space-x-3">
-                    <GitBranch className="h-6 w-6 text-primary-500" />
+                    <GitBranch className="h-6 w-6 text-primary-400" />
                     <CardTitle>{t('projectRoadmap.roadmapTitle')}</CardTitle>
                 </CardHeader>
                 <div className="p-4">
@@ -105,25 +105,25 @@ export const ProjectRoadmap: React.FC = () => {
 
             <Card>
                 <CardHeader className="flex items-center space-x-3">
-                    <ClipboardList className="h-6 w-6 text-primary-500" />
+                    <ClipboardList className="h-6 w-6 text-primary-400" />
                     <CardTitle>{t('projectRoadmap.changelogTitle')}</CardTitle>
                 </CardHeader>
                 <div className="p-4 space-y-6">
                     {changelogEntries.map(entry => (
                         <div key={entry.version} className="relative pl-8">
                             <div className="absolute left-0 top-1 flex items-center">
-                                <span className="h-3 w-3 bg-primary-500 rounded-full ring-4 ring-slate-200"></span>
-                                <div className="h-px w-5 bg-slate-300"></div>
+                                <span className="h-3 w-3 bg-primary-500 rounded-full ring-4 ring-gray-700"></span>
+                                <div className="h-px w-5 bg-gray-600"></div>
                             </div>
-                            <div className="border border-slate-200 rounded-lg p-4 bg-white/50">
+                            <div className="border border-gray-700 rounded-lg p-4 glass-card">
                                 <div className="flex items-baseline space-x-3">
-                                    <h3 className="font-bold text-lg text-slate-800">{t('projectRoadmap.version')} {entry.version}</h3>
-                                    <p className="text-sm text-slate-500">{entry.date}</p>
+                                    <h3 className="font-bold text-lg text-gray-100">{t('projectRoadmap.version')} {entry.version}</h3>
+                                    <p className="text-sm text-gray-400">{entry.date}</p>
                                 </div>
                                 <ul className="mt-2 list-none space-y-1">
                                     {entry.changeKeys.map(changeKey => (
-                                        <li key={changeKey} className="flex items-start text-sm text-slate-700">
-                                            <CheckCircle className="h-4 w-4 mr-2 mt-0.5 text-green-500 flex-shrink-0" />
+                                        <li key={changeKey} className="flex items-start text-sm text-gray-300">
+                                            <CheckCircle className="h-4 w-4 mr-2 mt-0.5 text-green-400 flex-shrink-0" />
                                             <span>{t(changeKey)}</span>
                                         </li>
                                     ))}

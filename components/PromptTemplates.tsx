@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { TemplateIcon } from './Icons';
 import { useI18n } from '../hooks/useI18n';
+import { logger } from '../services/loggingService';
 
 type TemplateType = 'script' | 'titles' | 'description' | 'captions';
 
@@ -26,13 +27,13 @@ Structure:
 2. Intro – what the product does
 3. 3 Key Features – short, impactful
 4. Real-world benefits – why it matters
-5. Call to Action (CTA) – encourage viewers to try via affiliate link
+5. Social Proof – Weave in user testimonials or social proof. Mention its high rating or popularity to build trust.
+6. Call to Action (CTA) – encourage viewers to try via affiliate link
 
 Product data:
-{{product_name}}, {{description}}, {{main_features}}, {{affiliate_link}}
+{{product_name}}, {{description}}, {{main_features}}, {{affiliate_link}}, {{rating}}, {{conversions}}
 
 Tone: friendly, engaging, natural.
-Language: English.
 Avoid over-promotional language.` 
     },
     { 
@@ -92,13 +93,14 @@ export const PromptTemplates: React.FC = () => {
     const [templates, setTemplates] = useState(initialTemplates);
     const [selectedTemplate, setSelectedTemplate] = useState<PromptTemplate | null>(null);
     const [isCreating, setIsCreating] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
     const { t } = useI18n();
     
     const typeStyles: Record<TemplateType, { color: string, label: string }> = {
-        script: { color: 'bg-blue-100 text-blue-800', label: t('promptTemplates.script') },
-        titles: { color: 'bg-green-100 text-green-800', label: t('promptTemplates.titles') },
-        description: { color: 'bg-yellow-100 text-yellow-800', label: t('promptTemplates.description_type') },
-        captions: { color: 'bg-purple-100 text-purple-800', label: t('promptTemplates.captions') },
+        script: { color: 'bg-blue-500/20 text-blue-300', label: t('promptTemplates.script') },
+        titles: { color: 'bg-green-500/20 text-green-300', label: t('promptTemplates.titles') },
+        description: { color: 'bg-yellow-500/20 text-yellow-300', label: t('promptTemplates.description_type') },
+        captions: { color: 'bg-purple-500/20 text-purple-300', label: t('promptTemplates.captions') },
     }
 
     const handleSelectTemplate = (template: PromptTemplate) => {
@@ -111,15 +113,23 @@ export const PromptTemplates: React.FC = () => {
         setSelectedTemplate({ id: `temp_${Date.now()}`, name: '', type: 'script', content: '' });
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!selectedTemplate) return;
-        if (isCreating) {
-            setTemplates(prev => [...prev, selectedTemplate]);
-        } else {
-            setTemplates(prev => prev.map(t => t.id === selectedTemplate.id ? selectedTemplate : t));
+        setIsSaving(true);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API call
+        try {
+            if (isCreating) {
+                setTemplates(prev => [...prev, selectedTemplate]);
+            } else {
+                setTemplates(prev => prev.map(t => t.id === selectedTemplate.id ? selectedTemplate : t));
+            }
+            setSelectedTemplate(null);
+            setIsCreating(false);
+        } catch (e) {
+            logger.error("Failed to save template", { error: e });
+        } finally {
+            setIsSaving(false);
         }
-        setSelectedTemplate(null);
-        setIsCreating(false);
     }
 
     return (
@@ -130,14 +140,14 @@ export const PromptTemplates: React.FC = () => {
                     <CardHeader>
                         <CardTitle>{t('promptTemplates.templates')}</CardTitle>
                     </CardHeader>
-                     <ul className="divide-y divide-slate-200 p-2">
+                     <ul className="divide-y divide-gray-700 p-2">
                         {templates.map(template => (
-                             <li key={template.id} onClick={() => handleSelectTemplate(template)} className={`p-3 rounded-lg cursor-pointer hover:bg-slate-100 ${selectedTemplate?.id === template.id ? 'bg-slate-100' : ''}`}>
+                             <li key={template.id} onClick={() => handleSelectTemplate(template)} className={`p-3 rounded-lg cursor-pointer hover:bg-gray-700/50 ${selectedTemplate?.id === template.id ? 'bg-gray-700/50' : ''}`}>
                                 <div className="flex justify-between items-center">
-                                     <p className="font-semibold text-slate-800">{template.name}</p>
+                                     <p className="font-semibold text-gray-200">{template.name}</p>
                                      <span className={`px-2 py-1 text-xs font-semibold rounded-full ${typeStyles[template.type].color}`}>{typeStyles[template.type].label}</span>
                                 </div>
-                                <p className="text-sm text-slate-700 truncate mt-1">{template.content}</p>
+                                <p className="text-sm text-gray-400 truncate mt-1">{template.content}</p>
                             </li>
                         ))}
                     </ul>
@@ -152,21 +162,21 @@ export const PromptTemplates: React.FC = () => {
                         </CardHeader>
                         <div className="p-6 space-y-4">
                              <div>
-                                <label htmlFor="template-name" className="block text-sm font-medium text-slate-700 mb-1">{t('promptTemplates.nameLabel')}</label>
+                                <label htmlFor="template-name" className="block text-sm font-medium text-gray-300 mb-1">{t('promptTemplates.nameLabel')}</label>
                                 <input 
                                     type="text" 
                                     id="template-name" 
                                     value={selectedTemplate.name}
                                     onChange={(e) => setSelectedTemplate({...selectedTemplate, name: e.target.value})}
-                                    className="w-full bg-white/50 border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary-500" />
+                                    className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500" />
                             </div>
                             <div>
-                                <label htmlFor="template-type" className="block text-sm font-medium text-slate-700 mb-1">{t('promptTemplates.typeLabel')}</label>
+                                <label htmlFor="template-type" className="block text-sm font-medium text-gray-300 mb-1">{t('promptTemplates.typeLabel')}</label>
                                 <select 
                                     id="template-type"
                                     value={selectedTemplate.type}
                                     onChange={(e) => setSelectedTemplate({...selectedTemplate, type: e.target.value as TemplateType})}
-                                    className="w-full bg-white/50 border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary-500">
+                                    className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500">
                                     <option value="script">{t('promptTemplates.script')}</option>
                                     <option value="titles">{t('promptTemplates.titles')}</option>
                                     <option value="description">{t('promptTemplates.description_type')}</option>
@@ -174,28 +184,28 @@ export const PromptTemplates: React.FC = () => {
                                 </select>
                             </div>
                              <div>
-                                <label htmlFor="template-content" className="block text-sm font-medium text-slate-700 mb-1">{t('promptTemplates.contentLabel')}</label>
+                                <label htmlFor="template-content" className="block text-sm font-medium text-gray-300 mb-1">{t('promptTemplates.contentLabel')}</label>
                                 <textarea 
                                     id="template-content"
                                     rows={10}
                                     value={selectedTemplate.content}
                                     onChange={(e) => setSelectedTemplate({...selectedTemplate, content: e.target.value})}
-                                    className="w-full bg-white/50 border border-slate-300 rounded-md px-3 py-2 text-slate-900 focus:outline-none focus:ring-1 focus:ring-primary-500 font-mono text-sm"
+                                    className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 font-mono text-sm"
                                     placeholder={t('promptTemplates.placeholder')}
                                 />
-                                <p className="text-xs text-slate-500 mt-1">{t('promptTemplates.helpText')}</p>
+                                <p className="text-xs text-gray-500 mt-1">{t('promptTemplates.helpText')}</p>
                             </div>
                             <div className="flex justify-end space-x-2">
                                 <Button variant="secondary" onClick={() => setSelectedTemplate(null)}>{t('promptTemplates.cancel')}</Button>
-                                <Button onClick={handleSave}>{t('promptTemplates.save')}</Button>
+                                <Button onClick={handleSave} isLoading={isSaving}>{t('promptTemplates.save')}</Button>
                             </div>
                         </div>
                     </Card>
                 ) : (
-                    <div className="flex items-center justify-center h-full rounded-lg border-2 border-dashed border-slate-300">
+                    <div className="flex items-center justify-center h-full rounded-lg border-2 border-dashed border-gray-700">
                         <div className="text-center">
-                            <TemplateIcon className="mx-auto h-12 w-12 text-slate-400" />
-                            <h3 className="mt-2 text-sm font-semibold text-slate-600">{t('promptTemplates.selectPrompt')}</h3>
+                            <TemplateIcon className="mx-auto h-12 w-12 text-gray-500" />
+                            <h3 className="mt-2 text-sm font-semibold text-gray-400">{t('promptTemplates.selectPrompt')}</h3>
                         </div>
                     </div>
                 )}
