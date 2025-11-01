@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 const defaultProps = {
@@ -156,6 +157,17 @@ const Digistore24Logo = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const ZaloLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <title>Zalo Logo</title>
+      <path d="M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z" fill="#0068FF" />
+      <path d="M17.5 9.5a5 5 0 00-11 0c0 3.5 4 6.5 5.5 6.5s5.5-3 5.5-6.5z" fill="#fff" />
+      <circle cx="9.5" cy="9.5" r="1.5" fill="#0068FF" />
+      <circle cx="14.5" cy="9.5" r="1.5" fill="#0068FF" />
+      <path d="M9 13c.667 1 2 1.333 3 .5" stroke="#0068FF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+);
+
 export const PlatformLogo: React.FC<{ platformId: string; className?: string }> = ({ platformId, className }) => {
     const props = { className: className || defaultProps.className };
 
@@ -168,6 +180,7 @@ export const PlatformLogo: React.FC<{ platformId: string; className?: string }> 
         case 'x': return <XLogo {...props} />;
         case 'pinterest': return <PinterestLogo {...props} />;
         case 'telegram': return <TelegramLogo {...props} />;
+        case 'zalo': return <ZaloLogo {...props} />;
         case 'clickbank': return <ClickBankLogo {...props} />;
         case 'amazon': return <AmazonAssociatesLogo {...props} />;
         case 'shopify': return <ShopifyLogo {...props} />;

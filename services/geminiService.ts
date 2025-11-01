@@ -36,9 +36,7 @@ const generateContentWithProxy = async (params: { model: string, contents: any, 
 };
 
 const analyzeRpmPotential = async (productName: string, topic: string): Promise<'Low' | 'Medium' | 'High'> => {
-    const prompt = `Analyze the RPM (Revenue Per Mille / ad revenue) potential for a YouTube Shorts video about a product called "${productName}" in the niche "${topic}". 
-    Consider audience value to advertisers and general interest.
-    Respond with only one word: Low, Medium, or High.`;
+    const prompt = `As a YouTube monetization expert, assess the RPM (Revenue Per Mille) potential for a YouTube Shorts video about "${productName}", a product in the "${topic}" niche. Consider factors like advertiser appeal, audience demographics, and topic saturation. Your entire response must be a single word: Low, Medium, or High.`;
     
     // In a real backend setup, we don't need to mock this. If the backend call fails, it will throw an error.
     // For now, let's keep a simple fallback for robustness.
@@ -62,9 +60,19 @@ const analyzeRpmPotential = async (productName: string, topic: string): Promise<
 
 export const scoutForProducts = async (topic: string): Promise<ScoutedProduct[]> => {
     const prompt = `
-Act as an expert affiliate marketing researcher. Find 5 trending and high-converting digital products or AI tools related to the topic: "${topic}".
-For each product, provide a concise name, a compelling description for a YouTube video, a list of 3-4 key features (as a string), a plausible-looking affiliate link, an estimated commission percentage (as a number), a user rating out of 5 (as a number), and an estimated number of conversions.
-Ensure the response is a valid JSON array matching the provided schema.
+Act as an expert affiliate marketing researcher specializing in the digital product and AI tool space. 
+Your task is to identify 5 newly trending or high-potential digital products or AI tools related to "${topic}".
+For each product, provide the following information formatted as a valid JSON array that adheres to the provided schema.
+
+- **name**: The official product name.
+- **description**: A short, compelling one-sentence hook for a YouTube Shorts video (max 150 characters).
+- **features**: A single string listing 3-4 key features, separated by commas.
+- **affiliateLink**: A realistic-looking affiliate link (e.g., "https://product.com?ref=aivideo").
+- **commission**: An estimated commission percentage (numeric value).
+- **rating**: A user rating out of 5 (numeric, can have one decimal place).
+- **conversions**: An estimated number of monthly conversions for a typical affiliate.
+
+Focus on products that have launched or gained significant traction in the last 3-6 months.
 `;
     
     const schema = {
@@ -137,11 +145,12 @@ Ensure the response is a valid JSON array matching the provided schema.
 
 export const huntForTrends = async (): Promise<Trend[]> => {
     const prompt = `
-Act as a market trend analyst specializing in digital products and affiliate marketing.
-Identify 5 current, high-potential trending topics or niches for creating review videos (like YouTube Shorts).
-For each trend, provide a concise topic name and a short, compelling description explaining why it's trending.
+Act as a market trend analyst for digital content creators. 
+Identify 5 emerging, high-potential trending topics or niches suitable for YouTube Shorts review videos.
+Focus on areas with growing search volume but moderate competition.
+For each trend, provide a concise topic name and a brief (1-2 sentences) description explaining its current relevance and potential.
 
-Ensure the response is a valid JSON array of objects, where each object has "topic" and "description" keys.
+Ensure the response is a valid JSON array matching the provided schema.
 `;
     const schema = {
         type: Type.ARRAY,
@@ -181,27 +190,24 @@ Ensure the response is a valid JSON array of objects, where each object has "top
 
 export const generateReviewScript = async (product: Product): Promise<string> => {
     const prompt = `
-You are an expert YouTube content creator specializing in AI tools and digital products.
-Write a short 60-second video script for a product review (YouTube Shorts format).
+You are an expert copywriter for viral YouTube Shorts. Write a concise and engaging 60-second video script (approximately 150 words) reviewing a digital product.
 
-Structure:
-1. Hook – grab attention immediately
-2. Intro – what the product does
-3. 3 Key Features – short, impactful
-4. Real-world benefits – why it matters
-5. Social Proof – Weave in user testimonials or social proof. Mention its high rating or popularity to build trust.
-6. Call to Action (CTA) – encourage viewers to try via affiliate link
+**Product Information:**
+- Product Name: ${product.name}
+- Description: ${product.description}
+- Key Features: ${product.features}
+- Affiliate Link: ${product.affiliateLink}
+- Social Proof: Rated ${product.rating || 'excellent'}/5 by over ${product.conversions || 'thousands of'} users.
 
-Product data:
-- product_name: ${product.name}
-- description: ${product.description}
-- main_features: ${product.features}
-- affiliate_link: ${product.affiliateLink}
-- social_proof_data: This product has a user rating of ${product.rating || 'excellent'} out of 5 from over ${product.conversions || 'thousands of'} users. Use this information to create compelling social proof.
+**Script Structure (Strictly follow this):**
+1.  **Hook (3-5 seconds):** Start with a surprising question or a bold statement that grabs immediate attention. Example: "Stop wasting hours on [problem]. This new AI does it in 10 seconds."
+2.  **Intro (5-10 seconds):** Briefly introduce "${product.name}" and the main problem it solves.
+3.  **Key Features (20-25 seconds):** Showcase 3 key features from the list: ${product.features}. Describe each feature's benefit in a simple, impactful way.
+4.  **Social Proof (5-7 seconds):** Naturally integrate the social proof. Example: "It's no wonder over ${product.conversions || 'thousands of'} users gave it a ${product.rating || 'excellent'} out of 5 rating."
+5.  **Call to Action (5-10 seconds):** Create a sense of urgency or exclusivity. Tell viewers exactly what to do. Example: "Try it for yourself with the link in my bio/description. Let me know what you create!"
 
-Tone: friendly, engaging, natural.
-Language: English.
-Avoid over-promotional language.
+**Tone:** Energetic, trustworthy, and clear.
+**Output:** Provide only the raw script text, without any section titles like "Hook:" or "Intro:". The sections should flow naturally into one another.
 `;
     return generateContentWithProxy({
         model: 'gemini-2.5-flash',
@@ -211,13 +217,21 @@ Avoid over-promotional language.
 
 export const generateVideoTitles = async (productName: string): Promise<string[]> => {
     const prompt = `
-Generate 5 catchy video titles (under 50 characters)
-for a YouTube Shorts review of the product: "${productName}".
+Generate 5 viral-style, high-click-through-rate (CTR) titles for a YouTube Shorts review of "${productName}".
 
-Include curiosity or emotional hooks, e.g.:
-“This AI app blew my mind!”, “The future of editing is here!”
+**Requirements:**
+- Each title must be under 50 characters.
+- Use strong, emotional, or curiosity-driven language.
+- Focus on benefits or surprising results.
 
-Format the output as a numbered list. Do not add any extra text or explanations.
+**Examples:**
+- "This AI is INSANE!"
+- "My Jaw DROPPED 🤯"
+- "99% of people don't know this tool."
+- "The AI Tool That Changes Everything"
+
+**Format:**
+Your response must be ONLY a numbered list of the 5 titles. Do not include any other text, explanations, or quotation marks around the titles.
 `;
     const response = await generateContentWithProxy({
         model: 'gemini-2.5-flash',
@@ -231,16 +245,16 @@ Format the output as a numbered list. Do not add any extra text or explanations.
 
 export const generateSeoDescription = async (productName: string): Promise<string> => {
     const prompt = `
-Write a YouTube SEO-friendly video description for a product review: "${productName}".
+You are a YouTube SEO expert. Write an optimized video description for a review of "${productName}".
 
-Include:
-- Brief intro about the tool
-- 3 key reasons to use it
-- Affiliate link section
-- SEO keywords related to AI, automation, review, productivity
+**Structure to follow:**
+1.  **Opening Line:** A concise, engaging sentence that includes "${productName}".
+2.  **Product Summary (2-3 lines):** Briefly explain what the product does and who it's for.
+3.  **Key Benefits (Bulleted list):** List 3 main benefits of using the tool.
+4.  **Call to Action:** A clear CTA directing viewers to the affiliate link. Use the placeholder "[YOUR AFFILIATE LINK HERE]".
+5.  **Hashtags:** Include 5-7 relevant SEO keywords as hashtags (e.g., #AI #Productivity #${productName.replace(/\s+/g, '')}).
 
-Keep it concise, informative, and optimized for search.
-Use [YOUR AFFILIATE LINK HERE] as a placeholder.
+The entire description should be concise and easy to read.
 `;
     return generateContentWithProxy({
         model: 'gemini-2.5-flash',
@@ -250,16 +264,15 @@ Use [YOUR AFFILIATE LINK HERE] as a placeholder.
 
 export const generateCaptionsAndHashtags = async (productName: string): Promise<{ caption: string, hashtags: string[] }> => {
     const prompt = `
-Create a short caption (under 200 characters) and 10 relevant hashtags
-for a YouTube Shorts or TikTok video about the product: "${productName}".
+You are a social media manager specializing in short-form video content. Create a caption and hashtags for a TikTok/Shorts video about "${productName}".
 
-Style: modern, catchy, and natural.
-Language: English.
-Example tone: "This AI tool just made content creation effortless! #AITools #Productivity"
+**Requirements:**
+- **Caption:** Under 150 characters. Engaging, includes a call-to-action or question.
+- **Hashtags:** A list of 10 relevant hashtags. Include a mix of broad (e.g., #AItools), niche-specific (e.g., #VideoEditingAI), and product-specific (e.g., #${productName.replace(/\s+/g, '')}) tags.
 
-IMPORTANT: Format the output strictly as follows, with each on a new line:
+**Output Format (Strictly follow this):**
 Caption: [Your generated caption here]
-Hashtags: [Your generated hashtags here, separated by spaces]
+Hashtags: [#hashtag1 #hashtag2 #hashtag3 ...]
 `;
     const response = await generateContentWithProxy({
         model: 'gemini-2.5-flash',

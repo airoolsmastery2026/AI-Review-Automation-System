@@ -116,6 +116,15 @@ export interface Connection {
     status: ConnectionStatus;
 }
 
+export interface AccountConnection {
+    id: string; // Composite key: `${platformId}_${timestamp}`
+    platformId: string;
+    username: string;
+    credentials: Record<string, string>;
+    connectedAt: string;
+}
+
+
 export type ConnectionHealthStatus = 'Connected' | 'Refreshing' | 'Disconnected' | 'Error';
 
 export interface ConnectionHealth {
