@@ -89,6 +89,8 @@ export const translations = {
       regenerate: "Regenerate",
       caption: "Caption:",
       hashtags: "Hashtags:",
+      generateAll: "Generate All",
+      generatingAll: "Generating All Assets...",
     },
 
     // Publisher
@@ -109,6 +111,8 @@ export const translations = {
       apiKeyRequiredDescription: "To create videos with the Veo API, you must select an API key from your Google AI Studio account. This is required for billing and authentication purposes.",
       apiKeyRequiredLink: "Learn more about billing.",
       selectApiKeyButton: "Select API Key to Continue",
+      apiKeyErrorTitle: "Video Generation Failed",
+      apiKeyErrorMessage: "The backend API key is missing, invalid, or has billing disabled. Please go to your Vercel project settings, add your Gemini API key to the Environment Variables, and redeploy.",
     },
 
     // Render Queue
@@ -143,6 +147,8 @@ export const translations = {
         views: "Views",
         likes: "Likes",
         shares: "Shares",
+        noDataTitle: "No Analytics Data Yet",
+        noDataDescription: "Publish your first video to see performance analytics here.",
     },
 
     // Finance
@@ -446,6 +452,8 @@ export const translations = {
       regenerate: "Tạo lại",
       caption: "Phụ đề:",
       hashtags: "Hashtag:",
+      generateAll: "Tạo Tất Cả",
+      generatingAll: "Đang tạo tất cả tài sản...",
     },
 
     // Publisher
@@ -466,6 +474,8 @@ export const translations = {
       apiKeyRequiredDescription: "Để tạo video với Veo API, bạn phải chọn một khóa API từ tài khoản Google AI Studio của mình. Điều này là bắt buộc cho mục đích thanh toán và xác thực.",
       apiKeyRequiredLink: "Tìm hiểu thêm về thanh toán.",
       selectApiKeyButton: "Chọn Khóa API để Tiếp Tục",
+      apiKeyErrorTitle: "Tạo Video Thất Bại",
+      apiKeyErrorMessage: "Khóa API ở backend bị thiếu, không hợp lệ, hoặc chưa bật thanh toán. Vui lòng vào cài đặt dự án trên Vercel, thêm khóa Gemini API của bạn vào Biến Môi Trường (Environment Variables) và triển khai lại.",
     },
 
     // Render Queue
@@ -500,6 +510,8 @@ export const translations = {
         views: "Lượt xem",
         likes: "Lượt thích",
         shares: "Lượt chia sẻ",
+        noDataTitle: "Chưa có Dữ liệu Phân tích",
+        noDataDescription: "Hãy xuất bản video đầu tiên của bạn để xem phân tích hiệu suất tại đây.",
     },
 
     // Finance

@@ -4,7 +4,7 @@ import { Button } from './common/Button';
 import { Download } from './LucideIcons';
 import type { RenderJob } from '../types';
 import { useI18n } from '../hooks/useI18n';
-import { getVideoOperationStatus } from '../services/geminiService';
+import { getVideoOperationStatus, downloadVideo } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
 interface RenderQueueProps {
@@ -82,18 +82,14 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
     }, [jobs, setJobs, activePolls]);
 
     const handleDownload = async (job: RenderJob) => {
-        if (!job.videoUrl || !process.env.API_KEY) {
-            logger.error("Download failed: Video URL or API key is missing.", { job });
+        if (!job.videoUrl) {
+            logger.error("Download failed: Video URL is missing.", { job });
             return;
         }
 
         setDownloadingJobId(job.id);
         try {
-            const response = await fetch(`${job.videoUrl}&key=${process.env.API_KEY}`);
-            if (!response.ok) {
-                throw new Error(`Failed to fetch video: ${response.statusText}`);
-            }
-            const blob = await response.blob();
+            const blob = await downloadVideo(job.videoUrl);
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.style.display = 'none';
@@ -102,6 +98,7 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
             logger.info(`Video for "${job.productName}" downloaded successfully.`);
         } catch (error) {
             logger.error(`Error downloading video for "${job.productName}"`, { error });

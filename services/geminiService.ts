@@ -1,6 +1,3 @@
-
-
-
 import { Type, Operation } from "@google/genai";
 import type { Product, Trend, ScoutedProduct } from '../types';
 import { logger } from './loggingService';
@@ -301,6 +298,33 @@ export const getVideoOperationStatus = async (operationName: string): Promise<Op
         return await callBackend('/video-status', { operationName });
     } catch (error: any) {
          logger.error(`Failed to get video operation status from backend for ${operationName}`, { error: error.message });
+        throw error;
+    }
+};
+
+export const downloadVideo = async (videoUrl: string): Promise<Blob> => {
+    logger.info("Starting video download via backend proxy.");
+    try {
+        // This fetch is different; it expects a blob, not JSON.
+        const response = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ endpoint: '/download-video', videoUrl }),
+        });
+
+        if (!response.ok) {
+            // Try to parse error JSON, but fall back if it's not JSON
+            try {
+                 const errorData = await response.json();
+                 throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            } catch (e) {
+                 throw new Error(`HTTP error! status: ${response.status}`);
+            }
+        }
+        
+        return await response.blob();
+    } catch (error: any) {
+        logger.error("Failed to download video via backend.", { error: error.message });
         throw error;
     }
 };

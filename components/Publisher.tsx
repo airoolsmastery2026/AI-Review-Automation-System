@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { ProductWithContent, RenderJob } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
-import { AlertTriangle, ExternalLink } from './LucideIcons';
+import { AlertTriangle } from './LucideIcons';
 import { generateVideo } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
@@ -61,72 +61,11 @@ const ConfirmationModal: React.FC<{
     );
 };
 
-const ApiKeyPrompt: React.FC<{ onKeySelected: () => void }> = ({ onKeySelected }) => {
-    const { t } = useI18n();
-    const [isSelectingKey, setIsSelectingKey] = useState(false);
-
-    const handleSelectKey = async () => {
-        if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
-            setIsSelectingKey(true);
-            try {
-                await window.aistudio.openSelectKey();
-                onKeySelected(); // Assume success to avoid race conditions
-            } catch (e) {
-                logger.error("Failed to open API key selection", { error: e });
-            } finally {
-                setIsSelectingKey(false);
-            }
-        } else {
-            logger.error("aistudio SDK not available.");
-        }
-    };
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle>{t('publisher.apiKeyRequiredTitle')}</CardTitle>
-                <CardDescription>{t('publisher.apiKeyRequiredDescription')}</CardDescription>
-            </CardHeader>
-            <div className="p-4 border-t border-gray-700 text-center">
-                 <a 
-                    href="https://ai.google.dev/gemini-api/docs/billing" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm text-primary-400 hover:text-primary-300 mb-4"
-                >
-                    {t('publisher.apiKeyRequiredLink')}
-                    <ExternalLink className="h-4 w-4 ml-1" />
-                </a>
-                <div className="mt-2">
-                     <Button onClick={handleSelectKey} isLoading={isSelectingKey}>
-                        {t('publisher.selectApiKeyButton')}
-                    </Button>
-                </div>
-            </div>
-        </Card>
-    );
-};
-
 export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAddRenderJob, onPublishProduct }) => {
     const [creatingVideo, setCreatingVideo] = useState<string | null>(null);
     const [productToPublish, setProductToPublish] = useState<ProductWithContent | null>(null);
-    const [apiKeySelected, setApiKeySelected] = useState(false);
     const [isPublishing, setIsPublishing] = useState(false);
     const { t } = useI18n();
-
-    useEffect(() => {
-        const checkApiKey = async () => {
-            if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
-                const hasKey = await window.aistudio.hasSelectedApiKey();
-                setApiKeySelected(hasKey);
-            } else {
-                logger.warn("aistudio SDK not available, assuming API key is set via environment for mock mode.");
-                // In a non-aistudio environment (e.g. local dev), this allows proceeding.
-                setApiKeySelected(true); 
-            }
-        };
-        checkApiKey();
-    }, []);
 
     const handleCreateVideo = async (product: ProductWithContent) => {
         if (!product.content.script) {
@@ -147,8 +86,10 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
             });
         } catch (error: any) {
             logger.error(`Video generation failed for ${product.name}`, { error: error.message });
-            if (error.message.includes("API key not found")) {
-                setApiKeySelected(false); // Reset state to re-prompt user
+            // On a deployed app, API key issues come from the backend.
+            // We check the error message to provide a helpful alert to the user.
+            if (error.message.includes("API key not valid") || error.message.includes("not found") || error.message.includes("billing")) {
+                alert(`${t('publisher.apiKeyErrorTitle')}\n\n${t('publisher.apiKeyErrorMessage')}`);
             }
         } finally {
             setCreatingVideo(null);
@@ -179,10 +120,6 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
     const readyToPublish = productsWithContent.filter(p => 
         p.content.script && p.content.titles && p.content.seoDescription && p.content.captions
     );
-
-    if (!apiKeySelected) {
-        return <ApiKeyPrompt onKeySelected={() => setApiKeySelected(true)} />;
-    }
 
     return (
         <>

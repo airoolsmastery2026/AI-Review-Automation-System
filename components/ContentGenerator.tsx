@@ -26,7 +26,8 @@ const GenerationSection: React.FC<{
     onGenerate: () => void;
     isLoading: boolean;
     isGenerated: boolean;
-}> = ({ title, children, onGenerate, isLoading, isGenerated }) => {
+    isGeneratingAll: boolean;
+}> = ({ title, children, onGenerate, isLoading, isGenerated, isGeneratingAll }) => {
     const { t } = useI18n();
     return (
         <Card>
@@ -37,11 +38,11 @@ const GenerationSection: React.FC<{
                         {isGenerated ? t('contentGenerator.generatedSuccess') : t('contentGenerator.generateDescription', { type: title.toLowerCase() })}
                     </CardDescription>
                 </div>
-                <Button onClick={onGenerate} isLoading={isLoading} disabled={isLoading}>
+                <Button onClick={onGenerate} isLoading={isLoading} disabled={isLoading || isGeneratingAll}>
                     {isLoading ? t('contentGenerator.generating') : isGenerated ? t('contentGenerator.regenerate') : t('contentGenerator.generate')}
                 </Button>
             </CardHeader>
-            {isLoading && !isGenerated && <div className="flex justify-center p-8"><Spinner/></div>}
+            {(isLoading || isGeneratingAll) && !isGenerated && <div className="flex justify-center p-8"><Spinner/></div>}
             {isGenerated && <div className="prose prose-sm max-w-none p-4 bg-gray-800/50 rounded-b-lg text-gray-300 prose-headings:text-gray-100 prose-strong:text-gray-100 prose-invert">{children}</div>}
         </Card>
     );
@@ -55,6 +56,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         [GenerationType.DESCRIPTION]: false,
         [GenerationType.CAPTIONS]: false,
     });
+    const [isGeneratingAll, setIsGeneratingAll] = useState(false);
     const { t } = useI18n();
 
     const handleGeneration = useCallback(async (type: GenerationType, overrideProduct?: Product) => {
@@ -89,23 +91,31 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         }
     }, [selectedProductId, products, onContentUpdate]);
 
+    const handleGenerateAll = useCallback(async (overrideProduct?: Product) => {
+        const product = overrideProduct || products.find(p => p.id === selectedProductId);
+        if (!product) return;
+
+        setIsGeneratingAll(true);
+        await Promise.all([
+            handleGeneration(GenerationType.SCRIPT, product),
+            handleGeneration(GenerationType.TITLES, product),
+            handleGeneration(GenerationType.DESCRIPTION, product),
+            handleGeneration(GenerationType.CAPTIONS, product),
+        ]);
+        setIsGeneratingAll(false);
+    }, [selectedProductId, products, handleGeneration]);
+
     useEffect(() => {
         if (productToAutoGenerate) {
             const product = products.find(p => p.id === productToAutoGenerate);
             if (product) {
                 setSelectedProductId(product.id);
-                const content = generatedContent[product.id] || {};
-                
-                // Automatically generate all content types if they don't exist
-                if (!content.script) { handleGeneration(GenerationType.SCRIPT, product); }
-                if (!content.titles) { handleGeneration(GenerationType.TITLES, product); }
-                if (!content.seoDescription) { handleGeneration(GenerationType.DESCRIPTION, product); }
-                if (!content.captions) { handleGeneration(GenerationType.CAPTIONS, product); }
+                handleGenerateAll(product);
             }
             // Clear the trigger state in App.tsx once generation has been initiated
             onGenerationComplete();
         }
-    }, [productToAutoGenerate, products, generatedContent, handleGeneration, onGenerationComplete]);
+    }, [productToAutoGenerate, products, handleGenerateAll, onGenerationComplete]);
 
 
     const selectedProductContent = selectedProductId ? generatedContent[selectedProductId] : undefined;
@@ -117,21 +127,35 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                     <CardTitle>{t('contentGenerator.title')}</CardTitle>
                     <CardDescription>{t('contentGenerator.description')}</CardDescription>
                 </CardHeader>
-                <div className="p-4">
-                    <label htmlFor="product-select" className="block text-sm font-medium text-gray-300 mb-2">{t('contentGenerator.selectLabel')}</label>
-                    <select
-                        id="product-select"
-                        className="w-full bg-gray-800 border border-gray-600 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-gray-50"
-                        value={selectedProductId || ''}
-                        onChange={(e) => setSelectedProductId(e.target.value)}
-                        disabled={products.length === 0}
-                    >
-                        {products.length > 0 ? (
-                             products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
-                        ) : (
-                            <option>{t('contentGenerator.noProducts')}</option>
-                        )}
-                    </select>
+                <div className="p-4 space-y-4">
+                    <div>
+                        <label htmlFor="product-select" className="block text-sm font-medium text-gray-300 mb-2">{t('contentGenerator.selectLabel')}</label>
+                        <select
+                            id="product-select"
+                            className="w-full bg-gray-800 border border-gray-600 rounded-md shadow-sm pl-3 pr-10 py-2 text-left cursor-default focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500 sm:text-sm text-gray-50"
+                            value={selectedProductId || ''}
+                            onChange={(e) => setSelectedProductId(e.target.value)}
+                            disabled={products.length === 0}
+                        >
+                            {products.length > 0 ? (
+                                 products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+                            ) : (
+                                <option>{t('contentGenerator.noProducts')}</option>
+                            )}
+                        </select>
+                    </div>
+                     {selectedProductId && (
+                        <div className="pt-2">
+                             <Button 
+                                className="w-full" 
+                                onClick={() => handleGenerateAll()}
+                                isLoading={isGeneratingAll}
+                                size="lg"
+                            >
+                                {isGeneratingAll ? t('contentGenerator.generatingAll') : t('contentGenerator.generateAll')}
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </Card>
 
@@ -142,6 +166,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                         onGenerate={() => handleGeneration(GenerationType.SCRIPT)}
                         isLoading={loadingStates[GenerationType.SCRIPT]}
                         isGenerated={!!selectedProductContent?.script}
+                        isGeneratingAll={isGeneratingAll}
                     >
                         <pre className="whitespace-pre-wrap font-sans">{selectedProductContent?.script}</pre>
                     </GenerationSection>
@@ -151,6 +176,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                         onGenerate={() => handleGeneration(GenerationType.TITLES)}
                         isLoading={loadingStates[GenerationType.TITLES]}
                         isGenerated={!!selectedProductContent?.titles}
+                        isGeneratingAll={isGeneratingAll}
                     >
                         <ul className="list-disc pl-5">
                             {selectedProductContent?.titles?.map((title, i) => <li key={i}>{title}</li>)}
@@ -162,6 +188,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                         onGenerate={() => handleGeneration(GenerationType.DESCRIPTION)}
                         isLoading={loadingStates[GenerationType.DESCRIPTION]}
                         isGenerated={!!selectedProductContent?.seoDescription}
+                        isGeneratingAll={isGeneratingAll}
                     >
                         <pre className="whitespace-pre-wrap font-sans">{selectedProductContent?.seoDescription}</pre>
                     </GenerationSection>
@@ -171,6 +198,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                         onGenerate={() => handleGeneration(GenerationType.CAPTIONS)}
                         isLoading={loadingStates[GenerationType.CAPTIONS]}
                         isGenerated={!!selectedProductContent?.captions}
+                        isGeneratingAll={isGeneratingAll}
                     >
                        <div>
                             <p className="font-bold">{t('contentGenerator.caption')}</p>

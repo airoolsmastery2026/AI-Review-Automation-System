@@ -2,7 +2,7 @@ import React from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import type { PlatformPerformance, ProductWithContent } from '../types';
-import { Youtube, Instagram } from './LucideIcons';
+import { Youtube, Instagram, TrendingUp } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 
 interface AnalyticsProps {
@@ -26,16 +26,34 @@ const chartTooltipStyle = {
 
 export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => {
     const { t } = useI18n();
+    
+    const publishedProducts = productsWithContent.filter(p => p.financials && p.performance);
 
-    const revenueData = productsWithContent
-      .filter(p => p.financials && p.financials.affiliateRevenue > 0)
+    if (publishedProducts.length === 0) {
+        return (
+             <Card>
+                <CardHeader className="text-center p-8">
+                    <div className="flex justify-center mb-4">
+                        <div className="p-4 rounded-full bg-primary-500/10 text-primary-400">
+                            <TrendingUp className="h-8 w-8"/>
+                        </div>
+                    </div>
+                    <CardTitle className="text-xl">{t('analytics.noDataTitle')}</CardTitle>
+                    <CardDescription>{t('analytics.noDataDescription')}</CardDescription>
+                </CardHeader>
+            </Card>
+        );
+    }
+
+    const revenueData = publishedProducts
+      .filter(p => p.financials!.affiliateRevenue > 0)
       .map(p => ({
         name: p.name.slice(0, 15) + (p.name.length > 15 ? '...' : ''),
         revenue: p.financials!.affiliateRevenue,
       }));
 
     const platformPerformanceData: PlatformPerformance[] = Object.values(
-        productsWithContent.reduce((acc, p) => {
+        publishedProducts.reduce((acc, p) => {
             if (p.performance) {
                 p.performance.forEach(perf => {
                     if (!acc[perf.platform]) {
@@ -50,8 +68,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         }, {} as Record<string, PlatformPerformance>)
     );
 
-    // Fix: Provide an explicit type for the initial value of the `reduce` function to ensure correct type inference for the accumulator.
-    const monthlyViewsData = productsWithContent.reduce((acc, p) => {
+    const monthlyViewsData = publishedProducts.reduce((acc, p) => {
         if (p.financials && p.performance) {
             const date = new Date(p.financials.publishedAt);
             const monthKey = `${date.getFullYear()}-${date.getMonth()}`;

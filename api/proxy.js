@@ -64,13 +64,37 @@ module.exports = async (req, res) => {
                 return res.status(200).json(operation);
             }
 
+            case '/download-video': {
+                const { videoUrl } = body;
+                if (!videoUrl) {
+                    return res.status(400).json({ error: 'Missing videoUrl for /download-video' });
+                }
+                try {
+                    const videoResponse = await fetch(`${videoUrl}&key=${process.env.API_KEY}`);
+                    if (!videoResponse.ok) {
+                        throw new Error(`Failed to fetch video from source: ${videoResponse.statusText}`);
+                    }
+                    
+                    res.setHeader('Content-Type', 'video/mp4');
+                    res.setHeader('Content-Disposition', `attachment; filename="generated_video.mp4"`);
+                    
+                    // Pipe the video stream to the response
+                    const { Readable } = require('stream');
+                    const readableNodeStream = Readable.fromWeb(videoResponse.body);
+                    return readableNodeStream.pipe(res);
+                } catch (error) {
+                    console.error('Video download error:', error);
+                    return res.status(500).json({ error: 'Failed to download video', details: error.message });
+                }
+            }
+
             default:
                 return res.status(404).json({ error: `Endpoint not found: ${endpoint}` });
         }
     } catch (error) {
         console.error(`Error processing endpoint ${endpoint}:`, error);
         // Check for specific API key errors
-        if (error.message.includes('API key not valid') || error.message.includes('not found') || error.message.includes('Requested entity was not found')) {
+        if (error.message.includes('API key not valid') || error.message.includes('not found') || error.message.includes('Requested entity was not found') || error.message.includes('billing')) {
             return res.status(401).json({ error: 'API key not valid, not found, or billing not enabled. Please check your key in Vercel environment variables.', details: error.message });
         }
         return res.status(500).json({ error: 'An internal server error occurred', details: error.message });
