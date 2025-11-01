@@ -1,13 +1,11 @@
 
 
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
 import { logger } from '../services/loggingService';
 import type { LogEntry, ConnectionHealth, ConnectionHealthStatus, AccountConnection } from '../types';
-// Fix: Import the missing 'AlertTriangle' icon.
 import { ShieldCheck, HardDriveDownload, Server, AlertTriangle } from './LucideIcons';
 import { PlatformLogo } from './PlatformLogo';
 import { LOCAL_STORAGE_KEY } from './Connections';
