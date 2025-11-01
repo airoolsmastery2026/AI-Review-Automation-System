@@ -128,7 +128,7 @@ export const translations = {
       apiKeyRequiredLink: "Learn more about billing.",
       selectApiKeyButton: "Select API Key to Continue",
       apiKeyErrorTitle: "Video Generation Failed",
-      apiKeyErrorMessage: "The backend API key is missing, invalid, or has billing disabled. Please go to your Vercel project settings, add your Gemini API key to the Environment Variables, and redeploy.",
+      apiKeyErrorMessage: "The API key is invalid, has been revoked, or billing is not enabled for its associated project. Please select a valid key to continue.",
     },
 
     // Render Queue
@@ -540,7 +540,7 @@ export const translations = {
       apiKeyRequiredLink: "Tìm hiểu thêm về thanh toán.",
       selectApiKeyButton: "Chọn Khóa API để Tiếp Tục",
       apiKeyErrorTitle: "Tạo Video Thất Bại",
-      apiKeyErrorMessage: "Khóa API ở backend bị thiếu, không hợp lệ, hoặc chưa bật thanh toán. Vui lòng vào cài đặt dự án trên Vercel, thêm khóa Gemini API của bạn vào Biến Môi Trường (Environment Variables) và triển khai lại.",
+      apiKeyErrorMessage: "Khóa API không hợp lệ, đã bị thu hồi hoặc chưa bật thanh toán cho dự án liên quan. Vui lòng chọn một khóa hợp lệ để tiếp tục.",
     },
 
     // Render Queue

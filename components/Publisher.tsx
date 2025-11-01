@@ -1,17 +1,24 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { ProductWithContent, RenderJob, VideoModelSelection, AudioVoiceSelection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
-import { AlertTriangle, Upload, X } from './LucideIcons';
+import { AlertTriangle, Upload, X, KeyRound, ExternalLink } from './LucideIcons';
 import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
-interface PublisherProps {
-    productsWithContent: ProductWithContent[];
-    onAddRenderJob: (job: Omit<RenderJob, 'id'>) => void;
-    onPublishProduct: (productId: string) => Promise<void>;
+// Fix: Define the AIStudio interface to resolve the global type conflict for `window.aistudio`.
+interface AIStudio {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+}
+
+declare global {
+    interface Window {
+        aistudio: AIStudio;
+    }
 }
 
 const ConfirmationModal: React.FC<{
@@ -62,13 +69,76 @@ const ConfirmationModal: React.FC<{
     );
 };
 
-export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAddRenderJob, onPublishProduct }) => {
+const ApiKeyModal: React.FC<{ onKeySelected: () => void }> = ({ onKeySelected }) => {
+    const { t } = useI18n();
+    const [isOpening, setIsOpening] = useState(false);
+    
+    const handleSelectKey = async () => {
+        setIsOpening(true);
+        try {
+            if (window.aistudio && typeof window.aistudio.openSelectKey === 'function') {
+                await window.aistudio.openSelectKey();
+                // Optimistically assume key selection was successful to avoid race conditions
+                onKeySelected();
+            } else {
+                logger.error("aistudio.openSelectKey() is not available.");
+                alert("API key selection feature is not available in this environment.");
+            }
+        } catch (error) {
+            logger.error("Error opening API key selection dialog", { error });
+        } finally {
+            setIsOpening(false);
+        }
+    };
+
+    return (
+        <Card>
+            <CardHeader className="text-center">
+                 <div className="flex justify-center mb-4">
+                    <div className="p-4 rounded-full bg-primary-500/10 text-primary-400">
+                        <KeyRound className="h-8 w-8"/>
+                    </div>
+                </div>
+                <CardTitle>{t('publisher.apiKeyRequiredTitle')}</CardTitle>
+                <CardDescription>{t('publisher.apiKeyRequiredDescription')}</CardDescription>
+            </CardHeader>
+            <div className="p-4 text-center border-t border-gray-700 space-y-4">
+                 <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-sm text-primary-400 hover:underline inline-flex items-center">
+                    {t('publisher.apiKeyRequiredLink')} <ExternalLink className="w-4 h-4 ml-1" />
+                </a>
+                <Button onClick={handleSelectKey} isLoading={isOpening} className="w-full">
+                    {t('publisher.selectApiKeyButton')}
+                </Button>
+            </div>
+        </Card>
+    );
+};
+
+export const Publisher: React.FC<{
+    productsWithContent: ProductWithContent[];
+    onAddRenderJob: (job: Omit<RenderJob, 'id'>) => void;
+    onPublishProduct: (productId: string) => Promise<void>;
+}> = ({ productsWithContent, onAddRenderJob, onPublishProduct }) => {
     const [creatingVideo, setCreatingVideo] = useState<string | null>(null);
     const [productToPublish, setProductToPublish] = useState<ProductWithContent | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
-    const [selectedImages, setSelectedImages] = useState<Record<string, string | null>>({}); // { productId: base64 | null }
+    const [selectedImages, setSelectedImages] = useState<Record<string, string | null>>({});
     const [modelSelections, setModelSelections] = useState<Record<string, { videoModel: VideoModelSelection; audioVoice: AudioVoiceSelection }>>({});
+    const [hasApiKey, setHasApiKey] = useState(false);
     const { t } = useI18n();
+
+    useEffect(() => {
+        const checkApiKey = async () => {
+            if (window.aistudio && typeof window.aistudio.hasSelectedApiKey === 'function') {
+                const keyStatus = await window.aistudio.hasSelectedApiKey();
+                setHasApiKey(keyStatus);
+            } else {
+                logger.warn("window.aistudio.hasSelectedApiKey() is not available. Assuming no key.");
+                setHasApiKey(false);
+            }
+        };
+        checkApiKey();
+    }, []);
 
     const readyToPublish = productsWithContent.filter(p => 
         p.content.script && p.content.titles && p.content.seoDescription && p.content.captions
@@ -102,12 +172,10 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
     const handleImageChange = (productId: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
-
         if (file.size > 4 * 1024 * 1024) {
             alert('Image file size must be less than 4MB.');
             return;
         }
-
         const reader = new FileReader();
         reader.onloadend = () => {
             setSelectedImages(prev => ({ ...prev, [productId]: reader.result as string }));
@@ -143,8 +211,9 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
             });
         } catch (error: any) {
             logger.error(`Video/Audio generation failed for ${product.name}`, { error: error.message });
-            if (error.message.includes("API key not valid") || error.message.includes("not found") || error.message.includes("billing")) {
+            if (error.message.includes("API key not valid") || error.message.includes("not found") || error.message.includes("billing") || error.message.includes("Requested entity was not found")) {
                 alert(`${t('publisher.apiKeyErrorTitle')}\n\n${t('publisher.apiKeyErrorMessage')}`);
+                setHasApiKey(false); // Force re-selection of key on failure
             }
         } finally {
             setCreatingVideo(null);
@@ -167,10 +236,6 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
             setProductToPublish(null);
         }
     };
-
-    const handleCloseModal = () => {
-        setProductToPublish(null);
-    };
     
     return (
         <>
@@ -179,91 +244,97 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
                     <CardTitle>{t('publisher.title')}</CardTitle>
                     <CardDescription>{t('publisher.description')}</CardDescription>
                 </CardHeader>
-                <div className="divide-y divide-gray-700">
-                    {readyToPublish.length > 0 ? readyToPublish.map(product => (
-                        <div key={product.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                            <div className="mb-4 sm:mb-0 flex-1">
-                                <h3 className="text-lg font-bold text-gray-100">{product.name}</h3>
-                                <p className="text-sm text-gray-400">{t('publisher.readyToPublish')}</p>
+                {hasApiKey ? (
+                    <div className="divide-y divide-gray-700">
+                        {readyToPublish.length > 0 ? readyToPublish.map(product => (
+                            <div key={product.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                                <div className="mb-4 sm:mb-0 flex-1">
+                                    <h3 className="text-lg font-bold text-gray-100">{product.name}</h3>
+                                    <p className="text-sm text-gray-400">{t('publisher.readyToPublish')}</p>
 
-                                <div className="mt-3 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
-                                    <div className="flex-1 w-full sm:w-auto">
-                                        <label htmlFor={`video-model-${product.id}`} className="text-xs font-semibold text-gray-400">Video Model</label>
-                                        <select
-                                            id={`video-model-${product.id}`}
-                                            value={modelSelections[product.id]?.videoModel}
-                                            onChange={(e) => handleModelSelectionChange(product.id, 'videoModel', e.target.value)}
-                                            className="mt-1 w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                                        >
-                                            <option value="veo-3.1-fast-generate-preview">VEO 3.1 Fast</option>
-                                            <option value="veo-3.1-generate-preview">VEO 3.1 HQ</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex-1 w-full sm:w-auto">
-                                        <label htmlFor={`audio-voice-${product.id}`} className="text-xs font-semibold text-gray-400">Audio Voice</label>
-                                        <select
-                                            id={`audio-voice-${product.id}`}
-                                            value={modelSelections[product.id]?.audioVoice}
-                                            onChange={(e) => handleModelSelectionChange(product.id, 'audioVoice', e.target.value)}
-                                            className="mt-1 w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
-                                        >
-                                            <option value="Kore">Kore (Male)</option>
-                                            <option value="Puck">Puck (Male)</option>
-                                            <option value="Charon">Charon (Female)</option>
-                                            <option value="Fenrir">Fenrir (Female)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex items-center space-x-4 mt-4 sm:mt-0 sm:pl-4">
-                                <div>
-                                    {selectedImages[product.id] ? (
-                                        <div className="relative group w-20 h-20">
-                                            <img src={selectedImages[product.id]!} alt="Start frame preview" className="w-full h-full object-cover rounded-lg shadow-md" />
-                                            <button
-                                                onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: null }))}
-                                                className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500"
-                                                aria-label="Remove image"
+                                    <div className="mt-3 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                        <div className="flex-1 w-full sm:w-auto">
+                                            <label htmlFor={`video-model-${product.id}`} className="text-xs font-semibold text-gray-400">Video Model</label>
+                                            <select
+                                                id={`video-model-${product.id}`}
+                                                value={modelSelections[product.id]?.videoModel}
+                                                onChange={(e) => handleModelSelectionChange(product.id, 'videoModel', e.target.value)}
+                                                className="mt-1 w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
                                             >
-                                                <X className="w-3 h-3" />
-                                            </button>
+                                                <option value="veo-3.1-fast-generate-preview">VEO 3.1 Fast</option>
+                                                <option value="veo-3.1-generate-preview">VEO 3.1 HQ</option>
+                                            </select>
                                         </div>
-                                    ) : (
-                                        <label className="cursor-pointer w-20 h-20 flex flex-col items-center justify-center bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg hover:bg-gray-700/50 transition-colors">
-                                            <Upload className="w-6 h-6 text-gray-400" />
-                                            <span className="text-xs text-center text-gray-400 mt-1 px-1">Start Image</span>
-                                            <input type="file" className="hidden" accept="image/png, image/jpeg" onChange={e => handleImageChange(product.id, e)} />
-                                        </label>
-                                    )}
+                                        <div className="flex-1 w-full sm:w-auto">
+                                            <label htmlFor={`audio-voice-${product.id}`} className="text-xs font-semibold text-gray-400">Audio Voice</label>
+                                            <select
+                                                id={`audio-voice-${product.id}`}
+                                                value={modelSelections[product.id]?.audioVoice}
+                                                onChange={(e) => handleModelSelectionChange(product.id, 'audioVoice', e.target.value)}
+                                                className="mt-1 w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                            >
+                                                <option value="Kore">Kore (Male)</option>
+                                                <option value="Puck">Puck (Male)</option>
+                                                <option value="Charon">Charon (Female)</option>
+                                                <option value="Fenrir">Fenrir (Female)</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="flex flex-col space-y-2">
-                                     <Button 
-                                        variant="secondary"
-                                        isLoading={creatingVideo === product.id}
-                                        onClick={() => handleCreateVideo(product)}>
-                                        {creatingVideo === product.id ? t('publisher.creatingVideo') : t('publisher.createVideo')}
-                                     </Button>
-                                     <Button 
-                                        onClick={() => handlePublishClick(product)}
-                                        disabled={!!product.financials}
-                                    >
-                                        {product.financials ? t('publisher.published') : t('publisher.publishNow')}
-                                     </Button>
+
+                                <div className="flex items-center space-x-4 mt-4 sm:mt-0 sm:pl-4">
+                                    <div>
+                                        {selectedImages[product.id] ? (
+                                            <div className="relative group w-20 h-20">
+                                                <img src={selectedImages[product.id]!} alt="Start frame preview" className="w-full h-full object-cover rounded-lg shadow-md" />
+                                                <button
+                                                    onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: null }))}
+                                                    className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500"
+                                                    aria-label="Remove image"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <label className="cursor-pointer w-20 h-20 flex flex-col items-center justify-center bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                                <Upload className="w-6 h-6 text-gray-400" />
+                                                <span className="text-xs text-center text-gray-400 mt-1 px-1">Start Image</span>
+                                                <input type="file" className="hidden" accept="image/png, image/jpeg" onChange={e => handleImageChange(product.id, e)} />
+                                            </label>
+                                        )}
+                                    </div>
+                                    <div className="flex flex-col space-y-2">
+                                         <Button 
+                                            variant="secondary"
+                                            isLoading={creatingVideo === product.id}
+                                            onClick={() => handleCreateVideo(product)}>
+                                            {creatingVideo === product.id ? t('publisher.creatingVideo') : t('publisher.createVideo')}
+                                         </Button>
+                                         <Button 
+                                            onClick={() => handlePublishClick(product)}
+                                            disabled={!!product.financials}
+                                        >
+                                            {product.financials ? t('publisher.published') : t('publisher.publishNow')}
+                                         </Button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    )) : (
-                         <div className="p-4 text-center text-gray-400">
-                            {t('publisher.notReady')}
-                        </div>
-                    )}
-                </div>
+                        )) : (
+                             <div className="p-4 text-center text-gray-400">
+                                {t('publisher.notReady')}
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="p-4">
+                        <ApiKeyModal onKeySelected={() => setHasApiKey(true)} />
+                    </div>
+                )}
             </Card>
 
             <ConfirmationModal 
                 isOpen={!!productToPublish}
-                onClose={handleCloseModal}
+                onClose={() => setProductToPublish(null)}
                 onConfirm={handleConfirmPublish}
                 productName={productToPublish?.name || ''}
                 isLoading={isPublishing}
