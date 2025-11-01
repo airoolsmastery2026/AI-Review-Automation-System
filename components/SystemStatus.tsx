@@ -69,9 +69,11 @@ export const SystemStatus: React.FC = () => {
                 const updatedConnections = ALL_PLATFORMS.map(connInfo => {
                     const storedConn = storedConnections[connInfo.id];
                     let status: ConnectionHealthStatus = 'Disconnected';
-                    if (storedConn) {
-                        if (storedConn.status === 'refreshing') status = 'Refreshing';
-                        else status = 'Connected';
+                    // Fix: Corrected a type error and logic bug. The check for a 'refreshing' status was invalid
+                    // as `ConnectionStatus` only includes 'Configured' or 'Not Configured'.
+                    // The logic now correctly maps 'Configured' to 'Connected' and everything else to 'Disconnected'.
+                    if (storedConn && storedConn.status === 'Configured') {
+                        status = 'Connected';
                     }
                     
                     return {

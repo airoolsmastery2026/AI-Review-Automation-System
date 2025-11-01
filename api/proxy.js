@@ -1,4 +1,4 @@
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenAI, Modality } = require('@google/genai');
 
 // Vercel handles environment variables, which we access via process.env
 const getGenAI = () => {
@@ -6,6 +6,20 @@ const getGenAI = () => {
         throw new Error("API_KEY environment variable not set in Vercel.");
     }
     return new GoogleGenAI({ apiKey: process.env.API_KEY });
+};
+
+const PLATFORM_ENV_MAP = {
+    youtube: ['YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'],
+    tiktok: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET'],
+    facebook: ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'],
+    instagram: ['INSTAGRAM_USER_ACCESS_TOKEN'],
+    telegram: ['TELEGRAM_BOT_TOKEN'],
+    clickbank: ['CLICKBANK_API_KEY', 'CLICKBANK_DEVELOPER_KEY'],
+    amazon: ['AMAZON_ASSOCIATE_TAG', 'AMAZON_ACCESS_KEY', 'AMAZON_SECRET_KEY'],
+    shopify: ['SHOPIFY_API_KEY', 'SHOPIFY_API_SECRET_KEY', 'SHOPIFY_STORE_URL'],
+    accesstrade: ['ACCESSTRADE_ACCESS_KEY', 'ACCESSTRADE_SECRET_KEY'],
+    masoffer: ['MASOFFER_API_KEY'],
+    ecomobi: ['ECOMOBI_API_KEY'],
 };
 
 // This is the main handler for all requests to /api/proxy
@@ -55,6 +69,25 @@ module.exports = async (req, res) => {
                 return res.status(200).json(operation);
             }
 
+            case '/generate-speech': {
+                const { script } = body;
+                if (!script) {
+                    return res.status(400).json({ error: 'Missing script for /generate-speech' });
+                }
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash-preview-tts",
+                    contents: [{ parts: [{ text: script }] }],
+                    config: {
+                        responseModalities: [Modality.AUDIO],
+                        speechConfig: {
+                            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
+                        },
+                    },
+                });
+                const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                return res.status(200).json({ audioData });
+            }
+
             case '/video-status': {
                 const { operationName } = body;
                 if (!operationName) {
@@ -78,7 +111,6 @@ module.exports = async (req, res) => {
                     res.setHeader('Content-Type', 'video/mp4');
                     res.setHeader('Content-Disposition', `attachment; filename="generated_video.mp4"`);
                     
-                    // Pipe the video stream to the response
                     const { Readable } = require('stream');
                     const readableNodeStream = Readable.fromWeb(videoResponse.body);
                     return readableNodeStream.pipe(res);
@@ -88,12 +120,21 @@ module.exports = async (req, res) => {
                 }
             }
 
+            case '/check-connections': {
+                const statuses = {};
+                for (const platformId in PLATFORM_ENV_MAP) {
+                    const keys = PLATFORM_ENV_MAP[platformId];
+                    const isConfigured = keys.every(key => process.env[key]);
+                    statuses[platformId] = { status: isConfigured ? 'Configured' : 'Not Configured' };
+                }
+                return res.status(200).json(statuses);
+            }
+
             default:
                 return res.status(404).json({ error: `Endpoint not found: ${endpoint}` });
         }
     } catch (error) {
         console.error(`Error processing endpoint ${endpoint}:`, error);
-        // Check for specific API key errors
         if (error.message.includes('API key not valid') || error.message.includes('not found') || error.message.includes('Requested entity was not found') || error.message.includes('billing')) {
             return res.status(401).json({ error: 'API key not valid, not found, or billing not enabled. Please check your key in Vercel environment variables.', details: error.message });
         }

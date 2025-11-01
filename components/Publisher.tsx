@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
 import { AlertTriangle } from './LucideIcons';
-import { generateVideo } from '../services/geminiService';
+import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
 interface PublisherProps {
@@ -75,19 +75,23 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
 
         setCreatingVideo(product.id);
         try {
-            const operation = await generateVideo(product.content.script);
+            // Generate audio and video in parallel
+            const [audioData, operation] = await Promise.all([
+                generateSpeech(product.content.script),
+                generateVideo(product.content.script)
+            ]);
+            
             onAddRenderJob({
                 productName: product.name,
                 status: 'Rendering',
                 progress: 5,
                 createdAt: new Date().toISOString(),
-                models: ['VEO 3.1', 'Suno', 'ElevenLabs Voice AI'],
-                operationName: operation.name
+                models: ['VEO 3.1', 'Gemini TTS'],
+                operationName: operation.name,
+                audioData: audioData
             });
         } catch (error: any) {
-            logger.error(`Video generation failed for ${product.name}`, { error: error.message });
-            // On a deployed app, API key issues come from the backend.
-            // We check the error message to provide a helpful alert to the user.
+            logger.error(`Video/Audio generation failed for ${product.name}`, { error: error.message });
             if (error.message.includes("API key not valid") || error.message.includes("not found") || error.message.includes("billing")) {
                 alert(`${t('publisher.apiKeyErrorTitle')}\n\n${t('publisher.apiKeyErrorMessage')}`);
             }

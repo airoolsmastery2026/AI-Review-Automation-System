@@ -72,8 +72,7 @@ export interface PlatformPerformance {
 }
 
 export type RenderStatus = 'Queued' | 'Rendering' | 'Completed' | 'Failed';
-// Fix: Add 'ElevenLabs Voice AI' to the AIModel type to allow it to be used in the Publisher component.
-export type AIModel = 'Sora 2' | 'VEO 3.1' | 'Suno' | 'Dreamina' | 'KlingAI' | 'ElevenLabs Voice AI';
+export type AIModel = 'Sora 2' | 'VEO 3.1' | 'Suno' | 'Dreamina' | 'KlingAI' | 'ElevenLabs Voice AI' | 'Gemini TTS';
 
 export interface RenderJob {
   id: number;
@@ -84,6 +83,7 @@ export interface RenderJob {
   models: AIModel[];
   operationName?: string;
   videoUrl?: string;
+  audioData?: string;
 }
 
 export type ScoutStatus = 'pending' | 'approved' | 'declined' | 'skipped' | 'auto-producing';
@@ -108,15 +108,12 @@ export interface LogEntry {
     context?: object;
 }
 
-// Fix: Moved ConnectionStatus and Connection from components/Connections.tsx to types.ts to resolve import errors.
-export type ConnectionStatus = 'connected' | 'disconnected' | 'refreshing';
+export type ConnectionStatus = 'Configured' | 'Not Configured';
 
 export interface Connection {
     id: string;
-    username: string;
+    nameKey: string;
     status: ConnectionStatus;
-    autoMode: boolean;
-    credentials: Record<string, string>;
 }
 
 export type ConnectionHealthStatus = 'Connected' | 'Refreshing' | 'Disconnected' | 'Error';

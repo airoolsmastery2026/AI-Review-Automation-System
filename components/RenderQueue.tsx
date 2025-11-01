@@ -27,7 +27,8 @@ const modelColors: Record<string, string> = {
     'Suno': 'border-pink-500',
     'Dreamina': 'border-yellow-500',
     'KlingAI': 'border-green-500',
-    'ElevenLabs Voice AI': 'border-cyan-500'
+    'ElevenLabs Voice AI': 'border-cyan-500',
+    'Gemini TTS': 'border-teal-500',
 };
 
 const getProgressText = (progress: number, t: (key: string) => string): string => {
@@ -36,6 +37,17 @@ const getProgressText = (progress: number, t: (key: string) => string): string =
     if (progress < 100) return t('renderQueue.progress_finalizing');
     return t('renderQueue.Completed');
 };
+
+const base64ToBlob = (base64: string, type: string = 'application/octet-stream') => {
+    const binaryString = window.atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return new Blob([bytes], { type });
+};
+
 
 export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
     const { t } = useI18n();
@@ -107,6 +119,22 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
         }
     };
 
+    const handleAudioDownload = (job: RenderJob) => {
+        if (!job.audioData) return;
+        try {
+            const blob = base64ToBlob(job.audioData, 'audio/mp3'); // Assuming mp3 for broad compatibility, though source is raw
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${job.productName.replace(/ /g, '_')}_audio.mp3`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            logger.info(`Audio for "${job.productName}" downloaded successfully.`);
+        } catch (error) {
+            logger.error(`Error downloading audio for "${job.productName}"`, { error });
+        }
+    }
+
     return (
         <Card>
             <CardHeader>
@@ -121,7 +149,7 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.status')}</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.progress')}</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.models')}</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.created')}</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.audio')}</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.actions')}</th>
                         </tr>
                     </thead>
@@ -149,18 +177,30 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
                                         ))}
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">{new Date(job.createdAt).toLocaleString()}</td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                     {job.audioData && (
+                                        <audio controls className="h-8 w-48" src={`data:audio/mp3;base64,${job.audioData}`}></audio>
+                                     )}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                    <Button 
-                                        size="sm" 
-                                        variant="ghost" 
-                                        disabled={job.status !== 'Completed'}
-                                        isLoading={downloadingJobId === job.id}
-                                        onClick={() => handleDownload(job)}
-                                    >
-                                        <Download className="h-4 w-4 mr-2" />
-                                        {t('renderQueue.download')}
-                                    </Button>
+                                    <div className="flex space-x-2">
+                                        {job.audioData && (
+                                            <Button size="sm" variant="ghost" onClick={() => handleAudioDownload(job)}>
+                                                <Download className="h-4 w-4 mr-2" />
+                                                {t('renderQueue.downloadAudio')}
+                                            </Button>
+                                        )}
+                                        <Button 
+                                            size="sm" 
+                                            variant="ghost" 
+                                            disabled={job.status !== 'Completed'}
+                                            isLoading={downloadingJobId === job.id}
+                                            onClick={() => handleDownload(job)}
+                                        >
+                                            <Download className="h-4 w-4 mr-2" />
+                                            {t('renderQueue.download')}
+                                        </Button>
+                                    </div>
                                 </td>
                             </tr>
                         )) : (

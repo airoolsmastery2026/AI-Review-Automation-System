@@ -1,5 +1,5 @@
 import { Type, Operation } from "@google/genai";
-import type { Product, Trend, ScoutedProduct } from '../types';
+import type { Product, Trend, ScoutedProduct, ConnectionStatus } from '../types';
 import { logger } from './loggingService';
 
 const BACKEND_URL = '/api/proxy'; // Use a relative path for Vercel serverless functions
@@ -292,6 +292,18 @@ export const generateVideo = async (script: string): Promise<Operation | { name:
     }
 };
 
+export const generateSpeech = async (script: string): Promise<string> => {
+    logger.info("Starting speech generation via backend proxy.");
+    try {
+        const response = await callBackend('/generate-speech', { script });
+        logger.info("Speech generation successful.");
+        return response.audioData; // The backend will return { audioData: 'base64...' }
+    } catch (error: any) {
+        logger.error("Failed to generate speech via backend.", { error: error.message });
+        throw error;
+    }
+};
+
 export const getVideoOperationStatus = async (operationName: string): Promise<Operation> => {
     logger.info(`Polling video operation status via backend for: ${operationName}`);
      try {
@@ -325,6 +337,16 @@ export const downloadVideo = async (videoUrl: string): Promise<Blob> => {
         return await response.blob();
     } catch (error: any) {
         logger.error("Failed to download video via backend.", { error: error.message });
+        throw error;
+    }
+};
+
+export const checkConnections = async (): Promise<Record<string, { status: ConnectionStatus }>> => {
+    logger.info("Checking connection statuses from backend.");
+    try {
+       return await callBackend('/check-connections', {});
+    } catch (error: any) {
+        logger.error("Failed to check connection statuses.", { error: error.message });
         throw error;
     }
 };
