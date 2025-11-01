@@ -62,13 +62,13 @@ module.exports = async (req, res) => {
             }
 
             case '/generate-video': {
-                const { script, image } = body; // image will be { data: '...', mimeType: '...' }
+                const { script, image, model } = body; // image will be { data: '...', mimeType: '...' }
                 if (!script) {
                     return res.status(400).json({ error: 'Missing script for /generate-video' });
                 }
                 
                 const videoParams = {
-                    model: 'veo-3.1-fast-generate-preview',
+                    model: model || 'veo-3.1-fast-generate-preview',
                     prompt: script,
                     config: {
                         numberOfVideos: 1,
@@ -89,7 +89,7 @@ module.exports = async (req, res) => {
             }
 
             case '/generate-speech': {
-                const { script } = body;
+                const { script, voice } = body;
                 if (!script) {
                     return res.status(400).json({ error: 'Missing script for /generate-speech' });
                 }
@@ -99,7 +99,7 @@ module.exports = async (req, res) => {
                     config: {
                         responseModalities: [Modality.AUDIO],
                         speechConfig: {
-                            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } },
+                            voiceConfig: { prebuiltVoiceConfig: { voiceName: voice || 'Kore' } },
                         },
                     },
                 });

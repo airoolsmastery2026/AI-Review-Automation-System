@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import type { ProductWithContent, RenderJob } from '../types';
+
+import React, { useState, useEffect } from 'react';
+import type { ProductWithContent, RenderJob, VideoModelSelection, AudioVoiceSelection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
@@ -66,13 +67,42 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
     const [productToPublish, setProductToPublish] = useState<ProductWithContent | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
     const [selectedImages, setSelectedImages] = useState<Record<string, string | null>>({}); // { productId: base64 | null }
+    const [modelSelections, setModelSelections] = useState<Record<string, { videoModel: VideoModelSelection; audioVoice: AudioVoiceSelection }>>({});
     const { t } = useI18n();
+
+    const readyToPublish = productsWithContent.filter(p => 
+        p.content.script && p.content.titles && p.content.seoDescription && p.content.captions
+    );
+
+    useEffect(() => {
+        const initialSelections: Record<string, { videoModel: VideoModelSelection; audioVoice: AudioVoiceSelection }> = {};
+        readyToPublish.forEach(p => {
+            if (!modelSelections[p.id]) {
+                initialSelections[p.id] = {
+                    videoModel: 'veo-3.1-fast-generate-preview',
+                    audioVoice: 'Kore'
+                };
+            }
+        });
+        if (Object.keys(initialSelections).length > 0) {
+            setModelSelections(prev => ({...prev, ...initialSelections}));
+        }
+    }, [readyToPublish, modelSelections]);
+
+    const handleModelSelectionChange = (productId: string, type: 'videoModel' | 'audioVoice', value: string) => {
+        setModelSelections(prev => ({
+            ...prev,
+            [productId]: {
+                ...(prev[productId] || { videoModel: 'veo-3.1-fast-generate-preview', audioVoice: 'Kore' }),
+                [type]: value as any,
+            }
+        }));
+    };
 
     const handleImageChange = (productId: string, e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        // VEO has a 4MB limit for image uploads.
         if (file.size > 4 * 1024 * 1024) {
             alert('Image file size must be less than 4MB.');
             return;
@@ -93,11 +123,13 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
 
         setCreatingVideo(product.id);
         const imageBase64 = selectedImages[product.id] || undefined;
+        const selections = modelSelections[product.id] || { videoModel: 'veo-3.1-fast-generate-preview', audioVoice: 'Kore' };
+        const { videoModel, audioVoice } = selections;
+        
         try {
-            // Generate audio and video in parallel
             const [audioData, operation] = await Promise.all([
-                generateSpeech(product.content.script),
-                generateVideo(product.content.script, imageBase64)
+                generateSpeech(product.content.script, audioVoice),
+                generateVideo(product.content.script, videoModel, imageBase64)
             ]);
             
             onAddRenderJob({
@@ -105,7 +137,7 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
                 status: 'Rendering',
                 progress: 5,
                 createdAt: new Date().toISOString(),
-                models: ['VEO 3.1', 'Gemini TTS'],
+                models: [videoModel === 'veo-3.1-generate-preview' ? 'VEO 3.1 HQ' : 'VEO 3.1', 'Gemini TTS'],
                 operationName: operation.name,
                 audioData: audioData
             });
@@ -140,10 +172,6 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
         setProductToPublish(null);
     };
     
-    const readyToPublish = productsWithContent.filter(p => 
-        p.content.script && p.content.titles && p.content.seoDescription && p.content.captions
-    );
-
     return (
         <>
             <Card>
@@ -154,11 +182,41 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
                 <div className="divide-y divide-gray-700">
                     {readyToPublish.length > 0 ? readyToPublish.map(product => (
                         <div key={product.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                            <div className="mb-4 sm:mb-0">
+                            <div className="mb-4 sm:mb-0 flex-1">
                                 <h3 className="text-lg font-bold text-gray-100">{product.name}</h3>
                                 <p className="text-sm text-gray-400">{t('publisher.readyToPublish')}</p>
+
+                                <div className="mt-3 flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+                                    <div className="flex-1 w-full sm:w-auto">
+                                        <label htmlFor={`video-model-${product.id}`} className="text-xs font-semibold text-gray-400">Video Model</label>
+                                        <select
+                                            id={`video-model-${product.id}`}
+                                            value={modelSelections[product.id]?.videoModel}
+                                            onChange={(e) => handleModelSelectionChange(product.id, 'videoModel', e.target.value)}
+                                            className="mt-1 w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                        >
+                                            <option value="veo-3.1-fast-generate-preview">VEO 3.1 Fast</option>
+                                            <option value="veo-3.1-generate-preview">VEO 3.1 HQ</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1 w-full sm:w-auto">
+                                        <label htmlFor={`audio-voice-${product.id}`} className="text-xs font-semibold text-gray-400">Audio Voice</label>
+                                        <select
+                                            id={`audio-voice-${product.id}`}
+                                            value={modelSelections[product.id]?.audioVoice}
+                                            onChange={(e) => handleModelSelectionChange(product.id, 'audioVoice', e.target.value)}
+                                            className="mt-1 w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-sm text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                        >
+                                            <option value="Kore">Kore (Male)</option>
+                                            <option value="Puck">Puck (Male)</option>
+                                            <option value="Charon">Charon (Female)</option>
+                                            <option value="Fenrir">Fenrir (Female)</option>
+                                        </select>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="flex items-center space-x-4">
+
+                            <div className="flex items-center space-x-4 mt-4 sm:mt-0 sm:pl-4">
                                 <div>
                                     {selectedImages[product.id] ? (
                                         <div className="relative group w-20 h-20">

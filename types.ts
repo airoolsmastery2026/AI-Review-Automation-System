@@ -72,7 +72,10 @@ export interface PlatformPerformance {
 }
 
 export type RenderStatus = 'Queued' | 'Rendering' | 'Completed' | 'Failed';
-export type AIModel = 'Sora 2' | 'VEO 3.1' | 'Suno' | 'Dreamina' | 'KlingAI' | 'ElevenLabs Voice AI' | 'Gemini TTS';
+export type AIModel = 'Sora 2' | 'VEO 3.1' | 'VEO 3.1 HQ' | 'Suno' | 'Dreamina' | 'KlingAI' | 'ElevenLabs Voice AI' | 'Gemini TTS';
+
+export type VideoModelSelection = 'veo-3.1-fast-generate-preview' | 'veo-3.1-generate-preview';
+export type AudioVoiceSelection = 'Kore' | 'Puck' | 'Charon' | 'Fenrir';
 
 export interface RenderJob {
   id: number;

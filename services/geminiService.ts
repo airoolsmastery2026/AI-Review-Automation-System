@@ -310,10 +310,10 @@ ${text}
     }, `Translate text to ${targetLanguage}`);
 };
 
-export const generateVideo = async (script: string, imageBase64?: string): Promise<Operation<any> | { name: string, done: false }> => {
+export const generateVideo = async (script: string, model: string, imageBase64?: string): Promise<Operation<any> | { name: string, done: false }> => {
     logger.info("Starting video generation via backend proxy.");
     
-    const payload: { script: string, image?: { data: string, mimeType: string } } = { script };
+    const payload: { script: string, model: string, image?: { data: string, mimeType: string } } = { script, model };
     
     if (imageBase64) {
         // data:image/png;base64,xxxxxxxx
@@ -338,10 +338,10 @@ export const generateVideo = async (script: string, imageBase64?: string): Promi
     }
 };
 
-export const generateSpeech = async (script: string): Promise<string> => {
+export const generateSpeech = async (script: string, voice: string): Promise<string> => {
     logger.info("Starting speech generation via backend proxy.");
     try {
-        const response = await callBackend('/generate-speech', { script });
+        const response = await callBackend('/generate-speech', { script, voice });
         logger.info("Speech generation successful.");
         return response.audioData; // The backend will return { audioData: 'base64...' }
     } catch (error: any) {
