@@ -1,258 +1,338 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { Button } from './common/Button';
-import { 
-    ExternalLink,
-    HardDriveUpload,
-    Copy,
-    Check,
-} from './LucideIcons';
-import { useI18n } from '../hooks/useI18n';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PlatformLogo } from './PlatformLogo';
+import { useI18n } from '../hooks/useI18n';
+import { Button } from './common/Button';
+import { ExternalLink, KeyRound, Save, X, Info, FileText } from './LucideIcons';
 import { logger } from '../services/loggingService';
-import type { Connection, ConnectionStatus } from '../types';
-import { checkConnections } from '../services/geminiService';
-import { Spinner } from './common/Spinner';
+
+type ConnectionStatus = 'Connected' | 'Refreshing' | 'Disconnected';
 
 interface Platform {
     id: string;
     nameKey: string;
-    icon: React.ReactNode;
     docsUrl: string;
-    docsKey: string;
-    envVars: string[];
+    neonColor: string;
+    category: 'social' | 'affiliate_global' | 'affiliate_vn';
 }
 
-const platforms: Record<string, Platform> = {
+interface Connection extends Platform {
+    status: ConnectionStatus;
+    apiKey?: string;
+}
+
+const platforms: Platform[] = [
     // Social Media
-    youtube: { id: "youtube", nameKey: "connections.youtube", icon: <PlatformLogo platformId="youtube" />, docsUrl: 'https://console.cloud.google.com/apis/credentials', docsKey: 'connections.docs_youtube', envVars: ['YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'] },
-    tiktok: { id: "tiktok", nameKey: "connections.tiktok", icon: <PlatformLogo platformId="tiktok" />, docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/', docsKey: 'connections.docs_tiktok', envVars: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET'] },
-    facebook: { id: "facebook", nameKey: "connections.facebook", icon: <PlatformLogo platformId="facebook" />, docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started', docsKey: 'connections.docs_facebook', envVars: ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'] },
-    instagram: { id: "instagram", nameKey: "connections.instagram", icon: <PlatformLogo platformId="instagram" />, docsUrl: 'https://developers.facebook.com/docs/instagram-basic-display-api/getting-started', docsKey: 'connections.docs_instagram', envVars: ['INSTAGRAM_USER_ACCESS_TOKEN'] },
-    x: { id: "x", nameKey: "connections.x", icon: <PlatformLogo platformId="x" />, docsUrl: 'https://developer.twitter.com/en/docs/authentication/oauth-2-0', docsKey: 'connections.docs_x', envVars: ['X_CLIENT_ID', 'X_CLIENT_SECRET'] },
-    pinterest: { id: "pinterest", nameKey: "connections.pinterest", icon: <PlatformLogo platformId="pinterest" />, docsUrl: 'https://developers.pinterest.com/docs/getting-started/authentication/', docsKey: 'connections.docs_pinterest', envVars: ['PINTEREST_APP_ID', 'PINTEREST_APP_SECRET'] },
-    telegram: { id: "telegram", nameKey: "connections.telegram", icon: <PlatformLogo platformId="telegram" />, docsUrl: 'https://core.telegram.org/bots#6-botfather', docsKey: 'connections.docs_telegram', envVars: ['TELEGRAM_BOT_TOKEN'] },
+    { id: "youtube", nameKey: "connections.youtube", docsUrl: 'https://console.cloud.google.com/apis/credentials', neonColor: '#FF0000', category: 'social' },
+    { id: "tiktok", nameKey: "connections.tiktok", docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/', neonColor: '#25F4EE', category: 'social' },
+    { id: "facebook", nameKey: "connections.facebook", docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started', neonColor: '#1877F2', category: 'social' },
+    { id: "instagram", nameKey: "connections.instagram", docsUrl: 'https://developers.facebook.com/docs/instagram-basic-display-api/getting-started', neonColor: '#d6249f', category: 'social' },
+    { id: "x", nameKey: "connections.x", docsUrl: 'https://developer.twitter.com/en/docs/authentication/oauth-2-0', neonColor: '#FFFFFF', category: 'social' },
+    { id: "pinterest", nameKey: "connections.pinterest", docsUrl: 'https://developers.pinterest.com/docs/getting-started/authentication/', neonColor: '#E60023', category: 'social' },
+    { id: "telegram", nameKey: "connections.telegram", docsUrl: 'https://core.telegram.org/bots#6-botfather', neonColor: '#2AABEE', category: 'social' },
     
     // Affiliate Global
-    clickbank: { id: "clickbank", nameKey: "connections.clickbank", icon: <PlatformLogo platformId="clickbank" />, docsUrl: 'https://support.clickbank.com/hc/en-us/articles/115015505708', docsKey: 'connections.docs_clickbank', envVars: ['CLICKBANK_API_KEY', 'CLICKBANK_DEVELOPER_KEY'] },
-    amazon: { id: "amazon", nameKey: "connections.amazon", icon: <PlatformLogo platformId="amazon" />, docsUrl: 'https://affiliate-program.amazon.com/help/topic/t100', docsKey: 'connections.docs_amazon', envVars: ['AMAZON_ASSOCIATE_TAG', 'AMAZON_ACCESS_KEY', 'AMAZON_SECRET_KEY'] },
-    shopify: { id: "shopify", nameKey: "connections.shopify", icon: <PlatformLogo platformId="shopify" />, docsUrl: 'https://shopify.dev/docs/apps/auth/oauth/getting-started', docsKey: 'connections.docs_shopify', envVars: ['SHOPIFY_API_KEY', 'SHOPIFY_API_SECRET_KEY', 'SHOPIFY_STORE_URL'] },
-    impact: { id: "impact", nameKey: "connections.impact", icon: <PlatformLogo platformId="impact" />, docsUrl: 'https://developer.impact.com/impact-api-started-guide/', docsKey: 'connections.docs_impact', envVars: ['IMPACT_ACCOUNT_SID', 'IMPACT_AUTH_TOKEN'] },
-    partnerstack: { id: "partnerstack", nameKey: "connections.partnerstack", icon: <PlatformLogo platformId="partnerstack" />, docsUrl: 'https://developers.partnerstack.com/reference/introduction', docsKey: 'connections.docs_partnerstack', envVars: ['PARTNERSTACK_PUBLIC_KEY', 'PARTNERSTACK_SECRET_KEY'] },
+    { id: "clickbank", nameKey: "connections.clickbank", docsUrl: 'https://support.clickbank.com/hc/en-us/articles/115015505708', neonColor: '#F7941D', category: 'affiliate_global' },
+    { id: "amazon", nameKey: "connections.amazon", docsUrl: 'https://affiliate-program.amazon.com/help/topic/t100', neonColor: '#FF9900', category: 'affiliate_global' },
+    { id: "shopify", nameKey: "connections.shopify", docsUrl: 'https://shopify.dev/docs/apps/auth/oauth/getting-started', neonColor: '#7AB55C', category: 'affiliate_global' },
+    { id: "impact", nameKey: "connections.impact", docsUrl: 'https://developer.impact.com/impact-api-started-guide/', neonColor: '#F05D38', category: 'affiliate_global' },
+    { id: "partnerstack", nameKey: "connections.partnerstack", docsUrl: 'https://developers.partnerstack.com/reference/introduction', neonColor: '#4B40EE', category: 'affiliate_global' },
+    { id: "digistore24", nameKey: "connections.digistore24", docsUrl: 'https://dev.digistore24.com/', neonColor: '#007BFF', category: 'affiliate_global' },
     
     // Affiliate VN
-    lazada: { id: "lazada", nameKey: "connections.lazada", icon: <PlatformLogo platformId="lazada" />, docsUrl: 'https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193494.0.0.1f733535j2q0zP&source=search&docId=108298&treeId=1', docsKey: 'connections.docs_lazada', envVars: ['LAZADA_APP_KEY', 'LAZADA_APP_SECRET'] },
-    shopee: { id: "shopee", nameKey: "connections.shopee", icon: <PlatformLogo platformId="shopee" />, docsUrl: 'https://open.shopee.com/documents/v2/v2.1/introduction?module=83&type=2', docsKey: 'connections.docs_shopee', envVars: ['SHOPEE_PARTNER_ID', 'SHOPEE_API_KEY'] },
-    tiki: { id: "tiki", nameKey: "connections.tiki", icon: <PlatformLogo platformId="tiki" />, docsUrl: 'https://open.tiki.vn/', docsKey: 'connections.docs_tiki', envVars: ['TIKI_CLIENT_ID', 'TIKI_CLIENT_SECRET'] },
-};
-
-const platformCategories = [
-    {
-        nameKey: 'connections.category_social',
-        platforms: ['youtube', 'tiktok', 'x', 'pinterest', 'facebook', 'instagram', 'telegram']
-    },
-    {
-        nameKey: 'connections.category_affiliate_global',
-        platforms: ['amazon', 'clickbank', 'shopify', 'impact', 'partnerstack']
-    },
-    {
-        nameKey: 'connections.category_affiliate_vn',
-        platforms: ['lazada', 'shopee', 'tiki']
-    }
+    { id: "lazada", nameKey: "connections.lazada", docsUrl: 'https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193494.0.0.1f733535j2q0zP&source=search&docId=108298&treeId=1', neonColor: '#0F146D', category: 'affiliate_vn' },
+    { id: "shopee", nameKey: "connections.shopee", docsUrl: 'https://open.shopee.com/documents/v2/v2.1/introduction?module=83&type=2', neonColor: '#EE4D2D', category: 'affiliate_vn' },
+    { id: "tiki", nameKey: "connections.tiki", docsUrl: 'https://open.tiki.vn/', neonColor: '#1A94FF', category: 'affiliate_vn' },
 ];
 
-const StatusIndicator: React.FC<{status: ConnectionStatus}> = ({ status }) => {
-    const { t } = useI18n();
-    const baseClass = 'w-3 h-3 rounded-full';
-    const statusConfig = {
-        'Configured': {
-            className: 'bg-green-500',
-            title: t('connections.status_Configured')
-        },
-        'Not Configured': {
-            className: 'bg-red-500',
-            title: t('connections.status_Not Configured')
-        }
-    }
-    const config = statusConfig[status];
-    return <div className={`${baseClass} ${config.className}`} title={config.title}></div>
+const NebulaBackground = () => (
+    <div className="absolute inset-0 z-[-1] overflow-hidden">
+        <div className="relative w-full h-full">
+            <div className="particle-container">
+                {Array.from({ length: 100 }).map((_, i) => <div key={i} className="particle"></div>)}
+            </div>
+        </div>
+        <style>{`
+            .particle-container {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+            }
+            .particle {
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(200, 220, 255, 0.5);
+                animation: float 20s infinite ease-in-out;
+            }
+            @keyframes float {
+                0%, 100% { transform: translateY(0) translateX(0); opacity: 0; }
+                50% { opacity: 1; }
+                100% { transform: translateY(-100vh) translateX(calc(100vw * (var(--x-end) - 0.5))); }
+            }
+            .particle:nth-child(n) {
+                width: calc(1px + (var(--size) * 2px));
+                height: calc(1px + (var(--size) * 2px));
+                top: calc(100% * var(--y-start));
+                left: calc(100% * var(--x-start));
+                animation-duration: calc(15s + (var(--duration) * 10s));
+                animation-delay: calc(var(--delay) * -20s);
+                --size: ${Math.random()};
+                --y-start: ${Math.random()};
+                --x-start: ${Math.random()};
+                --x-end: ${Math.random()};
+                --duration: ${Math.random()};
+                --delay: ${Math.random()};
+            }
+        `}</style>
+    </div>
+);
+
+
+const StatusLED: React.FC<{ status: ConnectionStatus }> = ({ status }) => {
+    const variants = {
+        Connected: { background: '#22c55e', scale: [1, 1.2, 1], opacity: [1, 0.7, 1], transition: { duration: 1.5, repeat: Infinity } },
+        Refreshing: { background: '#f59e0b', opacity: [0.3, 1, 0.3], transition: { duration: 1, repeat: Infinity } },
+        Disconnected: { background: '#ef4444', scale: 1, opacity: 1 },
+    };
+    return <motion.div className="w-3 h-3 rounded-full border-2 border-gray-900 absolute bottom-2 right-2" animate={variants[status]} />;
 };
 
-const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
+
+const PlatformCard: React.FC<{ connection: Connection; onClick: () => void }> = ({ connection, onClick }) => {
     const { t } = useI18n();
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(textToCopy);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-
     return (
-        <button
-            onClick={handleCopy}
-            className="p-1 rounded-md hover:bg-gray-600 text-gray-400 hover:text-gray-100 transition-colors"
-            title={t(copied ? 'connections.copied' : 'connections.copy')}
+        <motion.button
+            onClick={onClick}
+            className="relative flex flex-col items-center justify-center w-1/2 mx-auto aspect-square rounded-full cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            style={{ 
+                background: 'radial-gradient(circle, rgba(31, 41, 55, 0.8) 0%, rgba(17, 24, 39, 0.9) 100%)',
+                transformStyle: 'preserve-3d',
+                transform: 'perspective(1000px)'
+            }}
+            whileHover={{ 
+                y: -6, 
+                rotateY: 10,
+                boxShadow: `0 25px 50px -12px ${connection.neonColor}40`,
+                transition: { type: 'spring', stiffness: 300, damping: 20 }
+            }}
         >
-            {copied ? (
-                <Check className="h-3 w-3 text-green-400" />
-            ) : (
-                <Copy className="h-3 w-3" />
-            )}
-        </button>
+            <div className="p-2">
+                <PlatformLogo platformId={connection.id} className="w-8 h-8 sm:w-10 sm:h-10" />
+            </div>
+            <p className="font-semibold text-gray-200 mt-1 text-center text-xs sm:text-sm">{t(connection.nameKey)}</p>
+            <StatusLED status={connection.status} />
+        </motion.button>
     );
 };
 
-const PlatformCard: React.FC<{
-    platform: Platform,
-    connectionStatus: ConnectionStatus,
-}> = ({ platform, connectionStatus }) => {
+const ConnectionModal: React.FC<{ connection: Connection, onClose: () => void; onSave: (updatedConnection: Connection) => void }> = ({ connection, onClose, onSave }) => {
     const { t } = useI18n();
-    const isConfigured = connectionStatus === 'Configured';
-    const borderColor = isConfigured ? 'border-green-500/40 hover:border-green-500/70' : 'border-gray-700/50 hover:border-primary-500/70';
+    const [apiKey, setApiKey] = useState(connection.apiKey || '');
+    const [isSaving, setIsSaving] = useState(false);
+    const modalRef = useRef<HTMLDivElement>(null);
 
-    const handleCopyAll = () => {
-        const text = platform.envVars.map(v => `${v}=`).join('\n');
-        navigator.clipboard.writeText(text);
+    // Focus trap for accessibility
+    useEffect(() => {
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') onClose();
+            if (event.key !== 'Tab' || !modalRef.current) return;
+            
+            const focusableElements = modalRef.current.querySelectorAll<HTMLElement>(
+                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+
+            if (event.shiftKey) {
+                if (document.activeElement === firstElement) {
+                    lastElement.focus();
+                    event.preventDefault();
+                }
+            } else {
+                if (document.activeElement === lastElement) {
+                    firstElement.focus();
+                    event.preventDefault();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        logger.info(`Attempting to save connection for ${connection.nameKey}`);
+        
+        // MOCK API CALL - Replace with your actual backend call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        // const response = await fetch('/api/save-token', {
+        //     method: 'POST',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ userId: 'user123', platform: connection.id, token: apiKey })
+        // });
+
+        setIsSaving(false);
+        // if (response.ok) {
+            logger.info(`Connection for ${connection.nameKey} saved successfully.`);
+            onSave({ ...connection, apiKey, status: 'Connected' });
+        // } else {
+        //     logger.error(`Failed to save connection for ${connection.nameKey}`);
+        // }
     };
 
     return (
-        <div className={`relative flex flex-col p-4 rounded-lg glass-card h-full border ${borderColor} transition-colors duration-300`}>
-             <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                    {platform.icon}
-                    <span className="font-semibold text-base text-gray-100">{t(platform.nameKey)}</span>
+        <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+        >
+            <motion.div
+                ref={modalRef}
+                className="glass-card w-full max-w-lg rounded-xl shadow-2xl flex flex-col"
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 50, opacity: 0 }}
+                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                onClick={e => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="modal-title"
+            >
+                <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                    <div className="flex items-center space-x-3">
+                        <PlatformLogo platformId={connection.id} className="w-8 h-8"/>
+                        <h2 id="modal-title" className="text-xl font-bold text-gray-100">{t(connection.nameKey)}</h2>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close modal"><X className="w-5 h-5"/></Button>
                 </div>
-                <StatusIndicator status={connectionStatus} />
-            </div>
-            <div className="mt-4 flex-grow">
-                <p className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider">{t('connections.requiredEnvVars')}</p>
-                <div className="space-y-1.5">
-                    {platform.envVars.map(envVar => (
-                        <div key={envVar} className="flex items-center justify-between bg-gray-900/60 rounded-md p-1.5 pl-2">
-                            <code className="text-xs text-yellow-300 truncate">{envVar}</code>
-                            <CopyButton textToCopy={envVar} />
+                
+                <div className="p-6 space-y-6">
+                    <div className="flex items-start p-3 rounded-lg bg-primary-500/10 border border-primary-500/20">
+                        <Info className="w-5 h-5 text-primary-400 mr-3 flex-shrink-0 mt-1"/>
+                        <p className="text-sm text-primary-200">{t('connections.vercelSetupDescription_V2')}</p>
+                    </div>
+
+                    <div>
+                        <label htmlFor="api-key" className="block text-sm font-medium text-gray-300 mb-2">{t('connections.requiredEnvVars')}</label>
+                        <div className="relative">
+                            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500"/>
+                            <input
+                                id="api-key"
+                                type="password"
+                                value={apiKey}
+                                onChange={e => setApiKey(e.target.value)}
+                                placeholder="******************"
+                                className="w-full bg-gray-800/50 border border-gray-600 rounded-md pl-10 pr-4 py-2 text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
                         </div>
-                    ))}
+                    </div>
+                     <div>
+                        <label htmlFor="notes" className="block text-sm font-medium text-gray-300 mb-2">Notes (Optional)</label>
+                        <div className="relative">
+                           <FileText className="absolute left-3 top-3 w-5 h-5 text-gray-500"/>
+                             <textarea
+                                id="notes"
+                                rows={3}
+                                placeholder={`e.g., Main production account`}
+                                className="w-full bg-gray-800/50 border border-gray-600 rounded-md pl-10 pr-4 py-2 text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                            />
+                        </div>
+                    </div>
                 </div>
-            </div>
-             <div className="mt-4 pt-3 border-t border-gray-700/50 flex items-center justify-between space-x-2">
-                 <Button variant="ghost" size="sm" onClick={handleCopyAll} title={t('connections.copyAll')}>
-                    <Copy className="h-3 w-3 mr-1.5"/>
-                    {t('connections.copyAll')}
-                </Button>
-                <a href={platform.docsUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-400 hover:text-primary-300 transition-colors flex items-center font-semibold" title={t(platform.docsKey)}>
-                   {t('connections.viewDocs')} <ExternalLink className="h-4 w-4 ml-1.5" />
-                </a>
-             </div>
-        </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-900/40 rounded-b-xl">
+                    <a href={connection.docsUrl} target="_blank" rel="noopener noreferrer">
+                        <Button variant="ghost" size="sm">
+                            <ExternalLink className="w-4 h-4 mr-2"/> {t('connections.viewDocs')}
+                        </Button>
+                    </a>
+                    <div className="flex space-x-2">
+                         <Button variant="secondary" onClick={onClose}>{t('publisher.cancel')}</Button>
+                         <Button onClick={handleSave} isLoading={isSaving} icon={<Save className="w-4 h-4"/>}>
+                             {isSaving ? "Connecting..." : "Save & Connect"}
+                         </Button>
+                    </div>
+                </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
 export const Connections: React.FC = () => {
     const { t } = useI18n();
-    const [connections, setConnections] = useState<Record<string, Connection>>({});
-    const [isLoading, setIsLoading] = useState(true);
+    const [connections, setConnections] = useState<Connection[]>([]);
+    const [selectedPlatform, setSelectedPlatform] = useState<Connection | null>(null);
 
     useEffect(() => {
-        const fetchStatuses = async () => {
-            setIsLoading(true);
-            try {
-                const statuses = await checkConnections();
-                const connectionData: Record<string, Connection> = {};
-                for (const platformId in platforms) {
-                    connectionData[platformId] = {
-                        id: platformId,
-                        nameKey: platforms[platformId].nameKey,
-                        status: statuses[platformId]?.status || 'Not Configured',
-                    }
-                }
-                setConnections(connectionData);
-            } catch (error) {
-                logger.error("Failed to fetch connection statuses.", { error });
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        fetchStatuses();
+        // Initial state setup
+        const initialConnections = platforms.map(p => ({ ...p, status: 'Disconnected' as ConnectionStatus }));
+        setConnections(initialConnections);
+
+        // MOCK API POLLING - Replace with your actual status fetching logic (e.g., WebSockets or polling)
+        const intervalId = setInterval(() => {
+            setConnections(prev => {
+                const randomIndex = Math.floor(Math.random() * prev.length);
+                const statuses: ConnectionStatus[] = ['Connected', 'Refreshing', 'Disconnected'];
+                const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                
+                return prev.map((conn, index) => 
+                    index === randomIndex ? { ...conn, status: randomStatus } : conn
+                );
+            });
+        }, 5000); // Poll every 5 seconds
+
+        return () => clearInterval(intervalId); // Cleanup on unmount
+    }, []);
+
+    const handleSaveConnection = useCallback((updatedConnection: Connection) => {
+        setConnections(prev => prev.map(c => c.id === updatedConnection.id ? updatedConnection : c));
+        setSelectedPlatform(null);
     }, []);
     
+    const categories = [
+        { key: 'social', titleKey: 'connections.category_social' },
+        { key: 'affiliate_global', titleKey: 'connections.category_affiliate_global' },
+        { key: 'affiliate_vn', titleKey: 'connections.category_affiliate_vn' },
+    ];
+
     return (
-        <div className="space-y-8">
-            <Card>
-                <CardHeader className="text-center !p-6">
-                    <CardTitle className="text-2xl">{t('connections.hubTitle')}</CardTitle>
-                    <CardDescription>{t('connections.hubDescription')}</CardDescription>
-                </CardHeader>
-            </Card>
-
-            <Card className="border-l-4 border-primary-500">
-                <CardHeader>
-                    <div className="flex items-center space-x-3">
-                        <div className="p-2 rounded-lg bg-primary-500/10">
-                            <HardDriveUpload className="h-6 w-6 text-primary-400" />
-                        </div>
-                        <div>
-                            <CardTitle>{t('connections.vercelSetupTitle')}</CardTitle>
-                            <CardDescription>{t('connections.vercelSetupDescription_V2')}</CardDescription>
+        <div className="relative min-h-full">
+            <NebulaBackground />
+            <div className="space-y-8 relative z-10">
+                <div className="text-center glass-card p-6 rounded-xl">
+                    <h1 className="text-3xl font-bold text-gray-100">{t('connections.hubTitle')}</h1>
+                    <p className="text-gray-400 mt-2 max-w-2xl mx-auto">{t('connections.hubDescription')}</p>
+                </div>
+                
+                {categories.map(category => (
+                    <div key={category.key}>
+                        <h2 className="text-xl font-semibold text-gray-200 mb-4 px-2">{t(category.titleKey)}</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8" style={{ perspective: '1200px' }}>
+                            {connections.filter(c => c.category === category.key).map(connection => (
+                                <PlatformCard 
+                                    key={connection.id} 
+                                    connection={connection}
+                                    onClick={() => setSelectedPlatform(connection)} 
+                                />
+                            ))}
                         </div>
                     </div>
-                </CardHeader>
-                 <div className="p-4 border-t border-gray-700">
-                    <a href="https://vercel.com/docs/projects/environment-variables" target="_blank" rel="noopener noreferrer" className="block">
-                        <Button variant="secondary" className="w-full">
-                            <ExternalLink className="h-4 w-4 mr-2"/>
-                            {t('connections.vercelSetupLink')}
-                        </Button>
-                    </a>
-                </div>
-            </Card>
+                ))}
+            </div>
 
-             <Card>
-                <CardHeader>
-                    <CardTitle>{t('connections.category_ai')}</CardTitle>
-                </CardHeader>
-                <div className="p-4">
-                    <div className="glass-card p-4 rounded-lg flex items-center">
-                        <PlatformLogo platformId="gemini" className="w-10 h-10" />
-                        <div className="ml-4 flex-1">
-                            <h3 className="font-bold text-gray-100">{t('connections.gemini')}</h3>
-                            <p className="text-xs text-gray-400">{t('connections.geminiDescription')}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                            <span className="text-sm font-semibold text-green-300">{t('connections.status_Configured')}</span>
-                        </div>
-                    </div>
-                </div>
-            </Card>
-
-            {isLoading ? (
-                <div className="flex justify-center items-center h-64">
-                    <Spinner />
-                </div>
-            ) : (
-                platformCategories.map(category => (
-                    <Card key={category.nameKey}>
-                        <CardHeader>
-                            <CardTitle>{t(category.nameKey)}</CardTitle>
-                        </CardHeader>
-                        <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                            {category.platforms.map(platformId => {
-                                const platform = platforms[platformId];
-                                if (!platform) return null;
-                                return (
-                                    <PlatformCard
-                                        key={platform.id}
-                                        platform={platform}
-                                        connectionStatus={connections[platform.id]?.status || 'Not Configured'}
-                                    />
-                                );
-                            })}
-                        </div>
-                    </Card>
-                ))
-            )}
+            <AnimatePresence>
+                {selectedPlatform && (
+                    <ConnectionModal 
+                        connection={selectedPlatform} 
+                        onClose={() => setSelectedPlatform(null)}
+                        onSave={handleSaveConnection}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 };

@@ -5,12 +5,14 @@ import {
     generateReviewScript,
     generateVideoTitles,
     generateSeoDescription,
-    generateCaptionsAndHashtags
+    generateCaptionsAndHashtags,
+    translateText
 } from '../services/geminiService';
 import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Spinner } from './common/Spinner';
 import { useI18n } from '../hooks/useI18n';
+import { Languages, ChevronDown } from './LucideIcons';
 
 interface ContentGeneratorProps {
     products: Product[];
@@ -58,6 +60,15 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
     });
     const [isGeneratingAll, setIsGeneratingAll] = useState(false);
     const { t } = useI18n();
+    const [targetLanguage, setTargetLanguage] = useState('vi');
+    const [translatedScript, setTranslatedScript] = useState<string | null>(null);
+    const [isTranslating, setIsTranslating] = useState(false);
+    const [showTranslation, setShowTranslation] = useState(false);
+
+    useEffect(() => {
+        setTranslatedScript(null);
+        setShowTranslation(false);
+    }, [selectedProductId]);
 
     const handleGeneration = useCallback(async (type: GenerationType, overrideProduct?: Product) => {
         const product = overrideProduct || products.find(p => p.id === selectedProductId);
@@ -120,6 +131,30 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
 
     const selectedProductContent = selectedProductId ? generatedContent[selectedProductId] : undefined;
 
+    const handleTranslate = async () => {
+        if (!selectedProductContent?.script) return;
+        setIsTranslating(true);
+        try {
+            const languageName = languages.find(l => l.code === targetLanguage)?.nameKey || 'Vietnamese';
+            const translation = await translateText(selectedProductContent.script, t(languageName));
+            setTranslatedScript(translation);
+            setShowTranslation(true);
+        } catch (error) {
+            console.error('Error translating script:', error);
+        } finally {
+            setIsTranslating(false);
+        }
+    };
+
+    const languages = [
+        { code: 'vi', nameKey: 'contentGenerator.vietnamese' },
+        { code: 'es', nameKey: 'contentGenerator.spanish' },
+        { code: 'fr', nameKey: 'contentGenerator.french' },
+        { code: 'de', nameKey: 'contentGenerator.german' },
+        { code: 'ja', nameKey: 'contentGenerator.japanese' },
+    ];
+
+
     return (
         <div className="space-y-6">
              <Card>
@@ -169,6 +204,43 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                         isGeneratingAll={isGeneratingAll}
                     >
                         <pre className="whitespace-pre-wrap font-sans">{selectedProductContent?.script}</pre>
+                         {selectedProductContent?.script && (
+                            <div className="mt-4 pt-4 border-t border-gray-700">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <select 
+                                        value={targetLanguage} 
+                                        onChange={(e) => setTargetLanguage(e.target.value)}
+                                        className="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm"
+                                        aria-label={t('contentGenerator.selectLanguage')}
+                                    >
+                                        {languages.map(lang => <option key={lang.code} value={lang.code}>{t(lang.nameKey)}</option>)}
+                                    </select>
+                                    <Button 
+                                        onClick={handleTranslate} 
+                                        isLoading={isTranslating} 
+                                        disabled={isTranslating}
+                                        icon={<Languages className="h-4 w-4" />}
+                                    >
+                                        {isTranslating ? t('contentGenerator.translating') : t('contentGenerator.translate')}
+                                    </Button>
+                                </div>
+
+                                {translatedScript && (
+                                    <div className="mt-4">
+                                        <Button variant="ghost" size="sm" onClick={() => setShowTranslation(!showTranslation)} className="text-gray-300">
+                                            {t(showTranslation ? 'contentGenerator.hideTranslation' : 'contentGenerator.showTranslation')}
+                                            <ChevronDown className={`w-4 h-4 ml-2 transition-transform ${showTranslation ? 'rotate-180' : ''}`}/>
+                                        </Button>
+                                        {showTranslation && (
+                                            <div className="mt-2 p-3 bg-gray-900/50 rounded-md border border-gray-700">
+                                            <h4 className="font-semibold text-gray-200 mb-2">{t('contentGenerator.translation')}</h4>
+                                            <pre className="whitespace-pre-wrap font-sans text-gray-300">{translatedScript}</pre>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </GenerationSection>
 
                     <GenerationSection

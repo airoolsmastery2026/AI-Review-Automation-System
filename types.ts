@@ -1,3 +1,4 @@
+
 export enum Page {
     DASHBOARD = 'Dashboard',
     AUTOMATION = 'Automation',
@@ -11,7 +12,6 @@ export enum Page {
     SYSTEM_STATUS = 'System Status',
     PROJECT_ROADMAP = 'Project Roadmap',
     APP_GUIDE = 'App Guide',
-    LLAMA_CODER_GUIDE = 'LlamaCoder Guide',
     FINANCE = 'Finance',
 }
 

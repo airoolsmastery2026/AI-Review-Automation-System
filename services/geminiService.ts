@@ -280,6 +280,22 @@ Hashtags: [Your generated hashtags here, separated by spaces]
     return { caption, hashtags };
 };
 
+export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
+    const prompt = `
+Translate the following text into ${targetLanguage}.
+Provide only the translated text, without any introductory phrases or explanations.
+
+Text to translate:
+---
+${text}
+---
+`;
+    return generateContentWithProxy({
+        model: 'gemini-2.5-flash',
+        contents: prompt
+    }, `Translate text to ${targetLanguage}`);
+};
+
 export const generateVideo = async (script: string): Promise<Operation | { name: string, done: false }> => {
     logger.info("Starting video generation via backend proxy.");
     try {

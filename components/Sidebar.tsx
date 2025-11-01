@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Page } from '../types';
 import { AnalyticsIcon, DashboardIcon, EditIcon, PublishIcon, SearchIcon, CloseIcon, SparklesIcon, ConnectIcon, TemplateIcon } from './Icons';
@@ -32,7 +33,6 @@ const navigation = [
     { name: Page.SYSTEM_STATUS, icon: ShieldCheck },
     { name: Page.PROJECT_ROADMAP, icon: GitBranch },
     { name: Page.APP_GUIDE, icon: BookOpen },
-    { name: Page.LLAMA_CODER_GUIDE, icon: Code },
 ];
 
 const NavLink: React.FC<{

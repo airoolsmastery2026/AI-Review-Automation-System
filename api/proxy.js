@@ -1,3 +1,4 @@
+
 const { GoogleGenAI, Modality } = require('@google/genai');
 
 // Vercel handles environment variables, which we access via process.env
@@ -23,6 +24,7 @@ const PLATFORM_ENV_MAP = {
     shopify: ['SHOPIFY_API_KEY', 'SHOPIFY_API_SECRET_KEY', 'SHOPIFY_STORE_URL'],
     impact: ['IMPACT_ACCOUNT_SID', 'IMPACT_AUTH_TOKEN'],
     partnerstack: ['PARTNERSTACK_PUBLIC_KEY', 'PARTNERSTACK_SECRET_KEY'],
+    digistore24: ['DIGISTORE24_API_KEY'],
     // VN Affiliate
     lazada: ['LAZADA_APP_KEY', 'LAZADA_APP_SECRET'],
     shopee: ['SHOPEE_PARTNER_ID', 'SHOPEE_API_KEY'],

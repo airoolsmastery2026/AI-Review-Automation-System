@@ -1,4 +1,7 @@
+
+
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
 import { Header } from './components/Header';
 import { ProductScout } from './components/ProductScout';
@@ -13,7 +16,6 @@ import { Finance } from './components/Finance';
 import { Footer } from './components/common/Footer';
 import { RenderQueue } from './components/RenderQueue';
 import { AppGuide } from './components/AppGuide';
-import { LlamaCoderGuide } from './components/LlamaCoderGuide';
 import { SystemStatus } from './components/SystemStatus';
 import { ProjectRoadmap } from './components/ProjectRoadmap';
 import { Starfield } from './components/common/Starfield';
@@ -248,12 +250,23 @@ const App: React.FC = () => {
                 return <ProjectRoadmap />;
             case Page.APP_GUIDE:
                 return <AppGuide />;
-            case Page.LLAMA_CODER_GUIDE:
-                return <LlamaCoderGuide />;
             default:
                 return <Dashboard productsWithContent={productsWithContent} renderJobs={renderJobs} />;
         }
     };
+    
+    const pageVariants = {
+        initial: { opacity: 0, y: 20 },
+        in: { opacity: 1, y: 0 },
+        out: { opacity: 0, y: -20 }
+    };
+
+    const pageTransition = {
+        type: 'tween',
+        ease: 'anticipate',
+        duration: 0.5
+    };
+
 
     return (
         <div className="flex h-screen bg-transparent text-gray-100">
@@ -262,7 +275,18 @@ const App: React.FC = () => {
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} />
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-4 sm:p-6 lg:p-8">
-                    {renderPage()}
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={currentPage}
+                            initial="initial"
+                            animate="in"
+                            exit="out"
+                            variants={pageVariants}
+                            transition={pageTransition}
+                        >
+                            {renderPage()}
+                        </motion.div>
+                    </AnimatePresence>
                 </main>
                 <Footer />
             </div>

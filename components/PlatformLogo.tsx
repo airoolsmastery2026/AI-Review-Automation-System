@@ -148,6 +148,14 @@ const PinterestLogo = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const Digistore24Logo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Digistore24 Logo</title>
+        <circle cx="12" cy="12" r="10" fill="#007BFF"/>
+        <path d="M9.5 16V8l7 4-7 4z" fill="white"/>
+    </svg>
+);
+
 export const PlatformLogo: React.FC<{ platformId: string; className?: string }> = ({ platformId, className }) => {
     const props = { className: className || defaultProps.className };
 
@@ -165,6 +173,7 @@ export const PlatformLogo: React.FC<{ platformId: string; className?: string }> 
         case 'shopify': return <ShopifyLogo {...props} />;
         case 'impact': return <ImpactLogo {...props} />;
         case 'partnerstack': return <PartnerStackLogo {...props} />;
+        case 'digistore24': return <Digistore24Logo {...props} />;
         case 'lazada': return <LazadaLogo {...props} />;
         case 'shopee': return <ShopeeLogo {...props} />;
         case 'tiki': return <TikiLogo {...props} />;

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
@@ -51,6 +52,7 @@ const ALL_PLATFORMS = [
     { id: 'shopify', nameKey: 'connections.shopify' },
     { id: 'impact', nameKey: 'connections.impact' },
     { id: 'partnerstack', nameKey: 'connections.partnerstack' },
+    { id: 'digistore24', nameKey: 'connections.digistore24' },
     { id: 'lazada', nameKey: 'connections.lazada' },
     { id: 'shopee', nameKey: 'connections.shopee' },
     { id: 'tiki', nameKey: 'connections.tiki' },
