@@ -12,7 +12,7 @@ import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Spinner } from './common/Spinner';
 import { useI18n } from '../hooks/useI18n';
-import { Languages, ChevronDown } from './LucideIcons';
+import { Languages, ChevronDown, Edit, Save, X } from './LucideIcons';
 
 interface ContentGeneratorProps {
     products: Product[];
@@ -24,13 +24,43 @@ interface ContentGeneratorProps {
 
 const GenerationSection: React.FC<{
     title: string;
+    type: GenerationType;
     children: React.ReactNode;
     onGenerate: () => void;
+    onSaveEdit: (newText: string | { caption: string, hashtags: string[] }) => void;
     isLoading: boolean;
     isGenerated: boolean;
     isGeneratingAll: boolean;
-}> = ({ title, children, onGenerate, isLoading, isGenerated, isGeneratingAll }) => {
+    content: any;
+}> = ({ title, type, children, onGenerate, onSaveEdit, isLoading, isGenerated, isGeneratingAll, content }) => {
     const { t } = useI18n();
+    const [isEditing, setIsEditing] = useState(false);
+    const [editText, setEditText] = useState('');
+
+    const handleEdit = () => {
+        if (type === GenerationType.CAPTIONS) {
+            setEditText(content.caption);
+        } else {
+            setEditText(content);
+        }
+        setIsEditing(true);
+    };
+
+    const handleSave = () => {
+        if (type === GenerationType.CAPTIONS) {
+            onSaveEdit({ caption: editText, hashtags: content.hashtags });
+        } else {
+            onSaveEdit(editText);
+        }
+        setIsEditing(false);
+    };
+
+    const handleCancel = () => {
+        setIsEditing(false);
+    };
+
+    const canEdit = type === GenerationType.SCRIPT || type === GenerationType.DESCRIPTION || type === GenerationType.CAPTIONS;
+
     return (
         <Card>
             <CardHeader className="flex justify-between items-center">
@@ -40,12 +70,38 @@ const GenerationSection: React.FC<{
                         {isGenerated ? t('contentGenerator.generatedSuccess') : t('contentGenerator.generateDescription', { type: title.toLowerCase() })}
                     </CardDescription>
                 </div>
-                <Button onClick={onGenerate} isLoading={isLoading} disabled={isLoading || isGeneratingAll}>
-                    {isLoading ? t('contentGenerator.generating') : isGenerated ? t('contentGenerator.regenerate') : t('contentGenerator.generate')}
-                </Button>
+                <div className="flex items-center space-x-2">
+                    {isGenerated && !isEditing && canEdit && (
+                         <Button variant="secondary" size="sm" onClick={handleEdit} icon={<Edit className="w-4 h-4"/>}>
+                            {t('contentGenerator.edit')}
+                        </Button>
+                    )}
+                    <Button onClick={onGenerate} isLoading={isLoading} disabled={isLoading || isGeneratingAll}>
+                        {isLoading ? t('contentGenerator.generating') : isGenerated ? t('contentGenerator.regenerate') : t('contentGenerator.generate')}
+                    </Button>
+                </div>
             </CardHeader>
             {(isLoading || isGeneratingAll) && !isGenerated && <div className="flex justify-center p-8"><Spinner/></div>}
-            {isGenerated && <div className="prose prose-sm max-w-none p-4 bg-gray-800/50 rounded-b-lg text-gray-300 prose-headings:text-gray-100 prose-strong:text-gray-100 prose-invert">{children}</div>}
+            {isGenerated && (
+                <div className="prose prose-sm max-w-none p-4 bg-gray-800/50 rounded-b-lg text-gray-300 prose-headings:text-gray-100 prose-strong:text-gray-100 prose-invert">
+                    {isEditing ? (
+                        <div className="space-y-2">
+                             <textarea 
+                                className="w-full bg-gray-900/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 font-sans text-sm"
+                                value={editText}
+                                onChange={(e) => setEditText(e.target.value)}
+                                rows={type === GenerationType.SCRIPT ? 10 : 5}
+                            />
+                            <div className="flex justify-end space-x-2">
+                                <Button variant="ghost" size="sm" onClick={handleCancel} icon={<X className="w-4 h-4"/>}>{t('contentGenerator.cancel')}</Button>
+                                <Button size="sm" onClick={handleSave} icon={<Save className="w-4 h-4"/>}>{t('contentGenerator.save')}</Button>
+                            </div>
+                        </div>
+                    ) : (
+                        children
+                    )}
+                </div>
+            )}
         </Card>
     );
 };
@@ -84,7 +140,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                     break;
                 case GenerationType.TITLES:
                     const titles = await generateVideoTitles(product.name);
-                    onContentUpdate(product.id, { titles });
+                    onContentUpdate(product.id, { titles, selectedTitle: titles[0] || '' });
                     break;
                 case GenerationType.DESCRIPTION:
                     const seoDescription = await generateSeoDescription(product.name);
@@ -128,6 +184,21 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         }
     }, [productToAutoGenerate, products, handleGenerateAll, onGenerationComplete]);
 
+    const handleSaveEdit = (type: GenerationType, newContent: any) => {
+        if (!selectedProductId) return;
+        
+        switch(type) {
+            case GenerationType.SCRIPT:
+                onContentUpdate(selectedProductId, { script: newContent });
+                break;
+            case GenerationType.DESCRIPTION:
+                onContentUpdate(selectedProductId, { seoDescription: newContent });
+                break;
+            case GenerationType.CAPTIONS:
+                onContentUpdate(selectedProductId, { captions: newContent });
+                break;
+        }
+    }
 
     const selectedProductContent = selectedProductId ? generatedContent[selectedProductId] : undefined;
 
@@ -197,11 +268,14 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
             {selectedProductId && (
                 <div className="space-y-4">
                     <GenerationSection
+                        type={GenerationType.SCRIPT}
                         title={t('contentGenerator.videoScript')}
                         onGenerate={() => handleGeneration(GenerationType.SCRIPT)}
+                        onSaveEdit={(newText) => handleSaveEdit(GenerationType.SCRIPT, newText)}
                         isLoading={loadingStates[GenerationType.SCRIPT]}
                         isGenerated={!!selectedProductContent?.script}
                         isGeneratingAll={isGeneratingAll}
+                        content={selectedProductContent?.script}
                     >
                         <pre className="whitespace-pre-wrap font-sans">{selectedProductContent?.script}</pre>
                          {selectedProductContent?.script && (
@@ -244,33 +318,57 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                     </GenerationSection>
 
                     <GenerationSection
+                        type={GenerationType.TITLES}
                         title={t('contentGenerator.videoTitles')}
                         onGenerate={() => handleGeneration(GenerationType.TITLES)}
+                        onSaveEdit={() => {}} // Not editable
                         isLoading={loadingStates[GenerationType.TITLES]}
                         isGenerated={!!selectedProductContent?.titles}
                         isGeneratingAll={isGeneratingAll}
+                        content={selectedProductContent?.titles}
                     >
-                        <ul className="list-disc pl-5">
-                            {selectedProductContent?.titles?.map((title, i) => <li key={i}>{title}</li>)}
-                        </ul>
+                        <div>
+                            <p className="text-gray-400 text-sm mb-2">{t('contentGenerator.selectFinalTitle')}</p>
+                            <div className="space-y-2">
+                                {selectedProductContent?.titles?.map((title, i) => (
+                                    <label key={i} className="flex items-center p-2 rounded-md hover:bg-gray-700/50 cursor-pointer">
+                                        <input 
+                                            type="radio"
+                                            name="selectedTitle"
+                                            value={title}
+                                            checked={selectedProductContent?.selectedTitle === title}
+                                            onChange={() => onContentUpdate(selectedProductId, { selectedTitle: title })}
+                                            className="h-4 w-4 text-primary-600 bg-gray-700 border-gray-600 focus:ring-primary-500"
+                                        />
+                                        <span className="ml-3 text-gray-200">{title}</span>
+                                    </label>
+                                ))}
+                            </div>
+                        </div>
                     </GenerationSection>
 
                     <GenerationSection
+                        type={GenerationType.DESCRIPTION}
                         title={t('contentGenerator.seoDescription')}
                         onGenerate={() => handleGeneration(GenerationType.DESCRIPTION)}
+                        onSaveEdit={(newText) => handleSaveEdit(GenerationType.DESCRIPTION, newText)}
                         isLoading={loadingStates[GenerationType.DESCRIPTION]}
                         isGenerated={!!selectedProductContent?.seoDescription}
                         isGeneratingAll={isGeneratingAll}
+                        content={selectedProductContent?.seoDescription}
                     >
                         <pre className="whitespace-pre-wrap font-sans">{selectedProductContent?.seoDescription}</pre>
                     </GenerationSection>
 
                      <GenerationSection
+                        type={GenerationType.CAPTIONS}
                         title={t('contentGenerator.captionsHashtags')}
                         onGenerate={() => handleGeneration(GenerationType.CAPTIONS)}
+                        onSaveEdit={(newContent) => handleSaveEdit(GenerationType.CAPTIONS, newContent)}
                         isLoading={loadingStates[GenerationType.CAPTIONS]}
                         isGenerated={!!selectedProductContent?.captions}
                         isGeneratingAll={isGeneratingAll}
+                        content={selectedProductContent?.captions}
                     >
                        <div>
                             <p className="font-bold">{t('contentGenerator.caption')}</p>

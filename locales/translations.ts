@@ -75,22 +75,22 @@ export const translations = {
     
     // Content Generator
     contentGenerator: {
-      title: "Content Generator",
-      description: "Select a product and generate all necessary assets for your video.",
+      title: "Content Finalization Hub",
+      description: "Select a product to review, edit, and finalize all generated assets before publishing.",
       selectLabel: "Select a product from your pipeline:",
       noProducts: "No products in pipeline. Go to Product Scout first.",
       videoScript: "Video Script",
       videoTitles: "Video Titles",
       seoDescription: "SEO Description",
       captionsHashtags: "Captions & Hashtags",
-      generatedSuccess: "Content generated successfully.",
+      generatedSuccess: "Content generated. Ready for review and editing.",
       generateDescription: "Generate the {type} for your video.",
       generate: "Generate",
       generating: "Generating...",
       regenerate: "Regenerate",
       caption: "Caption:",
       hashtags: "Hashtags:",
-      generateAll: "Generate All",
+      generateAll: "Generate All Assets",
       generatingAll: "Generating All Assets...",
       translate: "Translate",
       selectLanguage: "Select Language",
@@ -103,6 +103,10 @@ export const translations = {
       french: "French",
       german: "German",
       japanese: "Japanese",
+      edit: "Edit",
+      save: "Save",
+      cancel: "Cancel",
+      selectFinalTitle: "Select the final title for publishing:",
     },
 
     // Publisher
@@ -287,6 +291,16 @@ export const translations = {
       tableActions: "Actions",
       manageAction: "Manage",
       noAccountsConnected: "No accounts connected yet.",
+      guideTitle: "How to get your credentials:",
+      guide_youtube: "Go to Google Cloud Console, create an 'OAuth 2.0 Client ID' for a 'Web application'. The Client ID and Secret will be shown after creation.",
+      guide_facebook: "Go to Meta for Developers and create a new app. In the app dashboard, navigate to Settings > Basic. Your App ID is the Client ID, and the App Secret is your Client Secret.",
+      guide_instagram: "Go to Meta for Developers. In your app's dashboard, add the 'Instagram Basic Display' product. Your App ID (Client ID) and Secret will be under Settings > Basic.",
+      guide_tiktok: "Go to TikTok for Developers, create a new app, and go to 'My Apps'. Your Client Key (Client ID) and Client Secret are in the app details.",
+      guide_zalo: "Go to Zalo for Developers. Select 'My Applications' and create a new app. Your App ID and Secret Key will be in the 'Application Information' section.",
+      guide_x: "Go to the X Developer Platform, create a new project and app. Your Client ID and Secret are generated under the app's 'Keys and tokens' tab.",
+      guide_pinterest: "Go to Pinterest for Developers and create an app. Your App ID and App Secret will be visible on your app's main page.",
+      guide_telegram: "Talk to @BotFather on Telegram. Use the /newbot command to create a bot. BotFather will give you a token, which is your API key.",
+      guide_default: "Please refer to the official documentation for this platform to find your API credentials.",
     },
 
     // Prompt Templates
@@ -473,15 +487,15 @@ export const translations = {
     
     // Content Generator
     contentGenerator: {
-      title: "Tạo Nội Dung",
-      description: "Chọn một sản phẩm và tạo tất cả các tài sản cần thiết cho video của bạn.",
+      title: "Trung Tâm Hoàn Thiện Nội Dung",
+      description: "Chọn một sản phẩm để xem lại, chỉnh sửa và hoàn thiện tất cả nội dung trước khi xuất bản.",
       selectLabel: "Chọn một sản phẩm từ quy trình của bạn:",
       noProducts: "Không có sản phẩm nào. Vui lòng đến Trinh Sát Sản Phẩm trước.",
       videoScript: "Kịch Bản Video",
       videoTitles: "Tiêu Đề Video",
       seoDescription: "Mô Tả SEO",
       captionsHashtags: "Phụ Đề & Hashtag",
-      generatedSuccess: "Nội dung đã được tạo thành công.",
+      generatedSuccess: "Nội dung đã được tạo. Sẵn sàng để xem lại và chỉnh sửa.",
       generateDescription: "Tạo {type} cho video của bạn.",
       generate: "Tạo",
       generating: "Đang tạo...",
@@ -501,6 +515,10 @@ export const translations = {
       french: "Tiếng Pháp",
       german: "Tiếng Đức",
       japanese: "Tiếng Nhật",
+      edit: "Chỉnh sửa",
+      save: "Lưu",
+      cancel: "Hủy",
+      selectFinalTitle: "Chọn tiêu đề cuối cùng để xuất bản:",
     },
 
     // Publisher
@@ -685,6 +703,16 @@ export const translations = {
       tableActions: "Hành động",
       manageAction: "Quản lý",
       noAccountsConnected: "Chưa có tài khoản nào được kết nối.",
+      guideTitle: "Cách lấy thông tin xác thực:",
+      guide_youtube: "Truy cập Google Cloud Console, tạo 'OAuth 2.0 Client ID' cho 'Ứng dụng web'. Client ID và Secret sẽ hiển thị sau khi tạo.",
+      guide_facebook: "Truy cập Meta for Developers và tạo ứng dụng mới. Trong bảng điều khiển, vào Cài đặt > Cơ bản. App ID chính là Client ID, và App Secret là Client Secret của bạn.",
+      guide_instagram: "Truy cập Meta for Developers. Trong bảng điều khiển ứng dụng, thêm sản phẩm 'Instagram Basic Display'. App ID (Client ID) và Secret sẽ nằm trong Cài đặt > Cơ bản.",
+      guide_tiktok: "Truy cập TikTok for Developers, tạo ứng dụng mới và vào 'Ứng dụng của tôi'. Client Key (Client ID) và Client Secret nằm trong chi tiết ứng dụng.",
+      guide_zalo: "Truy cập Zalo for Developers. Chọn 'Ứng dụng của tôi' và tạo ứng dụng mới. App ID và Secret Key của bạn sẽ nằm trong mục 'Thông tin ứng dụng'.",
+      guide_x: "Truy cập Nền tảng Nhà phát triển X, tạo một dự án và ứng dụng mới. Client ID và Secret của bạn được tạo trong tab 'Keys and tokens' của ứng dụng.",
+      guide_pinterest: "Truy cập Pinterest for Developers và tạo một ứng dụng. App ID và App Secret của bạn sẽ hiển thị trên trang chính của ứng dụng.",
+      guide_telegram: "Trò chuyện với @BotFather trên Telegram. Sử dụng lệnh /newbot để tạo một bot. BotFather sẽ cung cấp cho bạn một token, đó là khóa API của bạn.",
+      guide_default: "Vui lòng tham khảo tài liệu chính thức của nền tảng này để tìm thông tin xác thực API của bạn.",
     },
 
     // Prompt Templates

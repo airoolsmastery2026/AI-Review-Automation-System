@@ -29,6 +29,7 @@ export interface Product {
 export interface GeneratedContent {
     script?: string;
     titles?: string[];
+    selectedTitle?: string;
     seoDescription?: string;
     captions?: {
         caption: string;
