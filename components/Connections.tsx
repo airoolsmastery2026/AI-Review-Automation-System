@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { Button } from './common/Button';
 import { 
     ExternalLink,
     Server,
@@ -22,31 +21,40 @@ interface Platform {
 }
 
 const platforms: Record<string, Platform> = {
+    // Social Media
     youtube: { id: "youtube", nameKey: "connections.youtube", icon: <PlatformLogo platformId="youtube" />, docsUrl: 'https://console.cloud.google.com/apis/credentials', docsKey: 'connections.docs_youtube', envVars: ['YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'] },
     tiktok: { id: "tiktok", nameKey: "connections.tiktok", icon: <PlatformLogo platformId="tiktok" />, docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/', docsKey: 'connections.docs_tiktok', envVars: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET'] },
     facebook: { id: "facebook", nameKey: "connections.facebook", icon: <PlatformLogo platformId="facebook" />, docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started', docsKey: 'connections.docs_facebook', envVars: ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'] },
     instagram: { id: "instagram", nameKey: "connections.instagram", icon: <PlatformLogo platformId="instagram" />, docsUrl: 'https://developers.facebook.com/docs/instagram-basic-display-api/getting-started', docsKey: 'connections.docs_instagram', envVars: ['INSTAGRAM_USER_ACCESS_TOKEN'] },
+    x: { id: "x", nameKey: "connections.x", icon: <PlatformLogo platformId="x" />, docsUrl: 'https://developer.twitter.com/en/docs/authentication/oauth-2-0', docsKey: 'connections.docs_x', envVars: ['X_CLIENT_ID', 'X_CLIENT_SECRET'] },
+    pinterest: { id: "pinterest", nameKey: "connections.pinterest", icon: <PlatformLogo platformId="pinterest" />, docsUrl: 'https://developers.pinterest.com/docs/getting-started/authentication/', docsKey: 'connections.docs_pinterest', envVars: ['PINTEREST_APP_ID', 'PINTEREST_APP_SECRET'] },
     telegram: { id: "telegram", nameKey: "connections.telegram", icon: <PlatformLogo platformId="telegram" />, docsUrl: 'https://core.telegram.org/bots#6-botfather', docsKey: 'connections.docs_telegram', envVars: ['TELEGRAM_BOT_TOKEN'] },
+    
+    // Affiliate Global
     clickbank: { id: "clickbank", nameKey: "connections.clickbank", icon: <PlatformLogo platformId="clickbank" />, docsUrl: 'https://support.clickbank.com/hc/en-us/articles/115015505708', docsKey: 'connections.docs_clickbank', envVars: ['CLICKBANK_API_KEY', 'CLICKBANK_DEVELOPER_KEY'] },
     amazon: { id: "amazon", nameKey: "connections.amazon", icon: <PlatformLogo platformId="amazon" />, docsUrl: 'https://affiliate-program.amazon.com/help/topic/t100', docsKey: 'connections.docs_amazon', envVars: ['AMAZON_ASSOCIATE_TAG', 'AMAZON_ACCESS_KEY', 'AMAZON_SECRET_KEY'] },
     shopify: { id: "shopify", nameKey: "connections.shopify", icon: <PlatformLogo platformId="shopify" />, docsUrl: 'https://shopify.dev/docs/apps/auth/oauth/getting-started', docsKey: 'connections.docs_shopify', envVars: ['SHOPIFY_API_KEY', 'SHOPIFY_API_SECRET_KEY', 'SHOPIFY_STORE_URL'] },
-    accesstrade: { id: "accesstrade", nameKey: "connections.accesstrade", icon: <PlatformLogo platformId="accesstrade" />, docsUrl: 'https://pub.accesstrade.vn/tools/api_key', docsKey: 'connections.docs_accesstrade', envVars: ['ACCESSTRADE_ACCESS_KEY', 'ACCESSTRADE_SECRET_KEY'] },
-    masoffer: { id: "masoffer", nameKey: "connections.masoffer", icon: <PlatformLogo platformId="masoffer" />, docsUrl: 'https://pub.masoffer.com/docs', docsKey: 'connections.docs_masoffer', envVars: ['MASOFFER_API_KEY'] },
-    ecomobi: { id: "ecomobi", nameKey: "connections.ecomobi", icon: <PlatformLogo platformId="ecomobi" />, docsUrl: 'https://ecomobi.com/docs/api', docsKey: 'connections.docs_ecomobi', envVars: ['ECOMOBI_API_KEY'] },
+    impact: { id: "impact", nameKey: "connections.impact", icon: <PlatformLogo platformId="impact" />, docsUrl: 'https://developer.impact.com/impact-api-started-guide/', docsKey: 'connections.docs_impact', envVars: ['IMPACT_ACCOUNT_SID', 'IMPACT_AUTH_TOKEN'] },
+    partnerstack: { id: "partnerstack", nameKey: "connections.partnerstack", icon: <PlatformLogo platformId="partnerstack" />, docsUrl: 'https://developers.partnerstack.com/reference/introduction', docsKey: 'connections.docs_partnerstack', envVars: ['PARTNERSTACK_PUBLIC_KEY', 'PARTNERSTACK_SECRET_KEY'] },
+    
+    // Affiliate VN
+    lazada: { id: "lazada", nameKey: "connections.lazada", icon: <PlatformLogo platformId="lazada" />, docsUrl: 'https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193494.0.0.1f733535j2q0zP&source=search&docId=108298&treeId=1', docsKey: 'connections.docs_lazada', envVars: ['LAZADA_APP_KEY', 'LAZADA_APP_SECRET'] },
+    shopee: { id: "shopee", nameKey: "connections.shopee", icon: <PlatformLogo platformId="shopee" />, docsUrl: 'https://open.shopee.com/documents/v2/v2.1/introduction?module=83&type=2', docsKey: 'connections.docs_shopee', envVars: ['SHOPEE_PARTNER_ID', 'SHOPEE_API_KEY'] },
+    tiki: { id: "tiki", nameKey: "connections.tiki", icon: <PlatformLogo platformId="tiki" />, docsUrl: 'https://open.tiki.vn/', docsKey: 'connections.docs_tiki', envVars: ['TIKI_CLIENT_ID', 'TIKI_CLIENT_SECRET'] },
 };
 
 const platformCategories = [
     {
         nameKey: 'connections.category_social',
-        platforms: ['youtube', 'tiktok', 'facebook', 'instagram', 'telegram']
+        platforms: ['youtube', 'tiktok', 'x', 'pinterest', 'facebook', 'instagram', 'telegram']
     },
     {
         nameKey: 'connections.category_affiliate_global',
-        platforms: ['amazon', 'clickbank', 'shopify']
+        platforms: ['amazon', 'clickbank', 'shopify', 'impact', 'partnerstack']
     },
     {
         nameKey: 'connections.category_affiliate_vn',
-        platforms: ['accesstrade', 'masoffer', 'ecomobi']
+        platforms: ['lazada', 'shopee', 'tiki']
     }
 ];
 

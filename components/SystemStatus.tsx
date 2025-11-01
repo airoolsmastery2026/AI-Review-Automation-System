@@ -42,12 +42,18 @@ const ALL_PLATFORMS = [
     { id: 'youtube', nameKey: 'connections.youtube' },
     { id: 'tiktok', nameKey: 'connections.tiktok' },
     { id: 'facebook', nameKey: 'connections.facebook' },
+    { id: 'instagram', nameKey: 'connections.instagram' },
+    { id: 'x', nameKey: 'connections.x' },
+    { id: 'pinterest', nameKey: 'connections.pinterest' },
+    { id: 'telegram', nameKey: 'connections.telegram' },
     { id: 'amazon', nameKey: 'connections.amazon' },
     { id: 'clickbank', nameKey: 'connections.clickbank' },
     { id: 'shopify', nameKey: 'connections.shopify' },
-    { id: 'accesstrade', nameKey: 'connections.accesstrade' },
-    { id: 'masoffer', nameKey: 'connections.masoffer' },
-    { id: 'ecomobi', nameKey: 'connections.ecomobi' },
+    { id: 'impact', nameKey: 'connections.impact' },
+    { id: 'partnerstack', nameKey: 'connections.partnerstack' },
+    { id: 'lazada', nameKey: 'connections.lazada' },
+    { id: 'shopee', nameKey: 'connections.shopee' },
+    { id: 'tiki', nameKey: 'connections.tiki' },
 ];
 
 export const SystemStatus: React.FC = () => {

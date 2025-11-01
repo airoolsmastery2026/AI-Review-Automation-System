@@ -9,17 +9,24 @@ const getGenAI = () => {
 };
 
 const PLATFORM_ENV_MAP = {
+    // Social
     youtube: ['YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'],
     tiktok: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET'],
     facebook: ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'],
     instagram: ['INSTAGRAM_USER_ACCESS_TOKEN'],
+    x: ['X_CLIENT_ID', 'X_CLIENT_SECRET'],
+    pinterest: ['PINTEREST_APP_ID', 'PINTEREST_APP_SECRET'],
     telegram: ['TELEGRAM_BOT_TOKEN'],
+    // Global Affiliate
     clickbank: ['CLICKBANK_API_KEY', 'CLICKBANK_DEVELOPER_KEY'],
     amazon: ['AMAZON_ASSOCIATE_TAG', 'AMAZON_ACCESS_KEY', 'AMAZON_SECRET_KEY'],
     shopify: ['SHOPIFY_API_KEY', 'SHOPIFY_API_SECRET_KEY', 'SHOPIFY_STORE_URL'],
-    accesstrade: ['ACCESSTRADE_ACCESS_KEY', 'ACCESSTRADE_SECRET_KEY'],
-    masoffer: ['MASOFFER_API_KEY'],
-    ecomobi: ['ECOMOBI_API_KEY'],
+    impact: ['IMPACT_ACCOUNT_SID', 'IMPACT_AUTH_TOKEN'],
+    partnerstack: ['PARTNERSTACK_PUBLIC_KEY', 'PARTNERSTACK_SECRET_KEY'],
+    // VN Affiliate
+    lazada: ['LAZADA_APP_KEY', 'LAZADA_APP_SECRET'],
+    shopee: ['SHOPEE_PARTNER_ID', 'SHOPEE_API_KEY'],
+    tiki: ['TIKI_CLIENT_ID', 'TIKI_CLIENT_SECRET'],
 };
 
 // This is the main handler for all requests to /api/proxy

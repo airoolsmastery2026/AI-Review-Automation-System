@@ -68,31 +68,6 @@ const TelegramLogo = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const ACCESSTRADELogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#ff5a00" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>ACCESSTRADE Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.08V7.92c0-.5.58-.8 1-.5l5 3.08c.42.26.42.84 0 1.1l-5 3.08c-.42.28-1-.02-1-.5z"/>
-    </svg>
-);
-
-const MasOfferLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>MasOffer Logo</title>
-        <rect width="24" height="24" rx="4" fill="#00AEEF"/>
-        <path d="M6 8l6 6 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M6 14l6-6 6 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-    </svg>
-);
-
-const EcomobiLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Ecomobi Logo</title>
-        <rect width="24" height="24" rx="4" fill="#20C997"/>
-        <path d="M8 12h8M12 8v8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="12" cy="12" r="2" fill="white"/>
-    </svg>
-);
-
 const InstagramLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
       <title>Instagram Logo</title>
@@ -118,6 +93,61 @@ const XLogo = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
+const LazadaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Lazada Logo</title>
+        <rect width="24" height="24" rx="4" fill="#0F146D"/>
+        <path d="M6.5 8.5H11.5L8.5 15.5H13.5" stroke="#F7941D" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M15 8.5L17.5 12L15 15.5" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+const ShopeeLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Shopee Logo</title>
+        <rect width="24" height="24" rx="4" fill="#EE4D2D"/>
+        <path d="M12 10C14.2091 10 16 8.20914 16 6C16 3.79086 14.2091 2 12 2C9.79086 2 8 3.79086 8 6C8 8.20914 9.79086 10 12 10Z" fill="white"/>
+        <path d="M17.5 8C19.1569 8 20.5 9.34315 20.5 11V17.5C20.5 19.1569 19.1569 20.5 17.5 20.5H6.5C4.84315 20.5 3.5 19.1569 3.5 17.5V11C3.5 9.34315 4.84315 8 6.5 8H7.5V9H6.5C5.39543 9 4.5 9.89543 4.5 11V17.5C4.5 18.6046 5.39543 19.5 6.5 19.5H17.5C18.6046 19.5 19.5 18.6046 19.5 17.5V11C19.5 9.89543 18.6046 9 17.5 9H16.5V8H17.5Z" fill="white"/>
+        <path d="M12 12C10.3431 12 9 13.3431 9 15C9 16.6569 10.3431 18 12 18C13.6569 18 15 16.6569 15 15C15 13.3431 13.6569 12 12 12Z" fill="#EE4D2D"/>
+        <rect x="11" y="11" width="2" height="5" fill="white"/>
+    </svg>
+);
+
+const TikiLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Tiki Logo</title>
+        <rect width="24" height="24" rx="4" fill="#1A94FF"/>
+        <path d="M12 7C9.23858 7 7 9.23858 7 12C7 14.7614 9.23858 17 12 17C14.7614 17 17 14.7614 17 12C17 9.23858 14.7614 7 12 7Z" fill="white"/>
+        <path d="M12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9Z" fill="#1A94FF"/>
+        <path d="M10 10.5L12 13.5L14 10.5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+);
+
+const ImpactLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Impact.com Logo</title>
+        <rect width="24" height="24" rx="4" fill="#F05D38"/>
+        <path d="M12 2L2 12L12 22L22 12L12 2Z" fill="white" fillOpacity="0.1"/>
+        <path d="M12 6.41L17.59 12L12 17.59L6.41 12L12 6.41ZM12 4L4 12L12 20L20 12L12 4Z" fill="white"/>
+    </svg>
+);
+
+const PartnerStackLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>PartnerStack Logo</title>
+        <rect width="24" height="24" rx="4" fill="#4B40EE"/>
+        <path d="M7 7H12V12H7V7Z" fill="white"/>
+        <path d="M12 12H17V17H12V12Z" fill="white" fillOpacity="0.7"/>
+    </svg>
+);
+
+const PinterestLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="#E60023" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Pinterest Logo</title>
+        <path d="M12 2C6.48 2 2 6.48 2 12c0 4.19 2.59 7.79 6.22 9.25.08-.34.1-1.22.1-1.22s-.22-.88-.22-1.94c0-1.82 1.05-3.18 2.35-3.18 1.1 0 1.63.83 1.63 1.83 0 1.1-.7 2.75-1.05 4.28-.3 1.28.64 2.33 1.9 2.33 2.25 0 3.98-2.9 3.98-6.3 0-2.6-1.88-4.6-4.83-4.6-3.3 0-5.35 2.5-5.35 5.08 0 .98.38 2.05.86 2.63.1.1.1.2 0 .34-.05.1-.18.22-.22.28-.1.14-.14.28-.28.14-1.1-.9-1.78-2.64-1.78-4.5 0-3.5 2.9-7.16 7.85-7.16 4.15 0 7.35 3 7.35 6.7 0 4.14-2.23 7.35-5.58 7.35-1.1 0-2.13-.58-2.48-1.28l-.68 2.5c-.24.9-.9 2.08-1.34 2.73A10.02 10.02 0 0 0 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/>
+    </svg>
+);
+
 export const PlatformLogo: React.FC<{ platformId: string; className?: string }> = ({ platformId, className }) => {
     const props = { className: className || defaultProps.className };
 
@@ -126,15 +156,18 @@ export const PlatformLogo: React.FC<{ platformId: string; className?: string }> 
         case 'youtube': return <YouTubeLogo {...props} />;
         case 'tiktok': return <TikTokLogo {...props} />;
         case 'facebook': return <FacebookLogo {...props} />;
+        case 'instagram': return <InstagramLogo {...props} />;
+        case 'x': return <XLogo {...props} />;
+        case 'pinterest': return <PinterestLogo {...props} />;
+        case 'telegram': return <TelegramLogo {...props} />;
         case 'clickbank': return <ClickBankLogo {...props} />;
         case 'amazon': return <AmazonAssociatesLogo {...props} />;
         case 'shopify': return <ShopifyLogo {...props} />;
-        case 'telegram': return <TelegramLogo {...props} />;
-        case 'accesstrade': return <ACCESSTRADELogo {...props} />;
-        case 'masoffer': return <MasOfferLogo {...props} />;
-        case 'ecomobi': return <EcomobiLogo {...props} />;
-        case 'instagram': return <InstagramLogo {...props} />;
-        case 'x_twitter': return <XLogo {...props} />;
+        case 'impact': return <ImpactLogo {...props} />;
+        case 'partnerstack': return <PartnerStackLogo {...props} />;
+        case 'lazada': return <LazadaLogo {...props} />;
+        case 'shopee': return <ShopeeLogo {...props} />;
+        case 'tiki': return <TikiLogo {...props} />;
         default: return null;
     }
 };
