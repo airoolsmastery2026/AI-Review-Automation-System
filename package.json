@@ -1,24 +1,12 @@
 {
-  "name": "ai-review-automation-system",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "ai-affiliate-backend",
+  "version": "1.0.0",
+  "description": "Backend server for the AI Video Automation System",
+  "main": "server.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "start": "node server.js"
   },
   "dependencies": {
-    "react-dom": "^19.2.0",
-    "recharts": "^3.3.0",
-    "@google/genai": "^1.28.0",
-    "react": "^19.2.0",
-    "three": "^0.181.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@google/genai": "^1.28.0"
   }
 }

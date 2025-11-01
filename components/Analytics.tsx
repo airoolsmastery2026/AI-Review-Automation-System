@@ -50,8 +50,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         }, {} as Record<string, PlatformPerformance>)
     );
 
-    // Fix: Cast the initial value of the reduce function to ensure correct type inference for monthlyViewsData.
-    // This resolves an issue where properties on sorted data objects were not recognized.
+    // Fix: Provide an explicit type for the initial value of the `reduce` function to ensure correct type inference for the accumulator.
     const monthlyViewsData = productsWithContent.reduce((acc, p) => {
         if (p.financials && p.performance) {
             const date = new Date(p.financials.publishedAt);

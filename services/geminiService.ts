@@ -5,16 +5,17 @@ import { Type, Operation } from "@google/genai";
 import type { Product, Trend, ScoutedProduct } from '../types';
 import { logger } from './loggingService';
 
-const BACKEND_URL = 'http://localhost:3001';
+const BACKEND_URL = '/api/proxy'; // Use a relative path for Vercel serverless functions
 
 const callBackend = async (endpoint: string, body: object): Promise<any> => {
     try {
-        const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+        const response = await fetch(BACKEND_URL, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(body),
+            // Pass the original endpoint and body to the single proxy function
+            body: JSON.stringify({ endpoint, ...body }),
         });
 
         if (!response.ok) {
@@ -33,7 +34,7 @@ const callBackend = async (endpoint: string, body: object): Promise<any> => {
 
 const generateContentWithProxy = async (params: { model: string, contents: any, config?: any }, identifier: string): Promise<string> => {
     logger.info(`Proxying Gemini API call for: ${identifier}`);
-    const response = await callBackend('/api/gemini', { params, type: identifier });
+    const response = await callBackend('/gemini', { params, type: identifier });
     return response.text;
 };
 
@@ -285,7 +286,7 @@ Hashtags: [Your generated hashtags here, separated by spaces]
 export const generateVideo = async (script: string): Promise<Operation | { name: string, done: false }> => {
     logger.info("Starting video generation via backend proxy.");
     try {
-        const operation = await callBackend('/api/generate-video', { script });
+        const operation = await callBackend('/generate-video', { script });
         logger.info("Video generation operation started via backend.", { operationName: operation.name });
         return operation;
     } catch (error: any) {
@@ -297,7 +298,7 @@ export const generateVideo = async (script: string): Promise<Operation | { name:
 export const getVideoOperationStatus = async (operationName: string): Promise<Operation> => {
     logger.info(`Polling video operation status via backend for: ${operationName}`);
      try {
-        return await callBackend('/api/video-status', { operationName });
+        return await callBackend('/video-status', { operationName });
     } catch (error: any) {
          logger.error(`Failed to get video operation status from backend for ${operationName}`, { error: error.message });
         throw error;
