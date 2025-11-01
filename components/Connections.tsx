@@ -14,33 +14,33 @@ interface Platform {
     nameKey: string;
     docsUrl: string;
     neonColor: string;
-    category: 'social' | 'affiliate_global' | 'affiliate_vn';
+    categoryKey: string;
     credentials: { id: string; labelKey: string; placeholderKey: string; type: 'text' | 'password' }[];
 }
 
 const platforms: Platform[] = [
     // Social Media
-    { id: "youtube", nameKey: "connections.youtube", docsUrl: 'https://console.cloud.google.com/apis/credentials', neonColor: '#FF0000', category: 'social', credentials: [{ id: 'clientId', labelKey: 'connections.clientId', placeholderKey: 'connections.clientIdPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
-    { id: "tiktok", nameKey: "connections.tiktok", docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/', neonColor: '#25F4EE', category: 'social', credentials: [{ id: 'clientKey', labelKey: 'connections.clientKey', placeholderKey: 'connections.clientKeyPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
-    { id: "facebook", nameKey: "connections.facebook", docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started', neonColor: '#1877F2', category: 'social', credentials: [{ id: 'appId', labelKey: 'connections.appId', placeholderKey: 'connections.appIdPlaceholder', type: 'text' }, { id: 'appSecret', labelKey: 'connections.appSecret', placeholderKey: 'connections.appSecretPlaceholder', type: 'password' }] },
-    { id: "instagram", nameKey: "connections.instagram", docsUrl: 'https://developers.facebook.com/docs/instagram-basic-display-api/getting-started', neonColor: '#d6249f', category: 'social', credentials: [{ id: 'accessToken', labelKey: 'connections.accessToken', placeholderKey: 'connections.accessTokenPlaceholder', type: 'password' }] },
-    { id: "x", nameKey: "connections.x", docsUrl: 'https://developer.twitter.com/en/docs/authentication/oauth-2-0', neonColor: '#FFFFFF', category: 'social', credentials: [{ id: 'clientId', labelKey: 'connections.clientId', placeholderKey: 'connections.clientIdPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
-    { id: "pinterest", nameKey: "connections.pinterest", docsUrl: 'https://developers.pinterest.com/docs/getting-started/authentication/', neonColor: '#E60023', category: 'social', credentials: [{ id: 'appId', labelKey: 'connections.appId', placeholderKey: 'connections.appIdPlaceholder', type: 'text' }, { id: 'appSecret', labelKey: 'connections.appSecret', placeholderKey: 'connections.appSecretPlaceholder', type: 'password' }] },
-    { id: "telegram", nameKey: "connections.telegram", docsUrl: 'https://core.telegram.org/bots#6-botfather', neonColor: '#2AABEE', category: 'social', credentials: [{ id: 'botToken', labelKey: 'connections.botToken', placeholderKey: 'connections.botTokenPlaceholder', type: 'password' }] },
-    { id: "zalo", nameKey: "connections.zalo", docsUrl: 'https://developers.zalo.me/docs/api/official-account-api/xac-thuc-va-uy-quyen/official-account-access-token-post-4307', neonColor: '#0068FF', category: 'social', credentials: [{ id: 'appId', labelKey: 'connections.appId', placeholderKey: 'connections.appIdPlaceholder', type: 'text' }, { id: 'secretKey', labelKey: 'connections.secretKey', placeholderKey: 'connections.secretKeyPlaceholder', type: 'password' }] },
+    { id: "youtube", nameKey: "connections.youtube", docsUrl: 'https://console.cloud.google.com/apis/credentials', neonColor: '#FF0000', categoryKey: 'connections.category_social', credentials: [{ id: 'clientId', labelKey: 'connections.clientId', placeholderKey: 'connections.clientIdPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
+    { id: "tiktok", nameKey: "connections.tiktok", docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/', neonColor: '#25F4EE', categoryKey: 'connections.category_social', credentials: [{ id: 'clientKey', labelKey: 'connections.clientKey', placeholderKey: 'connections.clientKeyPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
+    { id: "facebook", nameKey: "connections.facebook", docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started', neonColor: '#1877F2', categoryKey: 'connections.category_social', credentials: [{ id: 'appId', labelKey: 'connections.appId', placeholderKey: 'connections.appIdPlaceholder', type: 'text' }, { id: 'appSecret', labelKey: 'connections.appSecret', placeholderKey: 'connections.appSecretPlaceholder', type: 'password' }] },
+    { id: "instagram", nameKey: "connections.instagram", docsUrl: 'https://developers.facebook.com/docs/instagram-basic-display-api/getting-started', neonColor: '#d6249f', categoryKey: 'connections.category_social', credentials: [{ id: 'accessToken', labelKey: 'connections.accessToken', placeholderKey: 'connections.accessTokenPlaceholder', type: 'password' }] },
+    { id: "x", nameKey: "connections.x", docsUrl: 'https://developer.twitter.com/en/docs/authentication/oauth-2-0', neonColor: '#FFFFFF', categoryKey: 'connections.category_social', credentials: [{ id: 'clientId', labelKey: 'connections.clientId', placeholderKey: 'connections.clientIdPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
+    { id: "pinterest", nameKey: "connections.pinterest", docsUrl: 'https://developers.pinterest.com/docs/getting-started/authentication/', neonColor: '#E60023', categoryKey: 'connections.category_social', credentials: [{ id: 'appId', labelKey: 'connections.appId', placeholderKey: 'connections.appIdPlaceholder', type: 'text' }, { id: 'appSecret', labelKey: 'connections.appSecret', placeholderKey: 'connections.appSecretPlaceholder', type: 'password' }] },
+    { id: "telegram", nameKey: "connections.telegram", docsUrl: 'https://core.telegram.org/bots#6-botfather', neonColor: '#2AABEE', categoryKey: 'connections.category_social', credentials: [{ id: 'botToken', labelKey: 'connections.botToken', placeholderKey: 'connections.botTokenPlaceholder', type: 'password' }] },
+    { id: "zalo", nameKey: "connections.zalo", docsUrl: 'https://developers.zalo.me/docs/api/official-account-api/xac-thuc-va-uy-quyen/official-account-access-token-post-4307', neonColor: '#0068FF', categoryKey: 'connections.category_social', credentials: [{ id: 'appId', labelKey: 'connections.appId', placeholderKey: 'connections.appIdPlaceholder', type: 'text' }, { id: 'secretKey', labelKey: 'connections.secretKey', placeholderKey: 'connections.secretKeyPlaceholder', type: 'password' }] },
 
     // Affiliate Global
-    { id: "clickbank", nameKey: "connections.clickbank", docsUrl: 'https://support.clickbank.com/hc/en-us/articles/115015505708', neonColor: '#F7941D', category: 'affiliate_global', credentials: [{ id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }] },
-    { id: "amazon", nameKey: "connections.amazon", docsUrl: 'https://affiliate-program.amazon.com/help/topic/t100', neonColor: '#FF9900', category: 'affiliate_global', credentials: [{ id: 'accessKey', labelKey: 'connections.accessKey', placeholderKey: 'connections.accessKeyPlaceholder', type: 'text' }, { id: 'secretKey', labelKey: 'connections.secretKey', placeholderKey: 'connections.secretKeyPlaceholder', type: 'password' }] },
-    { id: "shopify", nameKey: "connections.shopify", docsUrl: 'https://shopify.dev/docs/apps/auth/oauth/getting-started', neonColor: '#7AB55C', category: 'affiliate_global', credentials: [{ id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }, { id: 'apiSecret', labelKey: 'connections.apiSecret', placeholderKey: 'connections.apiSecretPlaceholder', type: 'password' }] },
-    { id: "impact", nameKey: "connections.impact", docsUrl: 'https://developer.impact.com/impact-api-started-guide/', neonColor: '#F05D38', category: 'affiliate_global', credentials: [{ id: 'accountSid', labelKey: 'connections.accountSid', placeholderKey: 'connections.accountSidPlaceholder', type: 'text' }, { id: 'authToken', labelKey: 'connections.authToken', placeholderKey: 'connections.authTokenPlaceholder', type: 'password' }] },
-    { id: "partnerstack", nameKey: "connections.partnerstack", docsUrl: 'https://developers.partnerstack.com/reference/introduction', neonColor: '#4B40EE', category: 'affiliate_global', credentials: [{ id: 'publicKey', labelKey: 'connections.publicKey', placeholderKey: 'connections.publicKeyPlaceholder', type: 'text' }, { id: 'secretKey', labelKey: 'connections.secretKey', placeholderKey: 'connections.secretKeyPlaceholder', type: 'password' }] },
-    { id: "digistore24", nameKey: "connections.digistore24", docsUrl: 'https://dev.digistore24.com/', neonColor: '#007BFF', category: 'affiliate_global', credentials: [{ id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }] },
+    { id: "clickbank", nameKey: "connections.clickbank", docsUrl: 'https://support.clickbank.com/hc/en-us/articles/115015505708', neonColor: '#F7941D', categoryKey: 'connections.category_affiliate_global', credentials: [{ id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }] },
+    { id: "amazon", nameKey: "connections.amazon", docsUrl: 'https://affiliate-program.amazon.com/help/topic/t100', neonColor: '#FF9900', categoryKey: 'connections.category_affiliate_global', credentials: [{ id: 'accessKey', labelKey: 'connections.accessKey', placeholderKey: 'connections.accessKeyPlaceholder', type: 'text' }, { id: 'secretKey', labelKey: 'connections.secretKey', placeholderKey: 'connections.secretKeyPlaceholder', type: 'password' }] },
+    { id: "shopify", nameKey: "connections.shopify", docsUrl: 'https://shopify.dev/docs/apps/auth/oauth/getting-started', neonColor: '#7AB55C', categoryKey: 'connections.category_affiliate_global', credentials: [{ id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }, { id: 'apiSecret', labelKey: 'connections.apiSecret', placeholderKey: 'connections.apiSecretPlaceholder', type: 'password' }] },
+    { id: "impact", nameKey: "connections.impact", docsUrl: 'https://developer.impact.com/impact-api-started-guide/', neonColor: '#F05D38', categoryKey: 'connections.category_affiliate_global', credentials: [{ id: 'accountSid', labelKey: 'connections.accountSid', placeholderKey: 'connections.accountSidPlaceholder', type: 'text' }, { id: 'authToken', labelKey: 'connections.authToken', placeholderKey: 'connections.authTokenPlaceholder', type: 'password' }] },
+    { id: "partnerstack", nameKey: "connections.partnerstack", docsUrl: 'https://developers.partnerstack.com/reference/introduction', neonColor: '#4B40EE', categoryKey: 'connections.category_affiliate_global', credentials: [{ id: 'publicKey', labelKey: 'connections.publicKey', placeholderKey: 'connections.publicKeyPlaceholder', type: 'text' }, { id: 'secretKey', labelKey: 'connections.secretKey', placeholderKey: 'connections.secretKeyPlaceholder', type: 'password' }] },
+    { id: "digistore24", nameKey: "connections.digistore24", docsUrl: 'https://dev.digistore24.com/', neonColor: '#007BFF', categoryKey: 'connections.category_affiliate_global', credentials: [{ id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }] },
     
     // Affiliate VN
-    { id: "lazada", nameKey: "connections.lazada", docsUrl: 'https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193494.0.0.1f733535j2q0zP&source=search&docId=108298&treeId=1', neonColor: '#0F146D', category: 'affiliate_vn', credentials: [{ id: 'appKey', labelKey: 'connections.appKey', placeholderKey: 'connections.appKeyPlaceholder', type: 'text' }, { id: 'appSecret', labelKey: 'connections.appSecret', placeholderKey: 'connections.appSecretPlaceholder', type: 'password' }] },
-    { id: "shopee", nameKey: "connections.shopee", docsUrl: 'https://open.shopee.com/documents/v2/v2.1/introduction?module=83&type=2', neonColor: '#EE4D2D', category: 'affiliate_vn', credentials: [{ id: 'partnerId', labelKey: 'connections.partnerId', placeholderKey: 'connections.partnerIdPlaceholder', type: 'text' }, { id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }] },
-    { id: "tiki", nameKey: "connections.tiki", docsUrl: 'https://open.tiki.vn/', neonColor: '#1A94FF', category: 'affiliate_vn', credentials: [{ id: 'clientId', labelKey: 'connections.clientId', placeholderKey: 'connections.clientIdPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
+    { id: "lazada", nameKey: "connections.lazada", docsUrl: 'https://open.lazada.com/doc/doc.htm?spm=a2o9m.11193494.0.0.1f733535j2q0zP&source=search&docId=108298&treeId=1', neonColor: '#0F146D', categoryKey: 'connections.category_affiliate_vn', credentials: [{ id: 'appKey', labelKey: 'connections.appKey', placeholderKey: 'connections.appKeyPlaceholder', type: 'text' }, { id: 'appSecret', labelKey: 'connections.appSecret', placeholderKey: 'connections.appSecretPlaceholder', type: 'password' }] },
+    { id: "shopee", nameKey: "connections.shopee", docsUrl: 'https://open.shopee.com/documents/v2/v2.1/introduction?module=83&type=2', neonColor: '#EE4D2D', categoryKey: 'connections.category_affiliate_vn', credentials: [{ id: 'partnerId', labelKey: 'connections.partnerId', placeholderKey: 'connections.partnerIdPlaceholder', type: 'text' }, { id: 'apiKey', labelKey: 'connections.apiKey', placeholderKey: 'connections.apiKeyPlaceholder', type: 'password' }] },
+    { id: "tiki", nameKey: "connections.tiki", docsUrl: 'https://open.tiki.vn/', neonColor: '#1A94FF', categoryKey: 'connections.category_affiliate_vn', credentials: [{ id: 'clientId', labelKey: 'connections.clientId', placeholderKey: 'connections.clientIdPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
 ];
 
 export const LOCAL_STORAGE_KEY = 'ai-automation-user-connections';
@@ -294,6 +294,7 @@ export const Connections: React.FC = () => {
             ? accounts.map(acc => (acc.id === connection.id ? connection : acc))
             : [...accounts, connection];
         saveAccounts(updatedAccounts);
+        logger.info(`Saved connection for ${connection.username} on ${connection.platformId}`);
     };
 
     const handleRemoveConnection = (accountId: string) => {
@@ -303,13 +304,19 @@ export const Connections: React.FC = () => {
         const platform = platforms.find(p => p.id === accountToRemove.platformId);
         const name = platform ? t(platform.nameKey) : 'this account';
         
-        if (window.confirm(t('connections.confirmRemove', { platform: name }))) {
+        if (window.confirm(t('connections.confirmRemove', { platform: name, username: accountToRemove.username }))) {
             const updatedAccounts = accounts.filter(acc => acc.id !== accountId);
             saveAccounts(updatedAccounts);
             logger.info(`Removed connection ${accountId}`);
             setIsModalOpen(false);
+            setEditingConnection(null);
         }
     };
+
+    const groupedPlatforms = platforms.reduce((acc, platform) => {
+        (acc[platform.categoryKey] = acc[platform.categoryKey] || []).push(platform);
+        return acc;
+    }, {} as Record<string, Platform[]>);
 
     return (
         <div className="space-y-8">
@@ -318,19 +325,24 @@ export const Connections: React.FC = () => {
                 <p className="text-gray-400 mt-2 max-w-2xl mx-auto">{t('connections.hubDescription_v2')}</p>
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                {platforms.map(platform => {
-                    const platformAccounts = accounts.filter(a => a.platformId === platform.id);
-                    return (
-                        <PlatformCard 
-                            key={platform.id}
-                            platform={platform}
-                            accounts={platformAccounts}
-                            onClick={() => handleCardClick(platform)}
-                        />
-                    );
-                })}
-            </div>
+            {Object.entries(groupedPlatforms).map(([categoryKey, platformGroup]) => (
+                <div key={categoryKey}>
+                    <h2 className="text-xl font-semibold text-gray-200 mb-4 border-b border-gray-700 pb-2">{t(categoryKey)}</h2>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        {platformGroup.map(platform => {
+                            const platformAccounts = accounts.filter(a => a.platformId === platform.id);
+                            return (
+                                <PlatformCard 
+                                    key={platform.id}
+                                    platform={platform}
+                                    accounts={platformAccounts}
+                                    onClick={() => handleCardClick(platform)}
+                                />
+                            );
+                        })}
+                    </div>
+                </div>
+            ))}
 
             <Card>
                 <CardHeader>
@@ -361,7 +373,7 @@ export const Connections: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{account.username}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                                            {new Date(account.connectedAt).toLocaleString(t('localeCode', {localeCode: 'vi-VN'}) || 'en-US')}
+                                            {new Date(account.connectedAt).toLocaleString(t('localeCode') || 'en-US')}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end space-x-2">
@@ -392,7 +404,7 @@ export const Connections: React.FC = () => {
                     <ConnectionModal
                         platform={selectedPlatform}
                         existingConnection={editingConnection}
-                        platformAccounts={accounts.filter(acc => acc.platformId === selectedPlatform.id)}
+                        platformAccounts={accounts.filter(acc => acc.platformId === selectedPlatform.id && acc.id !== editingConnection?.id)}
                         onClose={() => setIsModalOpen(false)}
                         onSave={handleSaveConnection}
                         onDelete={handleRemoveConnection}
