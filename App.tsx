@@ -129,7 +129,7 @@ const App: React.FC = () => {
             } else {
                 // No product to produce, check for skipping inactive ones
                 let hasSkipped = false;
-                const updatedProducts = pendingProducts.map(p => {
+                const updatedProducts: ScoutedProduct[] = pendingProducts.map((p): ScoutedProduct => {
                     if (p.status === 'pending' && (now - p.foundAt >= FIFTEEN_MINUTES)) {
                         hasSkipped = true;
                         logger.info(`Automation: Product "${p.name}" was skipped due to inactivity.`);
