@@ -4,9 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlatformLogo } from './PlatformLogo';
 import { useI18n } from '../hooks/useI18n';
 import { Button } from './common/Button';
-import { ExternalLink, KeyRound, Save, X, Info, Trash, User } from './LucideIcons';
+import { ExternalLink, KeyRound, Save, X, Info, Trash, User, FilePenLine } from './LucideIcons';
 import { logger } from '../services/loggingService';
 import type { AccountConnection } from '../types';
+import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 
 interface Platform {
     id: string;
@@ -87,7 +88,7 @@ const ConnectionModal: React.FC<{
     };
     
     const handleDelete = () => {
-        if (existingConnection && window.confirm(t('connections.confirmRemove', { platform: t(platform.nameKey) }))) {
+        if (existingConnection) {
             onDelete(existingConnection.id);
         }
     };
@@ -248,10 +249,18 @@ export const Connections: React.FC = () => {
     };
 
     const handleRemoveConnection = (accountId: string) => {
-        const updatedAccounts = accounts.filter(acc => acc.id !== accountId);
-        saveAccounts(updatedAccounts);
-        logger.info(`Removed connection ${accountId}`);
-        setIsModalOpen(false);
+        const accountToRemove = accounts.find(acc => acc.id === accountId);
+        if (!accountToRemove) return;
+
+        const platform = platforms.find(p => p.id === accountToRemove.platformId);
+        const name = platform ? t(platform.nameKey) : 'this account';
+        
+        if (window.confirm(t('connections.confirmRemove', { platform: name }))) {
+            const updatedAccounts = accounts.filter(acc => acc.id !== accountId);
+            saveAccounts(updatedAccounts);
+            logger.info(`Removed connection ${accountId}`);
+            setIsModalOpen(false);
+        }
     };
 
     return (
@@ -274,6 +283,61 @@ export const Connections: React.FC = () => {
                     );
                 })}
             </div>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('connections.historyTitle')}</CardTitle>
+                    <CardDescription>{t('connections.historyDescription')}</CardDescription>
+                </CardHeader>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-700">
+                        <thead className="bg-gray-800/50">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('connections.tablePlatform')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('connections.tableUsername')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('connections.tableConnectedAt')}</th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">{t('connections.tableActions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-700">
+                            {accounts.length > 0 ? accounts.map(account => {
+                                const platform = platforms.find(p => p.id === account.platformId);
+                                if (!platform) return null;
+                                return (
+                                    <tr key={account.id} className="hover:bg-gray-800/40">
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex items-center">
+                                                <PlatformLogo platformId={platform.id} className="w-6 h-6 mr-3" />
+                                                <span className="text-sm font-medium text-gray-100">{t(platform.nameKey)}</span>
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{account.username}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
+                                            {new Date(account.connectedAt).toLocaleString(t('localeCode', {localeCode: 'vi-VN'}) || 'en-US')}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div className="flex justify-end space-x-2">
+                                                <Button size="sm" variant="ghost" onClick={() => handleCardClick(platform)} title={t('connections.manageAction')}>
+                                                    <FilePenLine className="h-4 w-4" />
+                                                </Button>
+                                                <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={() => handleRemoveConnection(account.id)} title={t('connections.delete')}>
+                                                    <Trash className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                );
+                            }) : (
+                                <tr>
+                                    <td colSpan={4} className="px-6 py-8 text-center text-sm text-gray-500">
+                                        {t('connections.noAccountsConnected')}
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
 
             <AnimatePresence>
                 {isModalOpen && selectedPlatform && (

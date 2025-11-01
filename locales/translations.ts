@@ -7,6 +7,7 @@ export const translations = {
     copyright: "© {year} All rights reserved",
     conversions: "conversions",
     commission: "Commission",
+    localeCode: "en-US",
     
     // Sidebar Page Names (used as keys)
     Dashboard: "Dashboard",
@@ -275,6 +276,14 @@ export const translations = {
       delete: "Delete",
       connectedAs: "Connected: {username}",
       notConfigured: "Not Configured",
+      historyTitle: "Connection History",
+      historyDescription: "A log of all successfully configured accounts.",
+      tablePlatform: "Platform",
+      tableUsername: "Username / ID",
+      tableConnectedAt: "Connected At",
+      tableActions: "Actions",
+      manageAction: "Manage",
+      noAccountsConnected: "No accounts connected yet.",
     },
 
     // Prompt Templates
@@ -395,6 +404,7 @@ export const translations = {
     copyright: "© {year} Bản quyền đã được bảo hộ",
     conversions: "lượt chuyển đổi",
     commission: "Hoa hồng",
+    localeCode: "vi-VN",
 
     // Sidebar Page Names
     Dashboard: "Bảng Điều Khiển",
@@ -661,6 +671,14 @@ export const translations = {
       delete: "Xóa",
       connectedAs: "Đã kết nối: {username}",
       notConfigured: "Chưa cấu hình",
+      historyTitle: "Lịch Sử Kết Nối",
+      historyDescription: "Nhật ký tất cả các tài khoản đã được cấu hình thành công.",
+      tablePlatform: "Nền tảng",
+      tableUsername: "Tên người dùng / ID",
+      tableConnectedAt: "Kết nối lúc",
+      tableActions: "Hành động",
+      manageAction: "Quản lý",
+      noAccountsConnected: "Chưa có tài khoản nào được kết nối.",
     },
 
     // Prompt Templates
