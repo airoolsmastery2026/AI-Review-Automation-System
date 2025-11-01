@@ -21,54 +21,37 @@ interface Platform {
     id: string;
     nameKey: string;
     icon: React.ReactNode;
-    fields: { name: string, type: 'text' | 'password' }[];
+    fields: { name: string, type: 'text' | 'password', placeholder?: string }[];
     docsUrl: string;
+    docsKey: string;
 }
 
 const platforms: Record<string, Platform> = {
-    youtube: { id: "youtube", nameKey: "connections.youtube", icon: <PlatformLogo platformId="youtube" />, fields: [{name: 'CLIENT_ID', type: 'text'}, {name: 'CLIENT_SECRET', type: 'password'}], docsUrl: 'https://console.cloud.google.com/apis/credentials' },
-    tiktok: { id: "tiktok", nameKey: "connections.tiktok", icon: <PlatformLogo platformId="tiktok" />, fields: [{name: 'ACCESS_TOKEN', type: 'password'}], docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/' },
-    facebook: { id: "facebook", nameKey: "connections.facebook", icon: <PlatformLogo platformId="facebook" />, fields: [{name: 'PAGE_ID', type: 'text'}, {name: 'ACCESS_TOKEN', type: 'password'}], docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started' },
-    instagram: { id: "instagram", nameKey: "connections.instagram", icon: <PlatformLogo platformId="instagram" />, fields: [{name: 'ACCESS_TOKEN', type: 'password'}], docsUrl: 'https://developers.facebook.com/docs/instagram-basic-display-api/getting-started' },
-    x_twitter: { id: "x_twitter", nameKey: "connections.x_twitter", icon: <PlatformLogo platformId="x_twitter" />, fields: [{name: 'API_KEY', type: 'text'}, {name: 'API_SECRET', type: 'password'}, {name: 'ACCESS_TOKEN', type: 'password'}, {name: 'ACCESS_TOKEN_SECRET', type: 'password'}], docsUrl: 'https://developer.twitter.com/en/portal/projects-and-apps' },
-    pinterest: { id: "pinterest", nameKey: "connections.pinterest", icon: <PlatformLogo platformId="pinterest" />, fields: [{name: 'APP_ID', type: 'text'}, {name: 'APP_SECRET', type: 'password'}], docsUrl: 'https://developers.pinterest.com/docs/getting-started/' },
-    clickbank: { id: "clickbank", nameKey: "connections.clickbank", icon: <PlatformLogo platformId="clickbank" />, fields: [{name: 'API_KEY', type: 'password'}, {name: 'DEVELOPER_KEY', type: 'password'}], docsUrl: 'https://support.clickbank.com/hc/en-us/articles/115015505708' },
-    amazon: { id: "amazon", nameKey: "connections.amazon", icon: <PlatformLogo platformId="amazon" />, fields: [{name: 'ASSOCIATE_TAG', type: 'text'}, {name: 'ACCESS_KEY', type: 'text'}, {name: 'SECRET_KEY', type: 'password'}], docsUrl: 'https://affiliate-program.amazon.com/help/topic/t100' },
-    shareasale: { id: "shareasale", nameKey: "connections.shareasale", icon: <PlatformLogo platformId="shareasale" />, fields: [{name: 'MERCHANT_ID', type: 'text'}, {name: 'API_TOKEN', type: 'password'}, {name: 'API_SECRET', type: 'password'}], docsUrl: 'https://account.shareasale.com/a-api.cfm' },
-    accesstrade: { id: "accesstrade", nameKey: "connections.accesstrade", icon: <PlatformLogo platformId="accesstrade" />, fields: [{name: 'ACCESS_KEY', type: 'text'}, {name: 'SECRET_KEY', type: 'password'}], docsUrl: 'https://pub.accesstrade.vn/tools/api_key' },
-    digistore24: { id: "digistore24", nameKey: "connections.digistore24", icon: <PlatformLogo platformId="digistore24" />, fields: [{name: 'API_KEY', type: 'password'}], docsUrl: 'https://dev.digistore24.com/documentation/api-keys/' },
-    jvzoo: { id: "jvzoo", nameKey: "connections.jvzoo", icon: <PlatformLogo platformId="jvzoo" />, fields: [{name: 'API_KEY', type: 'password'}], docsUrl: 'https://www.jvzoo.com/developers/api' },
-    warriorplus: { id: "warriorplus", nameKey: "connections.warriorplus", icon: <PlatformLogo platformId="warriorplus" />, fields: [{name: 'API_KEY', type: 'password'}], docsUrl: 'https://warriorplus.com/account/api' },
-    rakuten: { id: "rakuten", nameKey: "connections.rakuten", icon: <PlatformLogo platformId="rakuten" />, fields: [{name: 'ACCESS_TOKEN', type: 'password'}, {name: 'SECRET_KEY', type: 'password'}], docsUrl: 'https://rakutenadvertising.com/developers/' },
-    semrush: { id: "semrush", nameKey: "connections.semrush", icon: <PlatformLogo platformId="semrush" />, fields: [{name: 'API_KEY', type: 'password'}, {name: 'AFFILIATE_ID', type: 'text'}], docsUrl: 'https://www.semrush.com/affiliates/' },
-    hubspot: { id: "hubspot", nameKey: "connections.hubspot", icon: <PlatformLogo platformId="hubspot" />, fields: [{name: 'API_KEY', type: 'password'}], docsUrl: 'https://developers.hubspot.com/docs/api/overview' },
-    cloudways: { id: "cloudways", nameKey: "connections.cloudways", icon: <PlatformLogo platformId="cloudways" />, fields: [{name: 'EMAIL', type: 'text'}, {name: 'API_KEY', type: 'password'}], docsUrl: 'https://developers.cloudways.com/docs/api-playground' },
-    cj: { id: "cj", nameKey: "connections.cj", icon: <PlatformLogo platformId="cj" />, fields: [{name: 'PERSONAL_ACCESS_TOKEN', type: 'password'}], docsUrl: 'https://developers.cj.com/authentication' },
-    shopee: { id: "shopee", nameKey: "connections.shopee", icon: <PlatformLogo platformId="shopee" />, fields: [{name: 'PARTNER_ID', type: 'text'}, {name: 'API_KEY', type: 'password'}], docsUrl: 'https://open.shopee.com' },
-    telegram: { id: "telegram", nameKey: "connections.telegram", icon: <PlatformLogo platformId="telegram" />, fields: [{name: 'BOT_TOKEN', type: 'password'}], docsUrl: 'https://core.telegram.org/bots#6-botfather' },
-    lazada: { id: "lazada", nameKey: "connections.lazada", icon: <PlatformLogo platformId="lazada" />, fields: [{name: 'APP_KEY', type: 'text'}, {name: 'APP_SECRET', type: 'password'}], docsUrl: 'https://open.lazada.com' },
-    tiki: { id: "tiki", nameKey: "connections.tiki", icon: <PlatformLogo platformId="tiki" />, fields: [{name: 'CLIENT_ID', type: 'text'}, {name: 'CLIENT_SECRET', type: 'password'}], docsUrl: 'https://open.tiki.vn' },
-    zalo: { id: "zalo", nameKey: "connections.zalo", icon: <PlatformLogo platformId="zalo" />, fields: [{name: 'OA_ID', type: 'text'}, {name: 'SECRET_KEY', type: 'password'}], docsUrl: 'https://developers.zalo.me/docs/api/official-account-api' },
-    momo: { id: "momo", nameKey: "connections.momo", icon: <PlatformLogo platformId="momo" />, fields: [{name: 'PARTNER_CODE', type: 'text'}, {name: 'ACCESS_KEY', type: 'text'}, {name: 'SECRET_KEY', type: 'password'}], docsUrl: 'https://developers.momo.vn' },
-    vnpay: { id: "vnpay", nameKey: "connections.vnpay", icon: <PlatformLogo platformId="vnpay" />, fields: [{name: 'TMN_CODE', type: 'text'}, {name: 'HASH_SECRET', type: 'password'}], docsUrl: 'https://sandbox.vnpayment.vn/apis/docs/huong-dan-tich-hop/' },
+    youtube: { id: "youtube", nameKey: "connections.youtube", icon: <PlatformLogo platformId="youtube" />, fields: [{name: 'CLIENT_ID', type: 'text'}, {name: 'CLIENT_SECRET', type: 'password'}], docsUrl: 'https://console.cloud.google.com/apis/credentials', docsKey: 'connections.docs_youtube' },
+    tiktok: { id: "tiktok", nameKey: "connections.tiktok", icon: <PlatformLogo platformId="tiktok" />, fields: [{name: 'CLIENT_KEY', type: 'text'}, {name: 'CLIENT_SECRET', type: 'password'}], docsUrl: 'https://developers.tiktok.com/doc/login-kit-web/', docsKey: 'connections.docs_tiktok' },
+    facebook: { id: "facebook", nameKey: "connections.facebook", icon: <PlatformLogo platformId="facebook" />, fields: [{name: 'APP_ID', type: 'text'}, {name: 'APP_SECRET', type: 'password'}], docsUrl: 'https://developers.facebook.com/docs/graph-api/get-started', docsKey: 'connections.docs_facebook' },
+    instagram: { id: "instagram", nameKey: "connections.instagram", icon: <PlatformLogo platformId="instagram" />, fields: [{name: 'USER_ACCESS_TOKEN', type: 'password'}], docsUrl: 'https://developers.facebook.com/docs/instagram-basic-display-api/getting-started', docsKey: 'connections.docs_instagram' },
+    telegram: { id: "telegram", nameKey: "connections.telegram", icon: <PlatformLogo platformId="telegram" />, fields: [{name: 'BOT_TOKEN', type: 'password', placeholder: 'Get from BotFather'}], docsUrl: 'https://core.telegram.org/bots#6-botfather', docsKey: 'connections.docs_telegram' },
+    clickbank: { id: "clickbank", nameKey: "connections.clickbank", icon: <PlatformLogo platformId="clickbank" />, fields: [{name: 'API_KEY', type: 'password'}, {name: 'DEVELOPER_KEY', type: 'password'}], docsUrl: 'https://support.clickbank.com/hc/en-us/articles/115015505708', docsKey: 'connections.docs_clickbank' },
+    amazon: { id: "amazon", nameKey: "connections.amazon", icon: <PlatformLogo platformId="amazon" />, fields: [{name: 'ASSOCIATE_TAG', type: 'text'}, {name: 'ACCESS_KEY', type: 'text'}, {name: 'SECRET_KEY', type: 'password'}], docsUrl: 'https://affiliate-program.amazon.com/help/topic/t100', docsKey: 'connections.docs_amazon' },
+    shopify: { id: "shopify", nameKey: "connections.shopify", icon: <PlatformLogo platformId="shopify" />, fields: [{name: 'API_KEY', type: 'password'}, {name: 'API_SECRET_KEY', type: 'password'}, { name: 'STORE_URL', type: 'text', placeholder: 'your-store.myshopify.com' }], docsUrl: 'https://shopify.dev/docs/apps/auth/oauth/getting-started', docsKey: 'connections.docs_shopify' },
+    accesstrade: { id: "accesstrade", nameKey: "connections.accesstrade", icon: <PlatformLogo platformId="accesstrade" />, fields: [{name: 'ACCESS_KEY', type: 'text'}, {name: 'SECRET_KEY', type: 'password'}], docsUrl: 'https://pub.accesstrade.vn/tools/api_key', docsKey: 'connections.docs_accesstrade' },
+    masoffer: { id: "masoffer", nameKey: "connections.masoffer", icon: <PlatformLogo platformId="masoffer" />, fields: [{name: 'API_KEY', type: 'password'}], docsUrl: 'https://pub.masoffer.com/docs', docsKey: 'connections.docs_masoffer' },
+    ecomobi: { id: "ecomobi", nameKey: "connections.ecomobi", icon: <PlatformLogo platformId="ecomobi" />, fields: [{name: 'API_KEY', type: 'password'}], docsUrl: 'https://ecomobi.com/docs/api', docsKey: 'connections.docs_ecomobi' },
 };
 
 const platformCategories = [
-    { 
-        nameKey: 'connections.category_ai', 
-        platforms: [] // Gemini is now server-side
-    },
     {
         nameKey: 'connections.category_social',
-        platforms: ['facebook', 'youtube', 'tiktok', 'instagram', 'x_twitter', 'pinterest', 'telegram', 'zalo']
+        platforms: ['youtube', 'tiktok', 'facebook', 'instagram', 'telegram']
     },
     {
-        nameKey: 'connections.category_affiliate',
-        platforms: ['clickbank', 'amazon', 'shareasale', 'accesstrade', 'digistore24', 'jvzoo', 'warriorplus', 'rakuten', 'semrush', 'hubspot', 'cloudways', 'cj']
+        nameKey: 'connections.category_affiliate_global',
+        platforms: ['amazon', 'clickbank', 'shopify']
     },
     {
-        nameKey: 'connections.category_ecommerce_payment',
-        platforms: ['shopee', 'lazada', 'tiki', 'momo', 'vnpay']
+        nameKey: 'connections.category_affiliate_vn',
+        platforms: ['accesstrade', 'masoffer', 'ecomobi']
     }
 ];
 
@@ -171,7 +154,7 @@ const ConnectionModal: React.FC<{
                     </div>
                 </div>
                 <div className="flex items-center space-x-4">
-                     <a href={platform.docsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary-400 transition-colors" title={t('connections.getApiKeyHelp')}>
+                     <a href={platform.docsUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-primary-400 transition-colors" title={t(platform.docsKey)}>
                         <ExternalLink className="h-4 w-4" />
                     </a>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
@@ -205,6 +188,7 @@ const ConnectionModal: React.FC<{
                         type={field.type}
                         className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-2 py-1.5 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 text-sm"
                         value={credentials[field.name] || ''}
+                        placeholder={field.placeholder || ''}
                         onChange={(e) => handleInputChange(field.name, e.target.value)}
                     />
                 </div>
@@ -265,6 +249,7 @@ export const Connections: React.FC = () => {
     const [isRestoring, setIsRestoring] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Simulate token refresh for connected services
     useEffect(() => {
         const timers: ReturnType<typeof setTimeout>[] = [];
         Object.values(connections).forEach((conn: Connection) => {
@@ -274,10 +259,13 @@ export const Connections: React.FC = () => {
                     setConnections(prev => ({...prev, [conn.id]: { ...conn, status: 'refreshing' }}));
                     const secondTimer = setTimeout(() => {
                          logger.info(`Token for ${conn.id} successfully refreshed.`);
+                         const currentConnections = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+                         currentConnections[conn.id] = { ...conn, status: 'connected' };
+                         localStorage.setItem(STORAGE_KEY, JSON.stringify(currentConnections));
                          setConnections(prev => ({...prev, [conn.id]: { ...conn, status: 'connected' }}));
-                    }, 2000);
+                    }, 3000);
                     timers.push(secondTimer);
-                }, 10 * 60 * 1000); // Refresh every 10 minutes
+                }, Math.random() * (50000 - 30000) + 30000); // Refresh randomly between 30-50s
                 timers.push(timer);
             }
         });
@@ -368,54 +356,52 @@ export const Connections: React.FC = () => {
                     </CardHeader>
                 </Card>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                     <Card>
-                        <CardHeader>
-                            <CardTitle>{t('connections.category_ai')}</CardTitle>
-                        </CardHeader>
-                        <div className="p-4">
-                            <div className="glass-card p-4 rounded-lg flex items-center">
-                                <PlatformLogo platformId="gemini" className="w-10 h-10" />
-                                <div className="ml-4 flex-1">
-                                    <h3 className="font-bold text-gray-100">{t('connections.gemini')}</h3>
-                                    <p className="text-xs text-gray-400">Connection is managed by the backend server for enhanced security.</p>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                                    <span className="text-sm font-semibold text-green-300">Connected</span>
-                                </div>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>{t('connections.category_ai')}</CardTitle>
+                    </CardHeader>
+                    <div className="p-4">
+                        <div className="glass-card p-4 rounded-lg flex items-center">
+                            <PlatformLogo platformId="gemini" className="w-10 h-10" />
+                            <div className="ml-4 flex-1">
+                                <h3 className="font-bold text-gray-100">{t('connections.gemini')}</h3>
+                                <p className="text-xs text-gray-400">Connection is managed by the backend server for enhanced security.</p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                <span className="text-sm font-semibold text-green-300">Connected</span>
                             </div>
                         </div>
+                    </div>
+                </Card>
+
+                {platformCategories.map(category => (
+                    <Card key={category.nameKey}>
+                        <CardHeader>
+                            <CardTitle>{t(category.nameKey)}</CardTitle>
+                        </CardHeader>
+                        <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                            {category.platforms.map(platformId => {
+                                const platform = platforms[platformId];
+                                if (!platform) return null;
+                                return (
+                                    <PlatformCard
+                                        key={platform.id}
+                                        platform={platform}
+                                        connection={connections[platform.id] || null}
+                                        onClick={() => setActivePlatformId(platform.id)}
+                                    />
+                                );
+
+                            })}
+                        </div>
                     </Card>
-
-                    {platformCategories.filter(c => c.platforms.length > 0).map(category => (
-                        <Card key={category.nameKey}>
-                            <CardHeader>
-                                <CardTitle>{t(category.nameKey)}</CardTitle>
-                            </CardHeader>
-                            <div className="p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                                {category.platforms.map(platformId => {
-                                    const platform = platforms[platformId];
-                                    if (!platform) return null;
-                                    return (
-                                        <PlatformCard
-                                            key={platform.id}
-                                            platform={platform}
-                                            connection={connections[platform.id] || null}
-                                            onClick={() => setActivePlatformId(platform.id)}
-                                        />
-                                    );
-
-                                })}
-                            </div>
-                        </Card>
-                    ))}
-                </div>
+                ))}
             </div>
 
             {activePlatform && (
                 <div 
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
                     onClick={() => setActivePlatformId(null)}
                 >
                     <div onClick={e => e.stopPropagation()}>

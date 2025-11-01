@@ -37,10 +37,17 @@ const ConnectionStatusIndicator: React.FC<{ status: ConnectionHealthStatus }> = 
     );
 };
 
-const initialConnectionChecks: Omit<ConnectionHealth, 'status' | 'lastChecked'>[] = [
+// Define all possible connections for the system status page
+const ALL_PLATFORMS = [
     { id: 'youtube', nameKey: 'connections.youtube' },
-    { id: 'clickbank', nameKey: 'connections.clickbank' },
+    { id: 'tiktok', nameKey: 'connections.tiktok' },
     { id: 'facebook', nameKey: 'connections.facebook' },
+    { id: 'amazon', nameKey: 'connections.amazon' },
+    { id: 'clickbank', nameKey: 'connections.clickbank' },
+    { id: 'shopify', nameKey: 'connections.shopify' },
+    { id: 'accesstrade', nameKey: 'connections.accesstrade' },
+    { id: 'masoffer', nameKey: 'connections.masoffer' },
+    { id: 'ecomobi', nameKey: 'connections.ecomobi' },
 ];
 
 export const SystemStatus: React.FC = () => {
@@ -59,20 +66,25 @@ export const SystemStatus: React.FC = () => {
                 const stored = localStorage.getItem('universal-connections');
                 const storedConnections: Record<string, Connection> = stored ? JSON.parse(stored) : {};
 
-                const updatedConnections = initialConnectionChecks.map(connInfo => {
-                    const isConnected = !!storedConnections[connInfo.id];
+                const updatedConnections = ALL_PLATFORMS.map(connInfo => {
+                    const storedConn = storedConnections[connInfo.id];
+                    let status: ConnectionHealthStatus = 'Disconnected';
+                    if (storedConn) {
+                        if (storedConn.status === 'refreshing') status = 'Refreshing';
+                        else status = 'Connected';
+                    }
+                    
                     return {
                         ...connInfo,
-                        status: isConnected ? 'Connected' : 'Disconnected',
+                        status: status,
                         lastChecked: new Date().toISOString()
                     };
                 });
 
-                // Add Gemini as a non-optional, server-side connection
                 const geminiStatus: ConnectionHealth = {
                     id: 'gemini',
                     nameKey: 'connections.gemini',
-                    status: 'Connected', // Always connected as it's server-side
+                    status: 'Connected',
                     lastChecked: new Date().toISOString()
                 };
                 
@@ -83,17 +95,16 @@ export const SystemStatus: React.FC = () => {
         };
 
         checkConnectionStatus();
-        const interval = setInterval(checkConnectionStatus, 5000); // Poll every 5 seconds
+        const interval = setInterval(checkConnectionStatus, 2000); // Poll every 2 seconds for reactivity
         return () => clearInterval(interval);
     }, []);
     
     const connectedCount = connections.filter(c => c.status === 'Connected').length;
-    // Security grade is now A because the most critical key (Gemini) is server-side.
     const securityGrade = "A";
-    const automationReadiness = `${Math.round((connectedCount / connections.length) * 100)}%`;
-    const securityColor = "text-green-400"; // Always green now
-    const readinessColor = connectedCount / connections.length > 0.7 ? "text-green-400" : connectedCount > 1 ? "text-yellow-400" : "text-red-400";
-
+    const automationReadiness = connections.length > 0 ? `${Math.round((connectedCount / connections.length) * 100)}%` : '0%';
+    const securityColor = "text-green-400";
+    const readinessValue = connections.length > 0 ? connectedCount / connections.length : 0;
+    const readinessColor = readinessValue > 0.7 ? "text-green-400" : readinessValue > 0.3 ? "text-yellow-400" : "text-red-400";
 
     return (
         <div className="space-y-8">
@@ -139,7 +150,6 @@ export const SystemStatus: React.FC = () => {
                     <div className="space-y-2 pt-2">
                         {connections.map(conn => (
                             <div key={conn.id} className="grid grid-cols-3 gap-4 items-center">
-                                {/* Fix: Corrected typo from Platform to PlatformLogo and completed the truncated component. */}
                                 <div className="flex items-center">
                                     <PlatformLogo platformId={conn.id} className="w-6 h-6 mr-3" />
                                     <span className="font-semibold text-slate-100">{t(conn.nameKey)}</span>
@@ -162,7 +172,7 @@ export const SystemStatus: React.FC = () => {
                         <AlertTriangle className="h-5 w-5 mr-3 mt-0.5 text-yellow-400 flex-shrink-0" />
                         <div>
                             <h4 className="font-semibold text-slate-200">{t('systemStatus.rec1Title')}</h4>
-                            <p className="text-sm text-slate-400">Storing other API keys in localStorage is not suitable for production. Your backend should manage all sensitive keys.</p>
+                            <p className="text-sm text-slate-400">{t('systemStatus.rec1Description')}</p>
                         </div>
                     </li>
                     <li className="flex items-start">

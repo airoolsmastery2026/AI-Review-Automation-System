@@ -45,18 +45,18 @@ const ClickBankLogo = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const AmazonSellerCentralLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 80 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Amazon Seller Central Logo</title>
-        <path d="M50.48 16.5c-2.45 0-4.03-1.4-4.03-3.61 0-2.34 1.76-3.6 4.03-3.6 2.38 0 3.9 1.2 3.9 3.51 0 2.25-1.58 3.7-3.9 3.7zm0-5.7c-1.35 0-2.2.82-2.2 2.1 0 1.28.85 2.1 2.2 2.1 1.34 0 2.16-.85 2.16-2.12 0-1.25-.82-2.08-2.16-2.08zM57.48 10.82c1.37 0 2.2.85 2.2 2.15 0 1.28-.83 2.1-2.2 2.1s-2.16-.82-2.16-2.1c0-1.3.79-2.15 2.16-2.15zM60.6 19.34c3.48-1.5 5.2-4.4 5.2-7.83 0-4.96-3.46-8.32-8.3-8.32-4.92 0-8.35 3.4-8.35 8.35 0 3.43 1.7 6.3 5.14 7.8l-.34.3a.85.85 0 000 1.2l.4.4c.34.33.87.33 1.2 0l.33-.33z" fill="#FF9900"/>
-        <path d="M22.9 20.3a9.3 9.3 0 01-7.8-4.8 1 1 0 011.7-1 7.4 7.4 0 0012.3 0 1 1 0 011.8 1 9.3 9.3 0 01-7.9 4.8h-.1z" fill="#000"/>
+const AmazonAssociatesLogo = (props: React.SVGProps<SVGSVGElement>) => (
+     <svg viewBox="0 0 100 30" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Amazon Associates Logo</title>
+        <path d="M24.6 15.8c0 2.9-2 4.8-5 4.8-2.9 0-5-1.9-5-4.8 0-2.9 2-4.8 5-4.8 3 0 5 1.9 5 4.8zm-8.1 0c0 1.8 1.2 3.1 3.1 3.1 1.9 0 3.1-1.3 3.1-3.1 0-1.8-1.2-3.1-3.1-3.1-1.9 0-3.1 1.3-3.1 3.1zM34.9 11.3h1.9v8.9h-1.9zM42.8 11.3h1.9v8.9h-1.9zM52.3 11c-2.3 0-3.9 1.6-3.9 3.7v5.2h-1.9V11.3h1.9v1c.6-1 1.8-1.3 2.8-1.3 2.5 0 3.7 1.8 3.7 4.5v4.7h-1.9v-4.4c0-1.7-.8-2.6-2.4-2.6zM61.9 11c-2.8 0-4.6 1.9-4.6 4.8s1.8 4.8 4.6 4.8c1.3 0 2.4-.5 3.1-1.3v1h1.8V11.3h-1.8v1c-.7-.8-1.8-1.3-3.1-1.3zm.1 8c-1.6 0-2.7-1.3-2.7-3.2s1.1-3.2 2.7-3.2c1.6 0 2.6 1.3 2.6 3.2s-1 3.2-2.6 3.2zM75.1 11.3l-2.4 6.1-2.4-6.1h-2l3.7 8.6h1.5l3.7-8.6z" fill="#000"/>
+        <path d="M90.3 13.9c0-1.5-1.2-2.6-2.9-2.6-1.7 0-2.9 1.1-2.9 2.6 0 1.5 1.2 2.6 2.9 2.6 1.7 0 2.9-1.1 2.9-2.6zm-7.6 6.3c2.4-1.1 3.7-3.1 3.7-5.5 0-3.5-2.4-5.9-5.9-5.9-3.5 0-5.9 2.4-5.9 5.9 0 2.4 1.3 4.4 3.7 5.5l-.2.2c-.2.2-.2.6 0 .8l.3.3c.2.2.6.2.8 0l.2-.2z" fill="#FF9900"/>
     </svg>
 );
 
-const ShopeeLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#EE4D2D" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Shopee Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.5 12.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm-7 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm3.5-7c-1.66 0-3 1.34-3 3h6c0-1.66-1.34-3-3-3z"/>
+const ShopifyLogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="#7AB55C" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>Shopify Logo</title>
+        <path d="M19.33,10.25a6.45,6.45,0,0,0-5.1-4.72,1,1,0,0,0-1,0,7.39,7.39,0,0,0-6.44,0,1,1,0,0,0-1,0,6.45,6.45,0,0,0-5.1,4.72,1,1,0,0,0,0,1,6.45,6.45,0,0,0,5.1,4.72,1,1,0,0,0,1,0,7.39,7.39,0,0,0,6.44,0,1,1,0,0,0,1,0,6.45,6.45,0,0,0,5.1-4.72,1,1,0,0,0,0-1Zm-7.38,3.29a3.86,3.86,0,0,1-3.32-2.31l.09,0a3.86,3.86,0,0,1,3.23-1.46,3.67,3.67,0,0,1,2,.61,3.86,3.86,0,0,1-2,5.47Z"/>
     </svg>
 );
 
@@ -68,42 +68,28 @@ const TelegramLogo = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const LazadaLogo = (props: React.SVGProps<SVGSVGElement>) => (
+const ACCESSTRADELogo = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg viewBox="0 0 24 24" fill="#ff5a00" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <title>ACCESSTRADE Logo</title>
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.08V7.92c0-.5.58-.8 1-.5l5 3.08c.42.26.42.84 0 1.1l-5 3.08c-.42.28-1-.02-1-.5z"/>
+    </svg>
+);
+
+const MasOfferLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Lazada Logo</title>
-        <path d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12z" fill="#F36F21"/>
-        <path d="M12 6c-3.313 0-6 2.687-6 6s2.687 6 6 6 6-2.687 6-6-2.687-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" fill="#FFFFFF"/>
+        <title>MasOffer Logo</title>
+        <rect width="24" height="24" rx="4" fill="#00AEEF"/>
+        <path d="M6 8l6 6 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M6 14l6-6 6 6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
 );
 
-const TikiLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#1A94FF" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Tiki Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm0-4H9V9.5c0-.83.67-1.5 1.5-1.5h0c.83 0 1.5.67 1.5 1.5V12h-2zm4 4h-2v-2h2v2z"/>
-    </svg>
-);
-
-const ZaloLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#0068FF" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Zalo Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="#0068FF"/>
-        <path d="m8.5 10.5 3-3 3 3h-6zm3 6-3-3h6l-3 3z" fill="#fff"/>
-    </svg>
-);
-
-const MomoLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#D82D8B" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Momo Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
-        <path d="M12 9.5c-1.38 0-2.5 1.12-2.5 2.5s1.12 2.5 2.5 2.5 2.5-1.12 2.5-2.5-1.12-2.5-2.5-2.5z" fill="#fff"/>
-    </svg>
-);
-
-const VNPayLogo = (props: React.SVGProps<SVGSVGElement>) => (
+const EcomobiLogo = (props: React.SVGProps<SVGSVGElement>) => (
     <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>VNPay Logo</title>
-        <path d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12z" fill="#005BAA"/>
-        <path d="M12 6l-6 6 6 6 6-6-6-6zm0 2.828L14.828 12 12 14.828 9.172 12 12 8.828z" fill="#FFFFFF"/>
+        <title>Ecomobi Logo</title>
+        <rect width="24" height="24" rx="4" fill="#20C997"/>
+        <path d="M8 12h8M12 8v8" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="12" cy="12" r="2" fill="white"/>
     </svg>
 );
 
@@ -132,90 +118,6 @@ const XLogo = (props: React.SVGProps<SVGSVGElement>) => (
     </svg>
 );
 
-const PinterestLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#E60023" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Pinterest Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12c0 4.29 2.8 7.91 6.64 9.34.05-.22.07-.58.02-1.02-.2-.88-.42-1.78-.42-1.78s-.1-.4-.1-.98c0-.92.54-1.61 1.2-1.61.57 0 .84.42.84.92 0 .56-.36 1.4-.54 2.18-.15.68.34 1.24.98 1.24 1.18 0 2.08-1.26 2.08-3.08 0-1.6-.96-2.78-2.22-2.78-1.5 0-2.36 1.12-2.36 2.48 0 .44.15.94.34 1.24l.1.18c.04.1.05.2.02.3-.04.12-.12.5-.16.64-.04.16-.08.2-.18.12-.6-.3-1-1.2-1-2.2 0-1.8.14-3.32 2.62-3.32 2.4 0 4.1 1.76 4.1 3.82 0 2.4-1.5 4.22-3.56 4.22-.7 0-1.36-.36-1.58-.78l-.34-1.36c-.2-.78-.62-1.54-.9-2.04-.3-.52-.16-1 .18-1.42 1.26-1.5 1.54-2.4 1.54-3.58 0-2.02-1.12-3.44-3.2-3.44-2.44 0-4.1 1.8-4.1 3.96z"/>
-    </svg>
-);
-
-const ShareASaleLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>ShareASale Logo</title>
-        <rect width="24" height="24" rx="4" fill="#0072bc"/>
-        <path d="M12 6l-6 6 6 6 6-6-6-6zm0 2.83L14.17 12 12 14.17 9.83 12 12 8.83z" fill="white"/>
-    </svg>
-);
-
-const ACCESSTRADELogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#ff5a00" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>ACCESSTRADE Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14.08V7.92c0-.5.58-.8 1-.5l5 3.08c.42.26.42.84 0 1.1l-5 3.08c-.42.28-1-.02-1-.5z"/>
-    </svg>
-);
-
-const Digistore24Logo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#0055A4" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Digistore24 Logo</title>
-        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5V7.5L16.5 12 10 14.5z"/>
-    </svg>
-);
-
-const JVZooLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>JVZoo Logo</title>
-        <rect width="24" height="24" rx="4" fill="#4CAF50"/>
-        <path d="M8 8v8l4-4-4-4zm8 0l-4 4 4 4V8z" fill="white"/>
-    </svg>
-);
-
-const WarriorPlusLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#D32F2F" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>WarriorPlus Logo</title>
-        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5-10-5-10 5z"/>
-    </svg>
-);
-
-const RakutenLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#BF0000" xmlns="http://www.w3.org/2000/svg" {...props}>
-        <title>Rakuten Logo</title>
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c1.3 0 2.5-.41 3.48-1.11L17.59 18l1.41-1.41-2.12-2.12c.7-1 .11-2.48-1.11-3.48S13.3 8.19 12 8.19zm0 8c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4z" fill="white"/>
-    </svg>
-);
-
-const SEMrushLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <title>SEMrush Logo</title>
-      <circle cx="12" cy="12" r="12" fill="#FF6500"/>
-      <path fillRule="evenodd" clipRule="evenodd" d="M12.183 17.5a5.317 5.317 0 100-10.634 5.317 5.317 0 000 10.634zm0-1.63a3.688 3.688 0 100-7.375 3.688 3.688 0 000 7.375z" fill="#fff"/>
-      <path d="M18.8 17.5a5.3 5.3 0 00-4.6-5.3h-.03v1.63h.03a3.69 3.69 0 013.67 3.67v.03a3.69 3.69 0 01-3.67 3.67h-6.6a3.69 3.69 0 01-3.6-3.67v-.03a3.69 3.69 0 013.6-3.67h.03V10.57h-.03a5.31 5.31 0 00-5.27 5.27v.03a5.31 5.31 0 005.27 5.27h6.6a5.31 5.31 0 005.3-5.27v-.03z" fill="#fff"/>
-    </svg>
-);
-
-const HubSpotLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="#FF7A59" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <title>HubSpot Logo</title>
-      <path d="M21.5 10.6a1.1 1.1 0 00-1-1.1H16L12.7 3a1.2 1.2 0 00-2.2 0L7.2 9.5H2.6a1.1 1.1 0 00-1 1.1 1.3 1.3 0 00.3 1L5.2 15 3 18.2a1.2 1.2 0 001 2h4.5l3.4 6.5a1.2 1.2 0 002.2 0L17.6 20h4.5a1.2 1.2 0 001-2L20.8 15l3-3.2a1.3 1.3 0 00.2-.9v-.3z" />
-    </svg>
-);
-
-const CloudwaysLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <title>Cloudways Logo</title>
-      <path d="M19.9 12.6c.1-2.4-1.6-4.5-4-4.8 0-1.2-.5-2.3-1.4-3.2-1-.9-2.2-1.4-3.5-1.4-1.3 0-2.5.5-3.5 1.4-.9.9-1.4 2-1.4 3.2-.2 0-.3.1-.5.1-2.4.1-4.3 2-4.3 4.4 0 2.2 1.7 4.1 3.9 4.4h14.3c2.3-.3 4.1-2.3 4.1-4.6 0-2.4-1.8-4.4-4.1-4.6zm-15.5.9c-1.2 0-2.2-1-2.2-2.2s1-2.2 2.2-2.2c.4 0 .7.1 1 .2l.7.3.2-.7c.3-1.2 1.4-2 2.6-2 .7 0 1.4.3 1.9.8.5.5.8 1.2.8 1.9v.5l.3.1c1.4.2 2.5 1.5 2.5 3s-1.1 2.8-2.5 3H4.4z" fill="#2C3A8B" />
-    </svg>
-);
-
-const CJLogo = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-      <title>CJ Affiliate Logo</title>
-      <path d="M11.9 2.1C6.4 2.1 2 6.5 2 12s4.4 9.9 9.9 9.9 9.9-4.4 9.9-9.9S17.4 2.1 11.9 2.1zm2.3 11.8c-.5.4-1.1.6-1.7.6-1.5 0-2.8-1.2-2.8-2.8s1.2-2.8 2.8-2.8c.6 0 1.2.2 1.7.6L15.3 8c-.7-.6-1.6-1-2.6-1-2.4 0-4.4 2-4.4 4.4s2 4.4 4.4 4.4c1 0 1.9-.4 2.6-1l-1.1-1.1z" fill="#00AEEF"/>
-      <path d="M22 12c0 2.2-1.8 4-4 4s-4-1.8-4-4 1.8-4 4-4 4 1.8 4 4z" fill="#00AEEF" />
-    </svg>
-);
-
-
 export const PlatformLogo: React.FC<{ platformId: string; className?: string }> = ({ platformId, className }) => {
     const props = { className: className || defaultProps.className };
 
@@ -225,27 +127,14 @@ export const PlatformLogo: React.FC<{ platformId: string; className?: string }> 
         case 'tiktok': return <TikTokLogo {...props} />;
         case 'facebook': return <FacebookLogo {...props} />;
         case 'clickbank': return <ClickBankLogo {...props} />;
-        case 'amazon': return <AmazonSellerCentralLogo {...props} />;
-        case 'shopee': return <ShopeeLogo {...props} />;
+        case 'amazon': return <AmazonAssociatesLogo {...props} />;
+        case 'shopify': return <ShopifyLogo {...props} />;
         case 'telegram': return <TelegramLogo {...props} />;
-        case 'lazada': return <LazadaLogo {...props} />;
-        case 'tiki': return <TikiLogo {...props} />;
-        case 'zalo': return <ZaloLogo {...props} />;
-        case 'momo': return <MomoLogo {...props} />;
-        case 'vnpay': return <VNPayLogo {...props} />;
+        case 'accesstrade': return <ACCESSTRADELogo {...props} />;
+        case 'masoffer': return <MasOfferLogo {...props} />;
+        case 'ecomobi': return <EcomobiLogo {...props} />;
         case 'instagram': return <InstagramLogo {...props} />;
         case 'x_twitter': return <XLogo {...props} />;
-        case 'pinterest': return <PinterestLogo {...props} />;
-        case 'shareasale': return <ShareASaleLogo {...props} />;
-        case 'accesstrade': return <ACCESSTRADELogo {...props} />;
-        case 'digistore24': return <Digistore24Logo {...props} />;
-        case 'jvzoo': return <JVZooLogo {...props} />;
-        case 'warriorplus': return <WarriorPlusLogo {...props} />;
-        case 'rakuten': return <RakutenLogo {...props} />;
-        case 'semrush': return <SEMrushLogo {...props} />;
-        case 'hubspot': return <HubSpotLogo {...props} />;
-        case 'cloudways': return <CloudwaysLogo {...props} />;
-        case 'cj': return <CJLogo {...props} />;
         default: return null;
     }
 };
