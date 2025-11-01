@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Product, ScoutedProduct, Trend } from '../types';
 import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { Search, Star, Clock, Check, X, SkipForward, Bot, TrendingUp, DollarSign } from './LucideIcons';
+import { Search, Clock, X, SkipForward, Bot, TrendingUp, DollarSign } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 import { scoutForProducts, huntForTrends } from '../services/geminiService';
 import { Spinner } from './common/Spinner';

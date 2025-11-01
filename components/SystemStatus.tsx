@@ -77,7 +77,7 @@ export const SystemStatus: React.FC = () => {
                 
                 const configuredPlatformIds = new Set(storedAccounts.map(acc => acc.platformId));
 
-                const updatedConnections = ALL_PLATFORMS.map(connInfo => {
+                const updatedConnections = ALL_PLATFORMS.map((connInfo): ConnectionHealth => {
                     const isConnected = configuredPlatformIds.has(connInfo.id);
                     return {
                         ...connInfo,

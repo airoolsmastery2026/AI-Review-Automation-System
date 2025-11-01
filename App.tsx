@@ -85,7 +85,7 @@ const App: React.FC = () => {
         if (!automationSettings.masterEnabled) {
             return;
         }
-
+    
         const automationInterval = setInterval(async () => {
             const now = Date.now();
             
@@ -105,42 +105,19 @@ const App: React.FC = () => {
                     logger.info(`Automation: Scout Agent found ${scoutedProducts.length} new products.`);
                 }
             }
-
-            // 2. Product Auto-Processing Logic
-            let hasChanged = false;
-            let productToAutoProduce: ScoutedProduct | null = null;
-
-            const updatedProducts = pendingProducts.map((p): ScoutedProduct => {
-                 if (p.status === 'pending') {
-                    // Priority 1: High opportunity score
-                    if (p.opportunityScore && p.opportunityScore >= automationSettings.autoApproveThreshold) {
-                         hasChanged = true;
-                         logger.warn(`Automation: Product "${p.name}" has been auto-approved due to high opportunity score (${p.opportunityScore}).`);
-                         productToAutoProduce = { ...p, status: 'auto-producing' };
-                         return productToAutoProduce;
-                    }
-                    
-                    // Priority 2: Time-based rules
-                    const elapsed = now - p.foundAt;
-                    if (elapsed >= TWO_HOURS) {
-                        hasChanged = true;
-                        logger.warn(`Automation: Product "${p.name}" has been auto-approved due to time limit.`);
-                        productToAutoProduce = { ...p, status: 'auto-producing' };
-                        return productToAutoProduce;
-                    } else if (elapsed >= FIFTEEN_MINUTES) {
-                        hasChanged = true;
-                        logger.info(`Automation: Product "${p.name}" was skipped due to inactivity.`);
-                        return { ...p, status: 'skipped' };
-                    }
-                }
-                return p;
-            });
-
-             if (hasChanged) {
-                setPendingProducts(updatedProducts.filter(p => p.id !== productToAutoProduce?.id));
-             }
-
+    
+            // 2. Product Auto-Processing Logic - Refactored for clarity and correctness
+            const productToAutoProduce = pendingProducts.find(p => 
+                p.status === 'pending' && (
+                    (p.opportunityScore && p.opportunityScore >= automationSettings.autoApproveThreshold) ||
+                    (now - p.foundAt >= TWO_HOURS)
+                )
+            );
+    
             if (productToAutoProduce) {
+                logger.warn(`Automation: Product "${productToAutoProduce.name}" is being auto-approved.`);
+                // Remove it from pending and process it
+                setPendingProducts(prev => prev.filter(p => p.id !== productToAutoProduce.id));
                 handleApproveAndGenerate(productToAutoProduce);
                 addRenderJob({
                     productName: productToAutoProduce.name,
@@ -149,12 +126,26 @@ const App: React.FC = () => {
                     createdAt: new Date().toISOString(),
                     models: ['VEO 3.1', 'Suno']
                 });
+            } else {
+                // No product to produce, check for skipping inactive ones
+                let hasSkipped = false;
+                const updatedProducts = pendingProducts.map(p => {
+                    if (p.status === 'pending' && (now - p.foundAt >= FIFTEEN_MINUTES)) {
+                        hasSkipped = true;
+                        logger.info(`Automation: Product "${p.name}" was skipped due to inactivity.`);
+                        return { ...p, status: 'skipped' };
+                    }
+                    return p;
+                });
+                if (hasSkipped) {
+                    setPendingProducts(updatedProducts);
+                }
             }
-
+    
         }, 60000); // Check every minute
-
+    
         return () => clearInterval(automationInterval);
-
+    
     }, [automationSettings, pendingProducts, handleApproveAndGenerate]);
 
 

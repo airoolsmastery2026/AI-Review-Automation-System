@@ -25,7 +25,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ productsWithContent, rende
 
     const profitData = publishedProducts
       .sort((a, b) => new Date(a.financials!.publishedAt).getTime() - new Date(b.financials!.publishedAt).getTime())
-      .map((p, index) => ({
+      .map(p => ({
         name: p.name.slice(0, 10) + (p.name.length > 10 ? '...' : ''),
         profit: (p.financials!.affiliateRevenue - p.financials!.productionCost),
       }));

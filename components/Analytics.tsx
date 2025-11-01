@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import type { PlatformPerformance, ProductWithContent } from '../types';
 import { Youtube, Instagram, TrendingUp } from './LucideIcons';
@@ -68,9 +68,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         }, {} as Record<string, PlatformPerformance>)
     );
 
-    // Fix: Correctly type the initial value for `reduce` to ensure proper type inference for the accumulator.
-    // Fix: Use a generic type argument for the `reduce` method to correctly type the accumulator, resolving type inference issues.
-    const monthlyViewsData = publishedProducts.reduce<Record<string, { name: string; views: number; date: Date }>>((acc, p) => {
+    // Fix: Correctly type the initial value for `reduce` to ensure proper type inference for the accumulator, which resolves all related type errors.
+    const monthlyViewsData = publishedProducts.reduce((acc, p) => {
         if (p.financials && p.performance) {
             const date = new Date(p.financials.publishedAt);
             const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
@@ -83,7 +82,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
             acc[monthKey].views += totalViews;
         }
         return acc;
-    }, {});
+    }, {} as Record<string, { name: string; views: number; date: Date }>);
     
     const sortedViewsData = Object.values(monthlyViewsData).sort((a,b) => a.date.getTime() - b.date.getTime());
 

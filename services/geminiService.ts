@@ -309,7 +309,7 @@ ${text}
     }, `Translate text to ${targetLanguage}`);
 };
 
-export const generateVideo = async (script: string, imageBase64?: string): Promise<Operation | { name: string, done: false }> => {
+export const generateVideo = async (script: string, imageBase64?: string): Promise<Operation<any, any> | { name: string, done: false }> => {
     logger.info("Starting video generation via backend proxy.");
     
     const payload: { script: string, image?: { data: string, mimeType: string } } = { script };
@@ -349,7 +349,7 @@ export const generateSpeech = async (script: string): Promise<string> => {
     }
 };
 
-export const getVideoOperationStatus = async (operationName: string): Promise<Operation> => {
+export const getVideoOperationStatus = async (operationName: string): Promise<Operation<any, any>> => {
     logger.info(`Polling video operation status via backend for: ${operationName}`);
      try {
         return await callBackend('/video-status', { operationName });

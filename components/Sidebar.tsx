@@ -2,7 +2,7 @@
 import React from 'react';
 import { Page } from '../types';
 import { AnalyticsIcon, DashboardIcon, EditIcon, PublishIcon, SearchIcon, CloseIcon, SparklesIcon, ConnectIcon, TemplateIcon } from './Icons';
-import { Video, BookOpen, Code, ShieldCheck, GitBranch, CreditCard } from './LucideIcons';
+import { Video, BookOpen, ShieldCheck, GitBranch, CreditCard } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 
 const Logo = () => {

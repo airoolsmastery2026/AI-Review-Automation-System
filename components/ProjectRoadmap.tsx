@@ -59,7 +59,7 @@ const RoadmapCard: React.FC<{ task: RoadmapTask }> = ({ task }) => {
     );
 };
 
-const RoadmapColumn: React.FC<{ title: string, tasks: RoadmapTask[], status: RoadmapStatus }> = ({ title, tasks }) => {
+const RoadmapColumn: React.FC<{ title: string, tasks: RoadmapTask[], status: RoadmapStatus }> = ({ title, tasks, status }) => {
     const statusColors: Record<RoadmapStatus, string> = {
         'Planned': 'border-t-blue-500',
         'In Progress': 'border-t-yellow-500',
