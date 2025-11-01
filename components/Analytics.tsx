@@ -68,8 +68,8 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         }, {} as Record<string, PlatformPerformance>)
     );
 
-    // Fix: Correctly type the initial value for `reduce` to ensure proper type inference for the accumulator, which resolves all related type errors.
-    const monthlyViewsData = publishedProducts.reduce((acc, p) => {
+    // Fix: Correctly typed the reduce accumulator by specifying the generic type argument. This ensures proper type inference for the `monthlyViewsData` object and resolves downstream errors in the `.sort()` method.
+    const monthlyViewsData = publishedProducts.reduce<Record<string, { name: string; views: number; date: Date }>>((acc, p) => {
         if (p.financials && p.performance) {
             const date = new Date(p.financials.publishedAt);
             const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
@@ -82,7 +82,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
             acc[monthKey].views += totalViews;
         }
         return acc;
-    }, {} as Record<string, { name: string; views: number; date: Date }>);
+    }, {});
     
     const sortedViewsData = Object.values(monthlyViewsData).sort((a,b) => a.date.getTime() - b.date.getTime());
 

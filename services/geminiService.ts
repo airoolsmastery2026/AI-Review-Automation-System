@@ -1,3 +1,4 @@
+
 import { Type, Operation } from "@google/genai";
 import type { Product, Trend, ScoutedProduct, ConnectionStatus } from '../types';
 import { logger } from './loggingService';
@@ -36,7 +37,7 @@ const generateContentWithProxy = async (params: { model: string, contents: any, 
 };
 
 const analyzeRpmPotential = async (productName: string, topic: string): Promise<'Low' | 'Medium' | 'High'> => {
-    const prompt = `As a YouTube monetization expert, assess the RPM (Revenue Per Mille) potential for a YouTube Shorts video about "${productName}", a product in the "${topic}" niche. Consider factors like advertiser appeal, audience demographics, and topic saturation. Your entire response must be a single word: Low, Medium, or High.`;
+    const prompt = `As a YouTube monetization expert, assess the RPM (Revenue Per Mille) for a YouTube Shorts video about "${productName}", a product in the "${topic}" niche. Consider factors like advertiser appeal, audience demographics, and topic saturation. Your entire response must be a single word: Low, Medium, or High.`;
     
     // In a real backend setup, we don't need to mock this. If the backend call fails, it will throw an error.
     // For now, let's keep a simple fallback for robustness.
@@ -309,7 +310,7 @@ ${text}
     }, `Translate text to ${targetLanguage}`);
 };
 
-export const generateVideo = async (script: string, imageBase64?: string): Promise<Operation<any, any> | { name: string, done: false }> => {
+export const generateVideo = async (script: string, imageBase64?: string): Promise<Operation<any> | { name: string, done: false }> => {
     logger.info("Starting video generation via backend proxy.");
     
     const payload: { script: string, image?: { data: string, mimeType: string } } = { script };
@@ -349,7 +350,7 @@ export const generateSpeech = async (script: string): Promise<string> => {
     }
 };
 
-export const getVideoOperationStatus = async (operationName: string): Promise<Operation<any, any>> => {
+export const getVideoOperationStatus = async (operationName: string): Promise<Operation<any>> => {
     logger.info(`Polling video operation status via backend for: ${operationName}`);
      try {
         return await callBackend('/video-status', { operationName });
