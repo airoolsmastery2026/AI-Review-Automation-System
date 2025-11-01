@@ -3,7 +3,7 @@ import type { ProductWithContent, RenderJob } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
-import { AlertTriangle } from './LucideIcons';
+import { AlertTriangle, Upload, X } from './LucideIcons';
 import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
@@ -65,7 +65,25 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
     const [creatingVideo, setCreatingVideo] = useState<string | null>(null);
     const [productToPublish, setProductToPublish] = useState<ProductWithContent | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
+    const [selectedImages, setSelectedImages] = useState<Record<string, string | null>>({}); // { productId: base64 | null }
     const { t } = useI18n();
+
+    const handleImageChange = (productId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // VEO has a 4MB limit for image uploads.
+        if (file.size > 4 * 1024 * 1024) {
+            alert('Image file size must be less than 4MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setSelectedImages(prev => ({ ...prev, [productId]: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleCreateVideo = async (product: ProductWithContent) => {
         if (!product.content.script) {
@@ -74,11 +92,12 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
         }
 
         setCreatingVideo(product.id);
+        const imageBase64 = selectedImages[product.id] || undefined;
         try {
             // Generate audio and video in parallel
             const [audioData, operation] = await Promise.all([
                 generateSpeech(product.content.script),
-                generateVideo(product.content.script)
+                generateVideo(product.content.script, imageBase64)
             ]);
             
             onAddRenderJob({
@@ -139,19 +158,41 @@ export const Publisher: React.FC<PublisherProps> = ({ productsWithContent, onAdd
                                 <h3 className="text-lg font-bold text-gray-100">{product.name}</h3>
                                 <p className="text-sm text-gray-400">{t('publisher.readyToPublish')}</p>
                             </div>
-                            <div className="flex space-x-2">
-                                 <Button 
-                                    variant="secondary"
-                                    isLoading={creatingVideo === product.id}
-                                    onClick={() => handleCreateVideo(product)}>
-                                    {creatingVideo === product.id ? t('publisher.creatingVideo') : t('publisher.createVideo')}
-                                 </Button>
-                                 <Button 
-                                    onClick={() => handlePublishClick(product)}
-                                    disabled={!!product.financials}
-                                >
-                                    {product.financials ? t('publisher.published') : t('publisher.publishNow')}
-                                 </Button>
+                            <div className="flex items-center space-x-4">
+                                <div>
+                                    {selectedImages[product.id] ? (
+                                        <div className="relative group w-20 h-20">
+                                            <img src={selectedImages[product.id]!} alt="Start frame preview" className="w-full h-full object-cover rounded-lg shadow-md" />
+                                            <button
+                                                onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: null }))}
+                                                className="absolute -top-1.5 -right-1.5 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-red-500"
+                                                aria-label="Remove image"
+                                            >
+                                                <X className="w-3 h-3" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="cursor-pointer w-20 h-20 flex flex-col items-center justify-center bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                            <Upload className="w-6 h-6 text-gray-400" />
+                                            <span className="text-xs text-center text-gray-400 mt-1 px-1">Start Image</span>
+                                            <input type="file" className="hidden" accept="image/png, image/jpeg" onChange={e => handleImageChange(product.id, e)} />
+                                        </label>
+                                    )}
+                                </div>
+                                <div className="flex flex-col space-y-2">
+                                     <Button 
+                                        variant="secondary"
+                                        isLoading={creatingVideo === product.id}
+                                        onClick={() => handleCreateVideo(product)}>
+                                        {creatingVideo === product.id ? t('publisher.creatingVideo') : t('publisher.createVideo')}
+                                     </Button>
+                                     <Button 
+                                        onClick={() => handlePublishClick(product)}
+                                        disabled={!!product.financials}
+                                    >
+                                        {product.financials ? t('publisher.published') : t('publisher.publishNow')}
+                                     </Button>
+                                </div>
                             </div>
                         </div>
                     )) : (

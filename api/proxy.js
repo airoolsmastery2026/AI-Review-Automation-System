@@ -62,11 +62,12 @@ module.exports = async (req, res) => {
             }
 
             case '/generate-video': {
-                const { script } = body;
+                const { script, image } = body; // image will be { data: '...', mimeType: '...' }
                 if (!script) {
                     return res.status(400).json({ error: 'Missing script for /generate-video' });
                 }
-                const operation = await ai.models.generateVideos({
+                
+                const videoParams = {
                     model: 'veo-3.1-fast-generate-preview',
                     prompt: script,
                     config: {
@@ -74,7 +75,16 @@ module.exports = async (req, res) => {
                         resolution: '720p',
                         aspectRatio: '9:16'
                     }
-                });
+                };
+            
+                if (image && image.data && image.mimeType) {
+                    videoParams.image = {
+                        imageBytes: image.data,
+                        mimeType: image.mimeType
+                    };
+                }
+            
+                const operation = await ai.models.generateVideos(videoParams);
                 return res.status(200).json(operation);
             }
 

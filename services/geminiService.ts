@@ -296,10 +296,26 @@ ${text}
     }, `Translate text to ${targetLanguage}`);
 };
 
-export const generateVideo = async (script: string): Promise<Operation | { name: string, done: false }> => {
+export const generateVideo = async (script: string, imageBase64?: string): Promise<Operation | { name: string, done: false }> => {
     logger.info("Starting video generation via backend proxy.");
+    
+    const payload: { script: string, image?: { data: string, mimeType: string } } = { script };
+    
+    if (imageBase64) {
+        // data:image/png;base64,xxxxxxxx
+        const parts = imageBase64.split(';base64,');
+        if (parts.length === 2) {
+            const mimeType = parts[0].split(':')[1];
+            const data = parts[1];
+            payload.image = { data, mimeType };
+            logger.info("Video generation includes a starting image.");
+        } else {
+            logger.warn("Invalid base64 image format provided.");
+        }
+    }
+
     try {
-        const operation = await callBackend('/generate-video', { script });
+        const operation = await callBackend('/generate-video', payload);
         logger.info("Video generation operation started via backend.", { operationName: operation.name });
         return operation;
     } catch (error: any) {
