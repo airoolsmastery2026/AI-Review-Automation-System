@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlatformLogo } from './PlatformLogo';
@@ -43,7 +44,7 @@ const platforms: Platform[] = [
     { id: "tiki", nameKey: "connections.tiki", docsUrl: 'https://open.tiki.vn/', neonColor: '#1A94FF', category: 'affiliate_vn', credentials: [{ id: 'clientId', labelKey: 'connections.clientId', placeholderKey: 'connections.clientIdPlaceholder', type: 'text' }, { id: 'clientSecret', labelKey: 'connections.clientSecret', placeholderKey: 'connections.clientSecretPlaceholder', type: 'password' }] },
 ];
 
-const LOCAL_STORAGE_KEY = 'ai-automation-user-connections';
+export const LOCAL_STORAGE_KEY = 'ai-automation-user-connections';
 
 const ConnectionModal: React.FC<{
     platform: Platform;

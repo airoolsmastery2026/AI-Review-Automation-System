@@ -38,14 +38,54 @@ const getProgressText = (progress: number, t: (key: string) => string): string =
     return t('renderQueue.Completed');
 };
 
-const base64ToBlob = (base64: string, type: string = 'application/octet-stream') => {
-    const binaryString = window.atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
+// Helper function to write strings into a DataView
+const writeString = (view: DataView, offset: number, string: string) => {
+    for (let i = 0; i < string.length; i++) {
+        view.setUint8(offset + i, string.charCodeAt(i));
     }
-    return new Blob([bytes], { type });
+};
+
+// Helper function to convert raw PCM audio data (from base64) into a valid WAV Blob
+const createWavBlob = (base64Audio: string): Blob => {
+    // Constants for WAV header (assuming 24kHz, 16-bit mono PCM from Gemini TTS)
+    const sampleRate = 24000;
+    const numChannels = 1;
+    const bitsPerSample = 16;
+    const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+    const blockAlign = numChannels * (bitsPerSample / 8);
+
+    // Decode base64 to Uint8Array for PCM data
+    const binaryString = window.atob(base64Audio);
+    const len = binaryString.length;
+    const pcmData = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        pcmData[i] = binaryString.charCodeAt(i);
+    }
+    const dataSize = pcmData.length;
+
+    // Create a 44-byte buffer for the WAV header
+    const buffer = new ArrayBuffer(44);
+    const view = new DataView(buffer);
+
+    // RIFF chunk descriptor
+    writeString(view, 0, 'RIFF');
+    view.setUint32(4, 36 + dataSize, true); // file-size - 8
+    writeString(view, 8, 'WAVE');
+    // "fmt " sub-chunk
+    writeString(view, 12, 'fmt ');
+    view.setUint32(16, 16, true); // chunk size (16 for PCM)
+    view.setUint16(20, 1, true);  // audio format (1 for PCM)
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    // "data" sub-chunk
+    writeString(view, 36, 'data');
+    view.setUint32(40, dataSize, true);
+
+    // Combine header and PCM data into a single Blob
+    return new Blob([view, pcmData], { type: 'audio/wav' });
 };
 
 
@@ -53,6 +93,7 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
     const { t } = useI18n();
     const activePolls = useRef<Set<string>>(new Set()).current;
     const [downloadingJobId, setDownloadingJobId] = useState<number | null>(null);
+    const [audioUrls, setAudioUrls] = useState<Record<number, string>>({});
 
     useEffect(() => {
         const pollStatus = async (job: RenderJob) => {
@@ -93,6 +134,27 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
         return () => clearInterval(interval);
     }, [jobs, setJobs, activePolls]);
 
+    // Effect to create playable Blob URLs for audio data
+    useEffect(() => {
+        jobs.forEach(job => {
+            if (job.audioData && !audioUrls[job.id]) {
+                try {
+                    const wavBlob = createWavBlob(job.audioData);
+                    const url = URL.createObjectURL(wavBlob);
+                    setAudioUrls(prev => ({ ...prev, [job.id]: url }));
+                } catch (error) {
+                    logger.error(`Failed to create WAV blob for job ${job.id}`, { error });
+                }
+            }
+        });
+
+        // Cleanup object URLs on component unmount
+        return () => {
+            Object.values(audioUrls).forEach(URL.revokeObjectURL);
+        };
+    }, [jobs, audioUrls]);
+
+
     const handleDownload = async (job: RenderJob) => {
         if (!job.videoUrl) {
             logger.error("Download failed: Video URL is missing.", { job });
@@ -122,11 +184,11 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
     const handleAudioDownload = (job: RenderJob) => {
         if (!job.audioData) return;
         try {
-            const blob = base64ToBlob(job.audioData, 'audio/mp3'); // Assuming mp3 for broad compatibility, though source is raw
+            const blob = createWavBlob(job.audioData);
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${job.productName.replace(/ /g, '_')}_audio.mp3`;
+            a.download = `${job.productName.replace(/ /g, '_')}_audio.wav`;
             a.click();
             window.URL.revokeObjectURL(url);
             logger.info(`Audio for "${job.productName}" downloaded successfully.`);
@@ -178,8 +240,8 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                                     {job.audioData && (
-                                        <audio controls className="h-8 w-48" src={`data:audio/mp3;base64,${job.audioData}`}></audio>
+                                     {audioUrls[job.id] && (
+                                        <audio controls className="h-8 w-48" src={audioUrls[job.id]}></audio>
                                      )}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">

@@ -1,12 +1,16 @@
 
+
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
 import { logger } from '../services/loggingService';
-import type { LogEntry, ConnectionHealth, ConnectionHealthStatus, Connection } from '../types';
+import type { LogEntry, ConnectionHealth, ConnectionHealthStatus, AccountConnection } from '../types';
+// Fix: Import the missing 'AlertTriangle' icon.
 import { ShieldCheck, HardDriveDownload, Server, AlertTriangle } from './LucideIcons';
 import { PlatformLogo } from './PlatformLogo';
+import { LOCAL_STORAGE_KEY } from './Connections';
 
 const LogLevelIndicator: React.FC<{ level: LogEntry['level'] }> = ({ level }) => {
     const levelInfo = {
@@ -71,22 +75,16 @@ export const SystemStatus: React.FC = () => {
     useEffect(() => {
         const checkConnectionStatus = () => {
             try {
-                const stored = localStorage.getItem('universal-connections');
-                const storedConnections: Record<string, Connection> = stored ? JSON.parse(stored) : {};
+                const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+                const storedAccounts: AccountConnection[] = stored ? JSON.parse(stored) : [];
+                
+                const configuredPlatformIds = new Set(storedAccounts.map(acc => acc.platformId));
 
                 const updatedConnections = ALL_PLATFORMS.map(connInfo => {
-                    const storedConn = storedConnections[connInfo.id];
-                    let status: ConnectionHealthStatus = 'Disconnected';
-                    // Fix: Corrected a type error and logic bug. The check for a 'refreshing' status was invalid
-                    // as `ConnectionStatus` only includes 'Configured' or 'Not Configured'.
-                    // The logic now correctly maps 'Configured' to 'Connected' and everything else to 'Disconnected'.
-                    if (storedConn && storedConn.status === 'Configured') {
-                        status = 'Connected';
-                    }
-                    
+                    const isConnected = configuredPlatformIds.has(connInfo.id);
                     return {
                         ...connInfo,
-                        status: status,
+                        status: isConnected ? 'Connected' : 'Disconnected',
                         lastChecked: new Date().toISOString()
                     };
                 });
@@ -94,7 +92,7 @@ export const SystemStatus: React.FC = () => {
                 const geminiStatus: ConnectionHealth = {
                     id: 'gemini',
                     nameKey: 'connections.gemini',
-                    status: 'Connected',
+                    status: 'Connected', // Assuming backend proxy handles this
                     lastChecked: new Date().toISOString()
                 };
                 
@@ -110,9 +108,10 @@ export const SystemStatus: React.FC = () => {
     }, []);
     
     const connectedCount = connections.filter(c => c.status === 'Connected').length;
-    const securityGrade = "A";
+    // Security grade is hardcoded as 'C-' because of localStorage usage, but can be improved in the future.
+    const securityGrade = "C-"; 
     const automationReadiness = connections.length > 0 ? `${Math.round((connectedCount / connections.length) * 100)}%` : '0%';
-    const securityColor = "text-green-400";
+    const securityColor = "text-red-400"; // Reflects 'C-' grade
     const readinessValue = connections.length > 0 ? connectedCount / connections.length : 0;
     const readinessColor = readinessValue > 0.7 ? "text-green-400" : readinessValue > 0.3 ? "text-yellow-400" : "text-red-400";
 
@@ -157,7 +156,7 @@ export const SystemStatus: React.FC = () => {
                         <span>{t('systemStatus.status')}</span>
                         <span className="text-right">{t('systemStatus.lastChecked')}</span>
                     </div>
-                    <div className="space-y-2 pt-2">
+                    <div className="space-y-2 pt-2 max-h-60 overflow-y-auto">
                         {connections.map(conn => (
                             <div key={conn.id} className="grid grid-cols-3 gap-4 items-center">
                                 <div className="flex items-center">
