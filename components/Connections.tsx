@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PlatformLogo } from './PlatformLogo';
 import { useI18n } from '../hooks/useI18n';
 import { Button } from './common/Button';
-import { ExternalLink, KeyRound, Save, X, Info, Trash, User, FilePenLine } from './LucideIcons';
+import { ExternalLink, KeyRound, Save, X, Info, Trash, User, FilePenLine, CheckCircle } from './LucideIcons';
 import { logger } from '../services/loggingService';
 import type { AccountConnection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
@@ -48,20 +48,25 @@ const LOCAL_STORAGE_KEY = 'ai-automation-user-connections';
 const ConnectionModal: React.FC<{
     platform: Platform;
     existingConnection: AccountConnection | null;
+    platformAccounts: AccountConnection[];
     onClose: () => void;
     onSave: (connection: AccountConnection) => void;
     onDelete: (connectionId: string) => void;
-}> = ({ platform, existingConnection, onClose, onSave, onDelete }) => {
+    onEdit: (connection: AccountConnection) => void;
+}> = ({ platform, existingConnection, platformAccounts, onClose, onSave, onDelete, onEdit }) => {
     const { t } = useI18n();
-    const [formData, setFormData] = useState<Record<string, string>>(() => {
+    const isEditing = !!existingConnection;
+    const [formData, setFormData] = useState<Record<string, string>>({});
+    const [isSaving, setIsSaving] = useState(false);
+    const [isJustSaved, setIsJustSaved] = useState(false);
+
+    useEffect(() => {
         const initialData: Record<string, string> = { username: existingConnection?.username || '' };
         platform.credentials.forEach(cred => {
             initialData[cred.id] = existingConnection?.credentials[cred.id] || '';
         });
-        return initialData;
-    });
-    const [isSaving, setIsSaving] = useState(false);
-    const isEditing = !!existingConnection;
+        setFormData(initialData);
+    }, [existingConnection, platform]);
 
     const handleSave = async () => {
         const username = formData.username;
@@ -85,6 +90,16 @@ const ConnectionModal: React.FC<{
         };
         onSave(connectionData);
         setIsSaving(false);
+
+        if (isEditing) {
+            onClose();
+        } else {
+            const clearedData: Record<string, string> = { username: '' };
+            platform.credentials.forEach(cred => { clearedData[cred.id] = ''; });
+            setFormData(clearedData);
+            setIsJustSaved(true);
+            setTimeout(() => setIsJustSaved(false), 2500);
+        }
     };
     
     const handleDelete = () => {
@@ -109,7 +124,7 @@ const ConnectionModal: React.FC<{
                      <div className="flex items-center justify-between p-4 border-b border-gray-700">
                         <div className="flex items-center space-x-3">
                             <PlatformLogo platformId={platform.id} className="w-8 h-8"/>
-                            <h2 className="text-xl font-bold text-gray-100">{t(isEditing ? 'connections.manage' : 'connections.connectPlatform', { platform: t(platform.nameKey) })}</h2>
+                            <h2 className="text-xl font-bold text-gray-100">{t(isEditing ? 'connections.editConnectionTitle' : 'connections.newConnectionTitle')} - {t(platform.nameKey)}</h2>
                         </div>
                         <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close"><X className="w-5 h-5"/></Button>
                     </div>
@@ -118,6 +133,23 @@ const ConnectionModal: React.FC<{
                             <Info className="w-5 h-5 text-primary-400 mr-3 flex-shrink-0 mt-0.5"/>
                             <p className="text-sm text-primary-200">{t('connections.credentialsInfo')}</p>
                         </div>
+
+                        {platformAccounts.length > 0 && !isEditing && (
+                            <div className="space-y-2 p-3 rounded-lg bg-gray-800/50 border border-gray-700">
+                                <h4 className="text-sm font-semibold text-gray-300">{t('connections.alreadyConnected')}</h4>
+                                <ul className="divide-y divide-gray-600">
+                                    {platformAccounts.map(acc => (
+                                        <li key={acc.id} className="py-2 flex justify-between items-center">
+                                            <span className="text-gray-200">{acc.username}</span>
+                                            <Button size="sm" variant="ghost" onClick={() => onEdit(acc)} icon={<FilePenLine className="w-4 h-4" />}>
+                                                {t('connections.editAction')}
+                                            </Button>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                        
                         <div>
                             <label className="block text-sm font-medium text-gray-300 mb-2">{t('connections.usernameLabel')}</label>
                             <div className="relative">
@@ -148,11 +180,19 @@ const ConnectionModal: React.FC<{
                         ))}
                     </div>
                      <div className="flex items-center justify-between p-4 bg-gray-900/40 rounded-b-xl">
-                        <a href={platform.docsUrl} target="_blank" rel="noopener noreferrer">
-                            <Button variant="ghost" size="sm" icon={<ExternalLink className="w-4 h-4"/>}>
-                                {t('connections.viewDocs')}
-                            </Button>
-                        </a>
+                        <div className="flex items-center">
+                            <a href={platform.docsUrl} target="_blank" rel="noopener noreferrer">
+                                <Button variant="ghost" size="sm" icon={<ExternalLink className="w-4 h-4"/>}>
+                                    {t('connections.viewDocs')}
+                                </Button>
+                            </a>
+                             {isJustSaved && (
+                                <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-green-400 text-sm flex items-center ml-4">
+                                    <CheckCircle className="w-4 h-4 mr-2"/>
+                                    <span>{t('connections.savedMessage')}</span>
+                                </motion.div>
+                            )}
+                        </div>
                         <div className="flex space-x-2">
                             {isEditing && (
                                 <Button variant="secondary" onClick={handleDelete} className="text-red-400 hover:bg-red-500/10 hover:border-red-500/20" icon={<Trash className="w-4 h-4"/>}>
@@ -160,7 +200,7 @@ const ConnectionModal: React.FC<{
                                 </Button>
                             )}
                             <Button onClick={handleSave} isLoading={isSaving} icon={<Save className="w-4 h-4"/>}>
-                                {isSaving ? t('connections.saving') : (isEditing ? t('connections.update') : t('connections.connect'))}
+                                {isSaving ? t('connections.saving') : (isEditing ? t('connections.update') : t('connections.addAnother'))}
                             </Button>
                         </div>
                     </div>
@@ -172,11 +212,12 @@ const ConnectionModal: React.FC<{
 
 const PlatformCard: React.FC<{
     platform: Platform;
-    account?: AccountConnection;
+    accounts: AccountConnection[];
     onClick: () => void;
-}> = ({ platform, account, onClick }) => {
+}> = ({ platform, accounts, onClick }) => {
     const { t } = useI18n();
-    const isConnected = !!account;
+    const connectionCount = accounts.length;
+    const isConnected = connectionCount > 0;
 
     return (
         <motion.div
@@ -189,9 +230,9 @@ const PlatformCard: React.FC<{
                 <PlatformLogo platformId={platform.id} className="w-12 h-12" />
            </div>
            <h3 className="font-semibold text-lg text-center text-gray-100">{t(platform.nameKey)}</h3>
-           <div className="text-center text-sm mt-1">
+           <div className="text-center text-sm mt-1 h-5">
                {isConnected ? (
-                   <p className="text-green-400 font-medium truncate" title={account.username}>{t('connections.connectedAs', { username: account.username })}</p>
+                   <p className="text-green-400 font-medium">{t('connections.connectedCount', { count: connectionCount.toString() })}</p>
                ) : (
                    <p className="text-gray-500">{t('connections.notConfigured')}</p>
                )}
@@ -233,10 +274,18 @@ export const Connections: React.FC = () => {
     }, []);
     
     const handleCardClick = (platform: Platform) => {
-        const existing = accounts.find(acc => acc.platformId === platform.id);
         setSelectedPlatform(platform);
-        setEditingConnection(existing || null);
+        setEditingConnection(null);
         setIsModalOpen(true);
+    };
+
+    const handleManageClick = (account: AccountConnection) => {
+        const platform = platforms.find(p => p.id === account.platformId);
+        if(platform) {
+            setSelectedPlatform(platform);
+            setEditingConnection(account);
+            setIsModalOpen(true);
+        }
     };
 
     const handleSaveConnection = (connection: AccountConnection) => {
@@ -245,7 +294,6 @@ export const Connections: React.FC = () => {
             ? accounts.map(acc => (acc.id === connection.id ? connection : acc))
             : [...accounts, connection];
         saveAccounts(updatedAccounts);
-        setIsModalOpen(false);
     };
 
     const handleRemoveConnection = (accountId: string) => {
@@ -272,12 +320,12 @@ export const Connections: React.FC = () => {
             
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {platforms.map(platform => {
-                    const account = accounts.find(a => a.platformId === platform.id);
+                    const platformAccounts = accounts.filter(a => a.platformId === platform.id);
                     return (
                         <PlatformCard 
                             key={platform.id}
                             platform={platform}
-                            account={account}
+                            accounts={platformAccounts}
                             onClick={() => handleCardClick(platform)}
                         />
                     );
@@ -317,7 +365,7 @@ export const Connections: React.FC = () => {
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <div className="flex justify-end space-x-2">
-                                                <Button size="sm" variant="ghost" onClick={() => handleCardClick(platform)} title={t('connections.manageAction')}>
+                                                <Button size="sm" variant="ghost" onClick={() => handleManageClick(account)} title={t('connections.manageAction')}>
                                                     <FilePenLine className="h-4 w-4" />
                                                 </Button>
                                                 <Button size="sm" variant="ghost" className="text-red-400 hover:bg-red-500/10" onClick={() => handleRemoveConnection(account.id)} title={t('connections.delete')}>
@@ -344,9 +392,11 @@ export const Connections: React.FC = () => {
                     <ConnectionModal
                         platform={selectedPlatform}
                         existingConnection={editingConnection}
+                        platformAccounts={accounts.filter(acc => acc.platformId === selectedPlatform.id)}
                         onClose={() => setIsModalOpen(false)}
                         onSave={handleSaveConnection}
                         onDelete={handleRemoveConnection}
+                        onEdit={(connection) => setEditingConnection(connection)}
                     />
                 )}
             </AnimatePresence>
