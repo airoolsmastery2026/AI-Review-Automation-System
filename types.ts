@@ -1,0 +1,120 @@
+export enum Page {
+    DASHBOARD = 'Dashboard',
+    AUTOMATION = 'Automation',
+    PRODUCT_SCOUT = 'Product Scout',
+    PROMPT_TEMPLATES = 'Prompt Templates',
+    CONTENT_GENERATOR = 'Content Generator',
+    PUBLISHER = 'Publisher',
+    RENDER_QUEUE = 'Render Queue',
+    CONNECTIONS = 'Connections',
+    ANALYTICS = 'Analytics',
+    SYSTEM_STATUS = 'System Status & Audit',
+    PROJECT_ROADMAP = 'Project Roadmap',
+    APP_GUIDE = 'App Guide',
+    LLAMA_CODER_GUIDE = 'LlamaCoder Guide',
+}
+
+export interface Product {
+    id: string;
+    name: string;
+    description: string;
+    features: string;
+    affiliateLink: string;
+    commission?: number;
+    rating?: number;
+    conversions?: number;
+}
+
+export interface GeneratedContent {
+    script?: string;
+    titles?: string[];
+    seoDescription?: string;
+    captions?: {
+        caption: string;
+        hashtags: string[];
+    };
+}
+
+export interface ProductWithContent extends Product {
+    content: GeneratedContent;
+}
+
+export enum GenerationType {
+    SCRIPT = 'script',
+    TITLES = 'titles',
+    DESCRIPTION = 'description',
+    CAPTIONS = 'captions'
+}
+
+export type IdeaStatus = 'Generated' | 'In Production' | 'Published';
+
+export interface VideoIdea {
+    id: number;
+    title: string;
+    category: string;
+    status: IdeaStatus;
+}
+
+export interface PlatformPerformance {
+    platform: 'YouTube' | 'TikTok' | 'Instagram';
+    views: number;
+    likes: number;
+    shares: number;
+}
+
+export type RenderStatus = 'Queued' | 'Rendering' | 'Completed' | 'Failed';
+// Fix: Add 'ElevenLabs Voice AI' to the AIModel type to allow it to be used in the Publisher component.
+export type AIModel = 'Sora 2' | 'VEO 3.1' | 'Suno' | 'Dreamina' | 'KlingAI' | 'ElevenLabs Voice AI';
+
+export interface RenderJob {
+  id: number;
+  productName: string;
+  status: RenderStatus;
+  progress: number;
+  createdAt: string;
+  models: AIModel[];
+}
+
+export type ScoutStatus = 'pending' | 'approved' | 'declined' | 'skipped' | 'auto-producing';
+
+export interface ScoutedProduct extends Product {
+    status: ScoutStatus;
+    foundAt: number; // Timestamp
+}
+
+export interface Trend {
+    topic: string;
+    description: string;
+}
+
+export interface LogEntry {
+    timestamp: string;
+    level: 'INFO' | 'WARN' | 'ERROR';
+    message: string;
+    context?: object;
+}
+
+export type ConnectionHealthStatus = 'Connected' | 'Refreshing' | 'Disconnected' | 'Error';
+
+export interface ConnectionHealth {
+    id: string;
+    nameKey: string;
+    status: ConnectionHealthStatus;
+    lastChecked: string;
+}
+
+export type RoadmapStatus = 'Planned' | 'In Progress' | 'Completed';
+
+export interface RoadmapTask {
+    id: string;
+    titleKey: string;
+    descriptionKey: string;
+    status: RoadmapStatus;
+    tags: string[];
+}
+
+export interface ChangelogEntry {
+    version: string;
+    date: string;
+    changeKeys: string[];
+}
