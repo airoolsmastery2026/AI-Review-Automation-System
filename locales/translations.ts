@@ -216,6 +216,7 @@ export const translations = {
       hubDescription: "Monitor the status of your backend API connections.",
       vercelSetupTitle: "How to Configure Connections",
       vercelSetupDescription: "For enhanced security, API keys are managed as Environment Variables in your Vercel project settings. This page shows a read-only status of those configurations.",
+      vercelSetupDescription_V2: "To connect your accounts, add the required Environment Variables below to your Vercel project settings. This app reads their status securely from the backend.",
       category_ai: "AI & Core Services",
       category_social: "Social Media & Publishing",
       category_affiliate_global: "Affiliate Networks (Global)",
@@ -238,6 +239,11 @@ export const translations = {
       docs_lazada: "Get Lazada Affiliate API Keys",
       docs_shopee: "Get Shopee Affiliate API Keys",
       docs_tiki: "Get Tiki Affiliate API Keys",
+      requiredEnvVars: "Required ENV Variables",
+      copy: "Copy",
+      copied: "Copied!",
+      copyAll: "Copy All",
+      vercelSetupLink: "Go to Vercel ENV Vars",
     },
 
     // Prompt Templates
@@ -580,6 +586,7 @@ export const translations = {
       hubDescription: "Theo dõi trạng thái của các kết nối API ở backend.",
       vercelSetupTitle: "Cách Cấu Hình Kết Nối",
       vercelSetupDescription: "Để tăng cường bảo mật, khóa API được quản lý dưới dạng Biến Môi Trường (Environment Variables) trong cài đặt dự án Vercel của bạn. Trang này hiển thị trạng thái chỉ đọc của các cấu hình đó.",
+      vercelSetupDescription_V2: "Để kết nối tài khoản, hãy thêm các Biến Môi trường bắt buộc bên dưới vào cài đặt dự án Vercel của bạn. Ứng dụng này đọc trạng thái của chúng một cách an toàn từ backend.",
       category_ai: "AI & Dịch Vụ Cốt Lõi",
       category_social: "Mạng Xã Hội & Xuất Bản",
       category_affiliate_global: "Mạng Affiliate (Quốc Tế)",
@@ -602,6 +609,11 @@ export const translations = {
       docs_lazada: "Lấy khóa Lazada Affiliate API",
       docs_shopee: "Lấy khóa Shopee Affiliate API",
       docs_tiki: "Lấy khóa Tiki Affiliate API",
+      requiredEnvVars: "Biến Môi trường Bắt buộc",
+      copy: "Sao chép",
+      copied: "Đã chép!",
+      copyAll: "Chép tất cả",
+      vercelSetupLink: "Đến Biến Môi trường Vercel",
     },
 
     // Prompt Templates

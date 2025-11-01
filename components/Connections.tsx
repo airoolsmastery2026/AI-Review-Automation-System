@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
+import { Button } from './common/Button';
 import { 
     ExternalLink,
-    Server,
+    HardDriveUpload,
+    Copy,
+    Check,
 } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 import { PlatformLogo } from './PlatformLogo';
@@ -75,22 +78,73 @@ const StatusIndicator: React.FC<{status: ConnectionStatus}> = ({ status }) => {
     return <div className={`${baseClass} ${config.className}`} title={config.title}></div>
 };
 
+const CopyButton: React.FC<{ textToCopy: string }> = ({ textToCopy }) => {
+    const { t } = useI18n();
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(textToCopy);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <button
+            onClick={handleCopy}
+            className="p-1 rounded-md hover:bg-gray-600 text-gray-400 hover:text-gray-100 transition-colors"
+            title={t(copied ? 'connections.copied' : 'connections.copy')}
+        >
+            {copied ? (
+                <Check className="h-3 w-3 text-green-400" />
+            ) : (
+                <Copy className="h-3 w-3" />
+            )}
+        </button>
+    );
+};
+
 const PlatformCard: React.FC<{
-    platform: Platform, 
+    platform: Platform,
     connectionStatus: ConnectionStatus,
 }> = ({ platform, connectionStatus }) => {
     const { t } = useI18n();
+    const isConfigured = connectionStatus === 'Configured';
+    const borderColor = isConfigured ? 'border-green-500/40 hover:border-green-500/70' : 'border-gray-700/50 hover:border-primary-500/70';
+
+    const handleCopyAll = () => {
+        const text = platform.envVars.map(v => `${v}=`).join('\n');
+        navigator.clipboard.writeText(text);
+    };
 
     return (
-        <div className="relative w-full text-center group flex flex-col items-center justify-center p-4 rounded-lg glass-card">
-             <div className="absolute top-2 right-2">
+        <div className={`relative flex flex-col p-4 rounded-lg glass-card h-full border ${borderColor} transition-colors duration-300`}>
+             <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                    {platform.icon}
+                    <span className="font-semibold text-base text-gray-100">{t(platform.nameKey)}</span>
+                </div>
                 <StatusIndicator status={connectionStatus} />
             </div>
-            {platform.icon}
-            <span className="mt-2 font-semibold text-sm text-gray-200">{t(platform.nameKey)}</span>
-            <a href={platform.docsUrl} target="_blank" rel="noopener noreferrer" className="mt-1 text-xs text-gray-500 hover:text-primary-400 transition-colors flex items-center" title={t(platform.docsKey)}>
-               {t('connections.viewDocs')} <ExternalLink className="h-3 w-3 ml-1" />
-            </a>
+            <div className="mt-4 flex-grow">
+                <p className="text-xs text-gray-400 font-semibold mb-2 uppercase tracking-wider">{t('connections.requiredEnvVars')}</p>
+                <div className="space-y-1.5">
+                    {platform.envVars.map(envVar => (
+                        <div key={envVar} className="flex items-center justify-between bg-gray-900/60 rounded-md p-1.5 pl-2">
+                            <code className="text-xs text-yellow-300 truncate">{envVar}</code>
+                            <CopyButton textToCopy={envVar} />
+                        </div>
+                    ))}
+                </div>
+            </div>
+             <div className="mt-4 pt-3 border-t border-gray-700/50 flex items-center justify-between space-x-2">
+                 <Button variant="ghost" size="sm" onClick={handleCopyAll} title={t('connections.copyAll')}>
+                    <Copy className="h-3 w-3 mr-1.5"/>
+                    {t('connections.copyAll')}
+                </Button>
+                <a href={platform.docsUrl} target="_blank" rel="noopener noreferrer" className="text-sm text-primary-400 hover:text-primary-300 transition-colors flex items-center font-semibold" title={t(platform.docsKey)}>
+                   {t('connections.viewDocs')} <ExternalLink className="h-4 w-4 ml-1.5" />
+                </a>
+             </div>
         </div>
     );
 };
@@ -136,14 +190,22 @@ export const Connections: React.FC = () => {
                 <CardHeader>
                     <div className="flex items-center space-x-3">
                         <div className="p-2 rounded-lg bg-primary-500/10">
-                            <Server className="h-6 w-6 text-primary-400" />
+                            <HardDriveUpload className="h-6 w-6 text-primary-400" />
                         </div>
                         <div>
                             <CardTitle>{t('connections.vercelSetupTitle')}</CardTitle>
-                            <CardDescription>{t('connections.vercelSetupDescription')}</CardDescription>
+                            <CardDescription>{t('connections.vercelSetupDescription_V2')}</CardDescription>
                         </div>
                     </div>
                 </CardHeader>
+                 <div className="p-4 border-t border-gray-700">
+                    <a href="https://vercel.com/docs/projects/environment-variables" target="_blank" rel="noopener noreferrer" className="block">
+                        <Button variant="secondary" className="w-full">
+                            <ExternalLink className="h-4 w-4 mr-2"/>
+                            {t('connections.vercelSetupLink')}
+                        </Button>
+                    </a>
+                </div>
             </Card>
 
              <Card>
