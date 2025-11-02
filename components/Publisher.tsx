@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect } from 'react';
 import type { ProductWithContent, RenderJob, VideoModelSelection, AudioVoiceSelection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
@@ -11,13 +9,15 @@ import { useNotifier } from '../contexts/NotificationContext';
 import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
-// Fix: The AIStudio interface was defined in the module scope, causing type conflicts.
-// Moved it into `declare global` to make it a single, mergeable global type, resolving the error.
+// Fix: Defined an `AIStudio` interface and used it in the global declaration for `window.aistudio`.
+// This resolves a TypeScript error where multiple declarations for `window.aistudio` existed with conflicting types.
+// The error message indicated that the expected type was `AIStudio`, so this change ensures consistency.
+interface AIStudio {
+    hasSelectedApiKey: () => Promise<boolean>;
+    openSelectKey: () => Promise<void>;
+}
+
 declare global {
-    interface AIStudio {
-        hasSelectedApiKey: () => Promise<boolean>;
-        openSelectKey: () => Promise<void>;
-    }
     interface Window {
         aistudio: AIStudio;
     }
