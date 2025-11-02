@@ -2,8 +2,8 @@
 export const translations = {
   en: {
     // General
-    appName: "CodeNebula",
-    appSlogan: "Intelligent Automation, Simplified.",
+    appName: "NebulaForge AI",
+    appSlogan: "Forging Content at Cosmic Speed.",
     copyright: "© {year} All rights reserved",
     conversions: "conversions",
     commission: "Commission",
@@ -423,8 +423,8 @@ export const translations = {
   },
   vi: {
     // General
-    appName: "CodeNebula",
-    appSlogan: "Tự Động Hóa Thông Minh, Đơn Giản Hóa.",
+    appName: "NebulaForge AI",
+    appSlogan: "Kiến tạo Nội dung với Tốc độ Vũ trụ.",
     copyright: "© {year} Bản quyền đã được bảo hộ",
     conversions: "lượt chuyển đổi",
     commission: "Hoa hồng",

@@ -1,8 +1,8 @@
 {
-  "name": "ai-review-automation-system",
+  "name": "nebulaforge-ai",
   "version": "1.3.1",
   "private": true,
-  "description": "Fully automated system for scouting, reviewing, and creating video content for AI tools.",
+  "description": "An AI-powered system that forges video content at cosmic speed, from product scouting to final publication.",
   "main": "index.js",
   "scripts": {
     "dev": "vite",

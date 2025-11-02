@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import type { ProductWithContent, RenderJob, VideoModelSelection, AudioVoiceSelection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
@@ -10,8 +8,19 @@ import { useNotifier } from '../contexts/NotificationContext';
 import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
-// Fix: Removed the conflicting global declaration for `window.aistudio`.
-// The type is likely defined in a global typings file, and this declaration was causing a conflict.
+// Fix: Defined an `AIStudio` interface and used it in the global Window declaration.
+// This resolves a TypeScript error about subsequent property declarations having mismatched types,
+// by ensuring a consistent type definition for `window.aistudio`.
+interface AIStudio {
+    openSelectKey: () => Promise<void>;
+    hasSelectedApiKey: () => Promise<boolean>;
+}
+
+declare global {
+    interface Window {
+        aistudio?: AIStudio;
+    }
+}
 
 const ConfirmationModal: React.FC<{
     isOpen: boolean;

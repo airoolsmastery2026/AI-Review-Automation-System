@@ -9,9 +9,20 @@ const Logo = () => {
     const { t } = useI18n();
     return (
         <div className="flex items-center space-x-3">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-labelledby="logo-title">
-               <title id="logo-title">AI System Logo</title>
-               <path d="M7 8l-4 4 4 4M17 8l4 4-4 4M14 4l-4 16" className="text-primary-400" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" aria-labelledby="logo-title">
+                <title id="logo-title">NebulaForge AI Logo</title>
+                <defs>
+                    <radialGradient id="logo-gradient" cx="0.5" cy="0.5" r="0.5">
+                        <stop offset="0%" stopColor="#93c5fd" />
+                        <stop offset="100%" stopColor="#2563eb" />
+                    </radialGradient>
+                </defs>
+                <path d="M12 2C6.477 2 2 6.477 2 12C2 17.523 6.477 22 12 22C17.523 22 22 17.523 22 12C22 6.477 17.523 2 12 2Z" fill="url(#logo-gradient)" fillOpacity="0.2" />
+                <path d="M7 20V4L17 20V4" stroke="url(#logo-gradient)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <circle cx="7" cy="4" r="2" fill="#93c5fd"/>
+                <circle cx="17" cy="4" r="2" fill="#93c5fd"/>
+                <circle cx="7" cy="20" r="2" fill="#2563eb"/>
+                <circle cx="17" cy="20" r="2" fill="#2563eb"/>
             </svg>
             <span className="text-xl font-bold text-gray-100 tracking-wide">{t('appName')}</span>
         </div>

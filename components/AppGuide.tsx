@@ -49,7 +49,7 @@ export const AppGuide: React.FC = () => {
         <>
             <GuideSection title="1. Overview" id="overview">
                 <h3>Introduction</h3>
-                <p>The <strong>AI Review Automation System</strong> is a comprehensive, no-face, fully automated application designed to streamline the entire workflow of a digital content creation business. It leverages the power of Google's Gemini AI to scout for trending digital products, generate complete video scripts and social media assets, produce high-quality videos, and manage publishing pipelines. The primary goal is to create a scalable system for generating passive income through affiliate marketing and ad revenue with minimal human intervention.</p>
+                <p><strong>NebulaForge AI</strong> is a comprehensive, no-face, fully automated application designed to streamline the entire workflow of a digital content creation business. It leverages the power of Google's Gemini AI to scout for trending digital products, generate complete video scripts and social media assets, produce high-quality videos, and manage publishing pipelines. The primary goal is to create a scalable system for generating passive income through affiliate marketing and ad revenue with minimal human intervention.</p>
                 <h3>Target Audience</h3>
                 <ul>
                     <li><strong>Content Creators:</strong> Individuals or teams looking to automate their video production for review channels.</li>
@@ -156,7 +156,7 @@ export const AppGuide: React.FC = () => {
                 <h3>Local Development</h3>
                 <ol>
                     <li>Clone the repository: <br/><code>git clone &lt;repository_url&gt;</code></li>
-                    <li>Navigate to the project directory: <br/><code>cd ai-review-automation-system</code></li>
+                    <li>Navigate to the project directory: <br/><code>cd nebulaforge-ai</code></li>
                     <li>Install dependencies: <br/><code>npm install</code></li>
                     <li>Create a <code>.env.local</code> file in the root directory.</li>
                     <li>Add your Google AI Studio API key to the file: <br/><code>API_KEY="your_gemini_api_key_here"</code></li>
@@ -319,7 +319,7 @@ export const AppGuide: React.FC = () => {
         <>
             <GuideSection title="1. Tổng quan" id="overview">
                 <h3>Giới thiệu</h3>
-                <p><strong>Hệ Thống Tự Động Hóa Đánh Giá AI (AI Review Automation System)</strong> là một ứng dụng tự động hoàn toàn, không cần lộ mặt, được thiết kế để tối ưu hóa toàn bộ quy trình làm việc của một doanh nghiệp sáng tạo nội dung số. Hệ thống tận dụng sức mạnh của Google Gemini AI để tìm kiếm các sản phẩm kỹ thuật số đang thịnh hành, tạo kịch bản video hoàn chỉnh và các tài sản mạng xã hội, sản xuất video chất lượng cao và quản lý quy trình xuất bản. Mục tiêu chính là tạo ra một hệ thống có khả năng mở rộng để tạo thu nhập thụ động thông qua tiếp thị liên kết và doanh thu quảng cáo với sự can thiệp tối thiểu của con người.</p>
+                <p><strong>NebulaForge AI</strong> là một ứng dụng tự động hoàn toàn, không cần lộ mặt, được thiết kế để tối ưu hóa toàn bộ quy trình làm việc của một doanh nghiệp sáng tạo nội dung số. Hệ thống tận dụng sức mạnh của Google Gemini AI để tìm kiếm các sản phẩm kỹ thuật số đang thịnh hành, tạo kịch bản video hoàn chỉnh và các tài sản mạng xã hội, sản xuất video chất lượng cao và quản lý quy trình xuất bản. Mục tiêu chính là tạo ra một hệ thống có khả năng mở rộng để tạo thu nhập thụ động thông qua tiếp thị liên kết và doanh thu quảng cáo với sự can thiệp tối thiểu của con người.</p>
                 <h3>Đối tượng mục tiêu</h3>
                 <ul>
                     <li><strong>Người Sáng tạo Nội dung:</strong> Các cá nhân hoặc đội nhóm muốn tự động hóa việc sản xuất video cho các kênh đánh giá.</li>
@@ -426,7 +426,7 @@ export const AppGuide: React.FC = () => {
                 <h3>Phát triển tại máy local</h3>
                 <ol>
                     <li>Sao chép kho mã nguồn: <br/><code>git clone &lt;repository_url&gt;</code></li>
-                    <li>Điều hướng đến thư mục dự án: <br/><code>cd ai-review-automation-system</code></li>
+                    <li>Điều hướng đến thư mục dự án: <br/><code>cd nebulaforge-ai</code></li>
                     <li>Cài đặt các gói phụ thuộc: <br/><code>npm install</code></li>
                     <li>Tạo một tệp <code>.env.local</code> ở thư mục gốc.</li>
                     <li>Thêm khóa API Google AI Studio của bạn vào tệp: <br/><code>API_KEY="your_gemini_api_key_here"</code></li>
@@ -590,7 +590,7 @@ export const AppGuide: React.FC = () => {
             <Card className="mb-8 text-center">
                 <CardHeader>
                     <CardTitle className="text-3xl">{t('appGuide.title')}</CardTitle>
-                    <CardDescription>{t('appGuide.description')}</CardDescription>
+                    <CardDescription>{t('appGuide.description').replace('AI Video Automation System', t('appName'))}</CardDescription>
                 </CardHeader>
             </Card>
 

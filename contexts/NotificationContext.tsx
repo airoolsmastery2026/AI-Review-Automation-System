@@ -1,6 +1,7 @@
 
+
 import React, { createContext, useState, useCallback, useContext, useMemo } from 'react';
-import type { Notification, NotificationType } from '../types';
+import type { Notification } from '../types';
 
 interface NotificationContextType {
     notifications: Notification[];

@@ -1,11 +1,12 @@
 
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlatformLogo } from './PlatformLogo';
 import { useI18n } from '../hooks/useI18n';
 import { Button } from './common/Button';
-import { ExternalLink, KeyRound, Save, X, Info, Trash, User, FilePenLine, CheckCircle, BookOpen, AlertTriangle } from './LucideIcons';
+import { ExternalLink, KeyRound, Save, X, Trash, User, FilePenLine, BookOpen, AlertTriangle } from './LucideIcons';
 import { logger } from '../services/loggingService';
 import { useNotifier } from '../contexts/NotificationContext';
 import type { AccountConnection } from '../types';
