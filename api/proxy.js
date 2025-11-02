@@ -106,6 +106,29 @@ module.exports = async (req, res) => {
                 const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
                 return res.status(200).json({ audioData });
             }
+            
+            case '/generate-thumbnail': {
+                const { prompt } = body;
+                if (!prompt) {
+                    return res.status(400).json({ error: 'Missing prompt for /generate-thumbnail' });
+                }
+                const response = await ai.models.generateContent({
+                    model: 'gemini-2.5-flash-image',
+                    contents: { parts: [{ text: prompt }] },
+                    config: {
+                        responseModalities: [Modality.IMAGE],
+                    },
+                });
+
+                // Find the image part in the response
+                const imagePart = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+                if (imagePart && imagePart.inlineData) {
+                    const imageData = imagePart.inlineData.data; // This is the base64 string
+                    return res.status(200).json({ imageData });
+                } else {
+                    return res.status(500).json({ error: 'Failed to generate thumbnail image from AI response' });
+                }
+            }
 
             case '/video-status': {
                 const { operationName } = body;

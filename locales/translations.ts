@@ -137,6 +137,13 @@ export const translations = {
       selectApiKeyButton: "Select API Key to Continue",
       apiKeyErrorTitle: "Video Generation Failed",
       apiKeyErrorMessage: "The API key is invalid, has been revoked, or billing is not enabled for its associated project. Please select a valid key to continue.",
+      generateThumbnail: "Generate Thumbnail",
+      generateThumbnailTitle: "AI Thumbnail Generator",
+      generateThumbnailDescription: "Describe the thumbnail you want the AI to create.",
+      promptLabel: "Thumbnail Prompt",
+      promptPlaceholder: "e.g., A futuristic robot holding a glowing orb, cinematic lighting, high detail.",
+      generatingThumbnail: "AI is generating...",
+      acceptThumbnail: "Accept Thumbnail",
     },
 
     // Render Queue
@@ -556,6 +563,13 @@ export const translations = {
       selectApiKeyButton: "Chọn Khóa API để Tiếp Tục",
       apiKeyErrorTitle: "Tạo Video Thất Bại",
       apiKeyErrorMessage: "Khóa API không hợp lệ, đã bị thu hồi hoặc chưa bật thanh toán cho dự án liên quan. Vui lòng chọn một khóa hợp lệ để tiếp tục.",
+      generateThumbnail: "Tạo Hình Thu Nhỏ",
+      generateThumbnailTitle: "Trình tạo Hình thu nhỏ bằng AI",
+      generateThumbnailDescription: "Mô tả hình thu nhỏ bạn muốn AI tạo ra.",
+      promptLabel: "Prompt cho Hình thu nhỏ",
+      promptPlaceholder: "ví dụ: Một robot tương lai cầm quả cầu phát sáng, ánh sáng điện ảnh, chi tiết cao.",
+      generatingThumbnail: "AI đang tạo...",
+      acceptThumbnail: "Chấp nhận Hình thu nhỏ",
     },
 
     // Render Queue

@@ -1,16 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { ProductWithContent, RenderJob, VideoModelSelection, AudioVoiceSelection } from '../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { useI18n } from '../hooks/useI18n';
-import { AlertTriangle, Upload, X, KeyRound, ExternalLink } from './LucideIcons';
+import { AlertTriangle, Upload, X, KeyRound, ExternalLink, Palette } from './LucideIcons';
 import { useNotifier } from '../contexts/NotificationContext';
 import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
-
-// Fix: The AIStudio interface and global window declaration have been moved to `types.ts`
-// to resolve a TypeScript error about subsequent property declarations having mismatched types.
-// This ensures a single, consistent definition across the project.
+import { ThumbnailGeneratorModal } from './ThumbnailGeneratorModal';
 
 const ConfirmationModal: React.FC<{
     isOpen: boolean;
@@ -118,6 +117,8 @@ export const Publisher: React.FC<{
     const [hasApiKey, setHasApiKey] = useState(false);
     const { t } = useI18n();
     const notifier = useNotifier();
+    const [isThumbnailModalOpen, setIsThumbnailModalOpen] = useState(false);
+    const [productForThumbnail, setProductForThumbnail] = useState<ProductWithContent | null>(null);
 
     useEffect(() => {
         const checkApiKey = async () => {
@@ -229,6 +230,19 @@ export const Publisher: React.FC<{
         }
     };
     
+    const handleOpenThumbnailGenerator = (product: ProductWithContent) => {
+        setProductForThumbnail(product);
+        setIsThumbnailModalOpen(true);
+    };
+
+    const handleAcceptThumbnail = (imageData: string) => {
+        if (productForThumbnail) {
+            setSelectedImages(prev => ({ ...prev, [productForThumbnail.id]: imageData }));
+        }
+        setIsThumbnailModalOpen(false);
+        setProductForThumbnail(null);
+    };
+
     return (
         <>
             <Card>
@@ -275,9 +289,9 @@ export const Publisher: React.FC<{
                                 </div>
 
                                 <div className="flex items-center space-x-4 mt-4 sm:mt-0 sm:pl-4">
-                                    <div>
+                                    <div className="flex flex-col items-center space-y-2 w-24">
                                         {selectedImages[product.id] ? (
-                                            <div className="relative group w-20 h-20">
+                                            <div className="relative group w-24 h-24">
                                                 <img src={selectedImages[product.id]!} alt="Start frame preview" className="w-full h-full object-cover rounded-lg shadow-md" />
                                                 <button
                                                     onClick={() => setSelectedImages(prev => ({ ...prev, [product.id]: null }))}
@@ -288,12 +302,16 @@ export const Publisher: React.FC<{
                                                 </button>
                                             </div>
                                         ) : (
-                                            <label className="cursor-pointer w-20 h-20 flex flex-col items-center justify-center bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg hover:bg-gray-700/50 transition-colors">
+                                            <label className="cursor-pointer w-24 h-24 flex flex-col items-center justify-center bg-gray-800/50 border-2 border-dashed border-gray-600 rounded-lg hover:bg-gray-700/50 transition-colors">
                                                 <Upload className="w-6 h-6 text-gray-400" />
                                                 <span className="text-xs text-center text-gray-400 mt-1 px-1">Start Image</span>
                                                 <input type="file" className="hidden" accept="image/png, image/jpeg" onChange={e => handleImageChange(product.id, e)} />
                                             </label>
                                         )}
+                                        <Button size="sm" variant="ghost" className="w-full" onClick={() => handleOpenThumbnailGenerator(product)}>
+                                            <Palette className="w-4 h-4 mr-1" />
+                                            {t('publisher.generateThumbnail')}
+                                        </Button>
                                     </div>
                                     <div className="flex flex-col space-y-2">
                                          <Button 
@@ -331,6 +349,17 @@ export const Publisher: React.FC<{
                 productName={productToPublish?.name || ''}
                 isLoading={isPublishing}
             />
+            
+            <AnimatePresence>
+                {isThumbnailModalOpen && productForThumbnail && (
+                    <ThumbnailGeneratorModal
+                        isOpen={isThumbnailModalOpen}
+                        onClose={() => setIsThumbnailModalOpen(false)}
+                        onAccept={handleAcceptThumbnail}
+                        initialPrompt={`A visually stunning and clickbaity YouTube thumbnail for a video about '${productForThumbnail.name}'. Title: '${productForThumbnail.content.selectedTitle || ''}'. Style: futuristic, neon, high-tech. No text on the image.`}
+                    />
+                )}
+            </AnimatePresence>
         </>
     );
 };

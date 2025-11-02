@@ -350,6 +350,23 @@ export const generateSpeech = async (script: string, voice: string): Promise<str
     }
 };
 
+export const generateThumbnail = async (prompt: string): Promise<string> => {
+    logger.info("Starting thumbnail generation via backend proxy.");
+    try {
+        const response = await callBackend('/generate-thumbnail', { prompt });
+        if (response.imageData) {
+            logger.info("Thumbnail generation successful.");
+            // The backend returns { imageData: 'base64...' }
+            // Prepend the necessary data URL prefix for use in <img> tags
+            return `data:image/png;base64,${response.imageData}`;
+        }
+        throw new Error("imageData not found in backend response.");
+    } catch (error: any) {
+        logger.error("Failed to generate thumbnail via backend.", { error: error.message });
+        throw error;
+    }
+};
+
 export const getVideoOperationStatus = async (operationName: string): Promise<Operation<any>> => {
     logger.info(`Polling video operation status via backend for: ${operationName}`);
      try {
