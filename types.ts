@@ -175,13 +175,12 @@ export interface Notification {
 }
 // Fix: Define the AIStudio interface and augment the global Window type
 // to ensure a single, consistent type definition for `window.aistudio` across the project.
-export interface AIStudio {
-    openSelectKey: () => Promise<void>;
-    hasSelectedApiKey: () => Promise<boolean>;
-}
-
+// The AIStudio interface is now defined anonymously within the Window interface to avoid naming conflicts.
 declare global {
     interface Window {
-        aistudio?: AIStudio;
+        aistudio?: {
+            openSelectKey: () => Promise<void>;
+            hasSelectedApiKey: () => Promise<boolean>;
+        };
     }
 }
