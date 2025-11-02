@@ -8,19 +8,9 @@ import { useNotifier } from '../contexts/NotificationContext';
 import { generateVideo, generateSpeech } from '../services/geminiService';
 import { logger } from '../services/loggingService';
 
-// Fix: Defined an `AIStudio` interface and used it in the global Window declaration.
-// This resolves a TypeScript error about subsequent property declarations having mismatched types,
-// by ensuring a consistent type definition for `window.aistudio`.
-interface AIStudio {
-    openSelectKey: () => Promise<void>;
-    hasSelectedApiKey: () => Promise<boolean>;
-}
-
-declare global {
-    interface Window {
-        aistudio?: AIStudio;
-    }
-}
+// Fix: The AIStudio interface and global window declaration have been moved to `types.ts`
+// to resolve a TypeScript error about subsequent property declarations having mismatched types.
+// This ensures a single, consistent definition across the project.
 
 const ConfirmationModal: React.FC<{
     isOpen: boolean;

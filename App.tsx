@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sidebar } from './components/Sidebar';
@@ -25,12 +23,18 @@ import type { Product, GeneratedContent, RenderJob, ScoutedProduct, AutomationSe
 import { Page } from './types';
 import { scoutForProducts } from './services/geminiService';
 import { logger } from './services/loggingService';
+import { pageToSlug, slugToPage } from './utils/navigation';
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
 const TWO_HOURS = 2 * 60 * 60 * 1000;
 
 const App: React.FC = () => {
-    const [currentPage, setCurrentPage] = useState<Page>(Page.DASHBOARD);
+    const getPageFromHash = useCallback((): Page => {
+        const hash = window.location.hash.substring(2); // Remove '#/'
+        return slugToPage(hash) || Page.DASHBOARD;
+    }, []);
+
+    const [currentPage, setCurrentPage] = useState<Page>(getPageFromHash());
     const [products, setProducts] = useState<Product[]>([]);
     const [generatedContent, setGeneratedContent] = useState<Record<string, GeneratedContent>>({});
     const [financials, setFinancials] = useState<Record<string, ProductFinancials>>({});
@@ -53,6 +57,16 @@ const App: React.FC = () => {
     const lastScoutRun = useRef<number>(0);
 
     useEffect(() => {
+        const handleHashChange = () => {
+            setCurrentPage(getPageFromHash());
+        };
+        window.addEventListener('hashchange', handleHashChange);
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange);
+        };
+    }, [getPageFromHash]);
+
+    useEffect(() => {
         const handleMouseMove = (event: MouseEvent) => {
             setMousePosition({
                 x: (event.clientX / window.innerWidth) * 2 - 1,
@@ -63,6 +77,16 @@ const App: React.FC = () => {
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
         };
+    }, []);
+    
+    const navigateTo = useCallback((page: Page) => {
+        const currentHash = window.location.hash.substring(2);
+        const newSlug = pageToSlug(page);
+        if (currentHash !== newSlug) {
+            window.location.hash = `/${newSlug}`;
+        } else {
+            setCurrentPage(page);
+        }
     }, []);
 
     const addProduct = useCallback((newProduct: Product) => {
@@ -78,9 +102,9 @@ const App: React.FC = () => {
     const handleApproveAndGenerate = useCallback((product: Product) => {
         addProduct(product);
         setProductToAutoGenerate(product.id);
-        setCurrentPage(Page.CONTENT_GENERATOR);
+        navigateTo(Page.CONTENT_GENERATOR);
         logger.info(`Product "${product.name}" approved for content generation.`);
-    }, [addProduct]);
+    }, [addProduct, navigateTo]);
 
     // Central Automation Engine
     useEffect(() => {
@@ -163,9 +187,9 @@ const App: React.FC = () => {
     
     const addRenderJob = useCallback((newJob: Omit<RenderJob, 'id'>) => {
         setRenderJobs(prev => [{ ...newJob, id: Date.now() }, ...prev]);
-        setCurrentPage(Page.RENDER_QUEUE);
+        navigateTo(Page.RENDER_QUEUE);
         logger.info(`New video render job queued for "${newJob.productName}".`);
-    }, []);
+    }, [navigateTo]);
 
     const handlePublishProduct = useCallback(async (productId: string) => {
         const product = products.find(p => p.id === productId);
@@ -265,7 +289,7 @@ const App: React.FC = () => {
         <div className="flex h-screen bg-transparent text-gray-100">
             <ToastContainer />
             <Starfield mouseX={mousePosition.x} mouseY={mousePosition.y} />
-            <Sidebar currentPage={currentPage} setCurrentPage={setCurrentPage} isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
+            <Sidebar currentPage={currentPage} isOpen={isSidebarOpen} setOpen={setSidebarOpen} />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header toggleSidebar={() => setSidebarOpen(!isSidebarOpen)} />
                 <main className="flex-1 overflow-x-hidden overflow-y-auto bg-transparent p-4 sm:p-6 lg:p-8">

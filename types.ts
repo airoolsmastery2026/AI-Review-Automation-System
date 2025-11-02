@@ -1,4 +1,3 @@
-
 export enum Page {
     DASHBOARD = 'Dashboard',
     AUTOMATION = 'Automation',
@@ -173,4 +172,16 @@ export interface Notification {
     type: NotificationType;
     message: string;
     duration?: number;
+}
+// Fix: Define the AIStudio interface and augment the global Window type
+// to ensure a single, consistent type definition for `window.aistudio` across the project.
+export interface AIStudio {
+    openSelectKey: () => Promise<void>;
+    hasSelectedApiKey: () => Promise<boolean>;
+}
+
+declare global {
+    interface Window {
+        aistudio?: AIStudio;
+    }
 }

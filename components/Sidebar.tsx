@@ -4,6 +4,7 @@ import { Page } from '../types';
 import { AnalyticsIcon, DashboardIcon, EditIcon, PublishIcon, SearchIcon, CloseIcon, SparklesIcon, ConnectIcon, TemplateIcon } from './Icons';
 import { Video, BookOpen, ShieldCheck, GitBranch, CreditCard } from './LucideIcons';
 import { useI18n } from '../hooks/useI18n';
+import { pageToSlug } from '../utils/navigation';
 
 const Logo = () => {
     const { t } = useI18n();
@@ -56,11 +57,8 @@ const NavLink: React.FC<{
     const isActive = currentPage === page;
     return (
         <a
-            href="#"
-            onClick={(e) => {
-                e.preventDefault();
-                onClick();
-            }}
+            href={`#/${pageToSlug(page)}`}
+            onClick={onClick}
             className={`relative flex items-center px-4 py-2.5 text-sm font-medium rounded-md transition-colors group
             ${isActive
                     ? 'bg-primary-500 text-white'
@@ -74,7 +72,7 @@ const NavLink: React.FC<{
     );
 }
 
-const SidebarContent: React.FC<{ currentPage: Page, onNavigate: (page: Page) => void }> = ({ currentPage, onNavigate }) => {
+const SidebarContent: React.FC<{ currentPage: Page, onLinkClick: () => void }> = ({ currentPage, onLinkClick }) => {
     return (
         <div className="flex flex-col h-full">
             <div className="flex items-center justify-center px-4 h-16 border-b border-gray-200/10">
@@ -87,7 +85,7 @@ const SidebarContent: React.FC<{ currentPage: Page, onNavigate: (page: Page) => 
                         page={item.name}
                         icon={item.icon}
                         currentPage={currentPage}
-                        onClick={() => onNavigate(item.name)}
+                        onClick={onLinkClick}
                     />
                 ))}
             </nav>
@@ -97,12 +95,10 @@ const SidebarContent: React.FC<{ currentPage: Page, onNavigate: (page: Page) => 
 
 export const Sidebar: React.FC<{
     currentPage: Page;
-    setCurrentPage: (page: Page) => void;
     isOpen: boolean;
     setOpen: (isOpen: boolean) => void;
-}> = ({ currentPage, setCurrentPage, isOpen, setOpen }) => {
-    const handleNavigate = (page: Page) => {
-        setCurrentPage(page);
+}> = ({ currentPage, isOpen, setOpen }) => {
+    const handleLinkClick = () => {
         setOpen(false); // Close sidebar on mobile after navigation
     };
     
@@ -122,14 +118,14 @@ export const Sidebar: React.FC<{
                             <CloseIcon className="h-6 w-6 text-white" aria-hidden="true" />
                         </button>
                     </div>
-                    <SidebarContent currentPage={currentPage} onNavigate={handleNavigate} />
+                    <SidebarContent currentPage={currentPage} onLinkClick={handleLinkClick} />
                 </div>
             </div>
 
             {/* Static sidebar for desktop */}
             <div className="hidden md:flex md:w-64 md:flex-col md:inset-y-0">
                 <div className="flex flex-col flex-grow bg-gray-900/40 backdrop-blur-lg border-r border-gray-200/10">
-                    <SidebarContent currentPage={currentPage} onNavigate={handleNavigate} />
+                    <SidebarContent currentPage={currentPage} onLinkClick={() => {}} />
                 </div>
             </div>
         </>
