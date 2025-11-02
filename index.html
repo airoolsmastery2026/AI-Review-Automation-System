@@ -21,6 +21,33 @@
             -webkit-backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
+        .inner-shadow-box {
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.5), inset 0 -1px 2px rgba(255,255,255,0.1);
+        }
+        .text-3d {
+            text-shadow: 
+                0px 1px 0px rgba(255, 255, 255, 0.15),
+                0px 2px 0px rgba(0, 0, 0, 0.4),
+                0px 3px 0px rgba(0, 0, 0, 0.3),
+                0px 4px 0px rgba(0, 0, 0, 0.2),
+                2px 6px 8px rgba(0, 0, 0, 0.5);
+            color: transparent;
+            -webkit-background-clip: text;
+            background-clip: text;
+        }
+        .text-3d-cyan {
+            background-image: linear-gradient(145deg, #67e8f9, #0891b2);
+        }
+        .text-3d-pink {
+            background-image: linear-gradient(145deg, #f9a8d4, #ec4899);
+        }
+        .text-3d-green {
+            background-image: linear-gradient(145deg, #86efac, #22c55e);
+        }
+        .text-3d-yellow {
+            background-image: linear-gradient(145deg, #fde047, #eab308);
+        }
+
     </style>
     <script>
       tailwind.config = {
