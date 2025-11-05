@@ -20,94 +20,97 @@ export const Starfield: React.FC<StarfieldProps> = ({ mouseX, mouseY }) => {
     useEffect(() => {
         if (!mountRef.current) return;
         const currentMount = mountRef.current;
+        let cleanup = () => {}; // Start with a no-op cleanup function
 
-        // Scene, camera, renderer setup
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
-        camera.position.z = 1000;
-
-        let renderer: THREE.WebGLRenderer;
         try {
-            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
-        } catch (e) {
-            console.error("THREE.js: Could not initialize WebGLRenderer. The starfield background will be disabled.", e);
-            // Gracefully fail by not rendering the starfield if WebGL context is not available.
-            return;
-        }
-        
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        currentMount.appendChild(renderer.domElement);
+            // Scene, camera, renderer setup
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+            camera.position.z = 1000;
 
-        // Create star particles
-        const starCount = 10000;
-        const positions = new Float32Array(starCount * 3);
-
-        for (let i = 0; i < starCount; i++) {
-            positions[i * 3 + 0] = (Math.random() - 0.5) * 2000;
-            positions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
-            positions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
-        }
-
-        const starGeometry = new THREE.BufferGeometry();
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-
-        const starMaterial = new THREE.PointsMaterial({
-            color: 0x88ddff,
-            size: 1.5,
-            sizeAttenuation: true,
-            transparent: true,
-            opacity: 0.9,
-            blending: THREE.AdditiveBlending,
-        });
-
-        const stars = new THREE.Points(starGeometry, starMaterial);
-        scene.add(stars);
-
-        // Animation loop
-        let animationFrameId: number;
-        const animate = () => {
-            animationFrameId = requestAnimationFrame(animate);
-
-            // Animate stars to create "warp drive" effect
-            const posArray = stars.geometry.attributes.position.array as Float32Array;
-            for (let i = 0; i < starCount; i++) {
-                posArray[i * 3 + 2] += 2; // Move along Z axis
-                if (posArray[i * 3 + 2] > 1000) {
-                    posArray[i * 3 + 2] = -1000; // Reset when past the camera
-                }
-            }
-            stars.geometry.attributes.position.needsUpdate = true;
+            const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
             
-            // Apply parallax effect by rotating camera
-            const { x, y } = mousePosRef.current;
-            camera.rotation.y = x * 0.1;
-            camera.rotation.x = -y * 0.1;
-
-            renderer.render(scene, camera);
-        };
-        animate();
-
-        // Handle window resizing
-        const handleResize = () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        };
-        window.addEventListener('resize', handleResize);
+            currentMount.appendChild(renderer.domElement);
 
-        // Cleanup function
-        return () => {
-            cancelAnimationFrame(animationFrameId);
-            window.removeEventListener('resize', handleResize);
-            if (currentMount && renderer.domElement) {
-                 currentMount.removeChild(renderer.domElement);
+            // Create star particles
+            const starCount = 10000;
+            const positions = new Float32Array(starCount * 3);
+
+            for (let i = 0; i < starCount; i++) {
+                positions[i * 3 + 0] = (Math.random() - 0.5) * 2000;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 2000;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 2000;
             }
-            renderer.dispose();
-            starGeometry.dispose();
-            starMaterial.dispose();
-        };
+
+            const starGeometry = new THREE.BufferGeometry();
+            starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+            const starMaterial = new THREE.PointsMaterial({
+                color: 0x88ddff,
+                size: 1.5,
+                sizeAttenuation: true,
+                transparent: true,
+                opacity: 0.9,
+                blending: THREE.AdditiveBlending,
+            });
+
+            const stars = new THREE.Points(starGeometry, starMaterial);
+            scene.add(stars);
+
+            // Animation loop
+            let animationFrameId: number;
+            const animate = () => {
+                animationFrameId = requestAnimationFrame(animate);
+
+                // Animate stars to create "warp drive" effect
+                const posArray = stars.geometry.attributes.position.array as Float32Array;
+                for (let i = 0; i < starCount; i++) {
+                    posArray[i * 3 + 2] += 2; // Move along Z axis
+                    if (posArray[i * 3 + 2] > 1000) {
+                        posArray[i * 3 + 2] = -1000; // Reset when past the camera
+                    }
+                }
+                stars.geometry.attributes.position.needsUpdate = true;
+                
+                // Apply parallax effect by rotating camera
+                const { x, y } = mousePosRef.current;
+                camera.rotation.y = x * 0.1;
+                camera.rotation.x = -y * 0.1;
+
+                renderer.render(scene, camera);
+            };
+            animate();
+
+            // Handle window resizing
+            const handleResize = () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            };
+            window.addEventListener('resize', handleResize);
+
+            // If initialization was successful, assign the real cleanup function
+            cleanup = () => {
+                cancelAnimationFrame(animationFrameId);
+                window.removeEventListener('resize', handleResize);
+                if (currentMount && renderer.domElement) {
+                    if(currentMount.contains(renderer.domElement)) {
+                        currentMount.removeChild(renderer.domElement);
+                    }
+                }
+                renderer.dispose();
+                starGeometry.dispose();
+                starMaterial.dispose();
+            };
+        } catch (e) {
+            console.error("THREE.js: Could not initialize WebGLRenderer. The starfield background will be disabled.", e);
+            // If initialization fails, the cleanup function remains a no-op, preventing crashes.
+        }
+
+        return cleanup;
     }, []);
 
     return <div ref={mountRef} style={{ position: 'fixed', top: 0, left: 0, zIndex: -2, width: '100vw', height: '100vh' }} />;
