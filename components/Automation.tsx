@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Server, Bot, CheckCircle } from "./LucideIcons";
 import type { AutomationSettings } from '../types';
@@ -64,6 +65,25 @@ export const Automation: React.FC<AutomationProps> = ({ settings, onSettingsChan
         { labelKey: 'automationControl.freq_12h', value: 720 },
         { labelKey: 'automationControl.freq_24h', value: 1440 },
     ];
+    
+    const [isCustomFrequency, setIsCustomFrequency] = useState(false);
+
+    useEffect(() => {
+        const isPredefined = frequencyOptions.some(opt => opt.value === settings.scoutAgent.frequencyMinutes);
+        setIsCustomFrequency(!isPredefined);
+    }, [settings.scoutAgent.frequencyMinutes]);
+
+
+    const handleFrequencySelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value;
+        if (value === 'custom') {
+            setIsCustomFrequency(true);
+        } else {
+            setIsCustomFrequency(false);
+            handleSettingChange('scoutAgent', 'frequencyMinutes', parseInt(value));
+        }
+    };
+
 
     return (
         <div className="space-y-8">
@@ -120,15 +140,40 @@ export const Automation: React.FC<AutomationProps> = ({ settings, onSettingsChan
                             </label>
                             <select 
                                 id="scout-frequency"
-                                value={settings.scoutAgent.frequencyMinutes}
-                                onChange={(e) => handleSettingChange('scoutAgent', 'frequencyMinutes', parseInt(e.target.value))}
+                                value={isCustomFrequency ? 'custom' : settings.scoutAgent.frequencyMinutes}
+                                onChange={handleFrequencySelectChange}
                                 className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
                             >
                                 {frequencyOptions.map(opt => (
                                     <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
                                 ))}
+                                <option value="custom">{t('automationControl.freq_custom')}</option>
                             </select>
                         </div>
+
+                        {isCustomFrequency && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                exit={{ opacity: 0, height: 0 }}
+                                className="overflow-hidden"
+                            >
+                                <div>
+                                    <label htmlFor="custom-frequency" className="block text-sm font-medium text-gray-300 mb-2">
+                                        {t('automationControl.customMinutes')}
+                                    </label>
+                                    <input
+                                        id="custom-frequency"
+                                        type="number"
+                                        min="1"
+                                        step="1"
+                                        value={settings.scoutAgent.frequencyMinutes}
+                                        onChange={(e) => handleSettingChange('scoutAgent', 'frequencyMinutes', parseInt(e.target.value) || 1)}
+                                        className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
 
                          <div>
                             <label htmlFor="scout-topic" className="block text-sm font-medium text-gray-300 mb-2">

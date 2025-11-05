@@ -26,7 +26,15 @@ export const Starfield: React.FC<StarfieldProps> = ({ mouseX, mouseY }) => {
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
         camera.position.z = 1000;
 
-        const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+        let renderer: THREE.WebGLRenderer;
+        try {
+            renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true });
+        } catch (e) {
+            console.error("THREE.js: Could not initialize WebGLRenderer. The starfield background will be disabled.", e);
+            // Gracefully fail by not rendering the starfield if WebGL context is not available.
+            return;
+        }
+        
         renderer.setSize(window.innerWidth, window.innerHeight);
         renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         currentMount.appendChild(renderer.domElement);
@@ -93,7 +101,7 @@ export const Starfield: React.FC<StarfieldProps> = ({ mouseX, mouseY }) => {
         return () => {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', handleResize);
-            if (currentMount) {
+            if (currentMount && renderer.domElement) {
                  currentMount.removeChild(renderer.domElement);
             }
             renderer.dispose();

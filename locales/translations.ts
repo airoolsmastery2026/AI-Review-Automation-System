@@ -1,4 +1,3 @@
-
 export const translations = {
   en: {
     // General
@@ -217,6 +216,8 @@ export const translations = {
         freq_4h: "Every 4 hours",
         freq_12h: "Every 12 hours",
         freq_24h: "Every 24 hours",
+        freq_custom: "Custom...",
+        customMinutes: "Custom Frequency (minutes)",
         defaultTopic: "Default Topic",
         autoApprovalTitle: "Auto-Approval Rules",
         autoApprovalDescription: "Set rules for automatically sending products to production.",
@@ -643,6 +644,8 @@ export const translations = {
         freq_4h: "Mỗi 4 giờ",
         freq_12h: "Mỗi 12 giờ",
         freq_24h: "Mỗi 24 giờ",
+        freq_custom: "Tùy chỉnh...",
+        customMinutes: "Tần suất tùy chỉnh (phút)",
         defaultTopic: "Chủ Đề Mặc Định",
         autoApprovalTitle: "Quy Tắc Tự Động Phê Duyệt",
         autoApprovalDescription: "Đặt quy tắc để tự động gửi sản phẩm vào sản xuất.",
