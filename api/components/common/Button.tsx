@@ -3,7 +3,6 @@
 import React from 'react';
 import { Spinner } from './Spinner';
 
-// Fix: Add a `size` prop to allow for different button sizes, resolving errors in Automation and RenderQueue components.
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     children: React.ReactNode;
     variant?: 'primary' | 'secondary' | 'ghost';

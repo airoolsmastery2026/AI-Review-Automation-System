@@ -1,10 +1,11 @@
 
 
+
 import React from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
-import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
+import { Card, CardHeader, CardTitle, CardDescription } from './components/common/Card';
 import type { PlatformPerformance, ProductWithContent } from '../types';
-import { Youtube, Instagram, TrendingUp } from './LucideIcons';
+import { Youtube, Instagram, TrendingUp } from './components/LucideIcons';
 import { useI18n } from '../hooks/useI18n';
 
 interface AnalyticsProps {
@@ -70,7 +71,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         }, {} as Record<string, PlatformPerformance>)
     );
 
-    // Fix: Corrected the `reduce` call by removing the problematic generic and adding a type assertion to the initial value.
     const monthlyViewsData = publishedProducts.reduce((acc, p) => {
         if (p.financials && p.performance) {
             const date = new Date(p.financials.publishedAt);
@@ -86,7 +86,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({ productsWithContent }) => 
         return acc;
     }, {} as Record<string, { name: string; views: number; date: Date }>);
     
-    // Fix: Added a type assertion to `Object.values` to resolve the 'unknown' type error in the `sort` callback.
     const sortedViewsData = (Object.values(monthlyViewsData) as { name: string; views: number; date: Date }[]).sort((a,b) => a.date.getTime() - b.date.getTime());
 
     return (

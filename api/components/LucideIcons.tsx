@@ -133,11 +133,16 @@ export const CircleDot = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export const Palette = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.667 0-.424-.108-.83-.31-1.187a10.43 10.43 0 0 1-1.424-2.583 4.5 4.5 0 0 0-1.176-1.55c-.522-.41-1.1-.734-1.734-1.002a2 2 0 0 1-1.414-1.414c-.268-.634-.592-1.212-1.002-1.734a4.5 4.5 0 0 0-1.55-1.176 10.43 10.43 0 0 1-2.583-1.424C6.33 6.108 5.924 6 5.5 6 4.576 6 4 5.424 4 4.5 4 3.576 4.576 3 5.5 3c1.455 0 2.863.31 4.093.882a15.14 15.14 0 0 1 5.524 4.093 15.14 15.14 0 0 1 4.093 5.524C19.69 14.137 20 15.545 20 17c0 .924-.576 1.5-1.5 1.5-.424 0-.83-.108-1.187-.31a10.43 10.43 0 0 1-2.583-1.424 4.5 4.5 0 0 0-1.55-1.176c-.41-.522-.734-1.1-1.002-1.734a2 2 0 0 1-1.414-1.414c-.634-.268-1.212-.592-1.734-1.002a4.5 4.5 0 0 0-1.176-1.55 10.43 10.43 0 0 1-1.424-2.583C8.608 8.83 8.5 8.424 8.5 8 8.5 7.076 9.076 6.5 10 6.5c1.455 0 2.863.31 4.093.882a15.14 15.14 0 0 1 5.524 4.093A15.14 15.14 0 0 1 20.5 16.5C20.5 17.424 21.076 18 22 18c.924 0 1.5-.576 1.5-1.5 0-1.455-.31-2.863-.882-4.093A15.14 15.14 0 0 0 16.5 5.5 15.14 15.14 0 0 0 10 .882C8.863.31 7.455 0 6 0 4.576 0 4 .576 4 1.5S4.576 3 6 3c.424 0 .83.108 1.187.31a10.43 10.43 0 0 0 2.583 1.424 4.5 4.5 0 0 1 1.55 1.176c.522.41 1.1.734 1.734 1.002a2 2 0 0 0 1.414 1.414c.268.634.592 1.212 1.002 1.734a4.5 4.5 0 0 1 1.176 1.55c.31.725.54 1.5.683 2.25H18c.424 0 .83.108 1.187.31.725.31 1.5.54 2.25.683V18c0 .424.108.83.31 1.187.31.725.54 1.5.683 2.25h.001a1.667 1.667 0 0 0 1.648 1.648z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.667 0-.424-.108-.83-.31-1.187a10.43 10.43 0 0 1-1.424-2.583 4.5 4.5 0 0 0-1.176-1.55c-.522-.41-1.1-.734-1.734-1.002a2 2 0 0 1-1.414-1.414c-.268-.634-.592-1.212-1.002-1.734a4.5 4.5 0 0 0-1.55-1.176 10.43 10.43 0 0 1-2.583-1.424C6.33 6.108 5.924 6 5.5 6 4.576 6 4 5.424 4 4.5 4 3.576 4.576 3 5.5 3c1.455 0 2.863.31 4.093.882a15.14 15.14 0 0 1 5.524 4.093 15.14 15.14 0 0 1 4.093 5.524C19.69 14.137 20 15.545 20 17c0 .924-.576 1.5-1.5 1.5-.424 0-.83-.108-1.187-.31a10.43 10.43 0 0 1-2.583-1.424 4.5 4.5 0 0 0-1.55-1.176c-.41-.522-.734-1.1-1.002-1.734a2 2 0 0 1-1.414-1.414c-.634-.268-1.212-.592-1.734-1.002a4.5 4.5 0 0 0-1.176-1.55 10.43 10.43 0 0 1-1.424-2.583C8.608 8.83 8.5 8.424 8.5 8 8.5 7.076 9.076 6.5 10 6.5c1.455 0 2.863.31 4.093.882a15.14 15.14 0 0 1 5.524 4.093A15.14 15.14 0 0 1 20.5 16.5C20.5 17.424 21.076 18 22 18c.924 0 1.5-.576 1.5-1.5 0-1.455-.31-2.863-.882-4.093A15.14 15.14 0 0 0 16.5 5.5 15.14 15.14 0 0 0 10 .882C8.863.31 7.455 0 6 0 4.576 0 4 .576 4 1.5S4.576 3 6 3c.424 0 .83.108 1.187.31a10.43 10.43 0 0 0 2.583 1.424 4.5 4.5 0 0 1 1.55 1.176c.522.41 1.1.734 1.734 1.002a2 2 0 0 0 1.414 1.414c.268.634.592 1.212 1.002 1.734a4.5 4.5 0 0 1 1.176 1.55c.31.725.54 1.5.683 2.25H18c.424 0 .83.108 1.187.31.725.31 1.5.54 2.25.683V18c0 .424.108.83.31 1.187.31.725.54 1.5.683 2.25h.001a1.667 1.667 0 0 0 1.648 1.648z"/></svg>
 );
 
 export const Film = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
+);
+
+// Fix: Add missing Image icon
+export const Image = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
 );
 
 export const Mic2 = (props: React.SVGProps<SVGSVGElement>) => (
@@ -165,7 +170,7 @@ export const SkipForward = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export const Bot = (props: React.SVGProps<SVGSVGElement>) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="7" y="12" width="10" height="10" rx="2" ry="2"/><path d="M12 12V2.5a1.5 1.5 0 0 0-3 0V12"/><path d="M12 2a1.5 1.5 0 0 1 3 0V12"/><path d="M12 12h8.5a1.5 1.5 0 0 1 0 3H12"/><path d="M12 15a1.5 1.5 0 0 0 0-3H3.5a1.5 1.5 0 0 0 0 3H12z"/></svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 8V4H8"/><rect x="4" y="12" width="16" height="8" rx="2"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M12 12v.01"/></svg>
 );
 
 export const TrendingUp = (props: React.SVGProps<SVGSVGElement>) => (
@@ -181,7 +186,7 @@ export const Code = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export const KeyRound = (props: React.SVGProps<SVGSVGElement>) => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/><circle cx="16.5" cy="7.5" r=".5"/></svg>
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M2 18v3c0 .6.4 1 1 1h4v-3h3v-3h2l1.4-1.4a6.5 6.5 0 1 0-4-4Z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></svg>
 );
 
 export const RefreshCw = (props: React.SVGProps<SVGSVGElement>) => (
@@ -266,6 +271,15 @@ export const ArrowLeft = (props: React.SVGProps<SVGSVGElement>) => (
 
 export const FilePenLine = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+);
+
+// Fix: Add missing Percent icon
+export const Percent = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <line x1="19" y1="5" x2="5" y2="19"/>
+        <circle cx="6.5" cy="6.5" r="2.5"/>
+        <circle cx="17.5" cy="17.5" r="2.5"/>
+    </svg>
 );
 
 // Alias for Telegram

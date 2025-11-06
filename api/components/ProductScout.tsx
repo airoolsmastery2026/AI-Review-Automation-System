@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
-import type { Product, ScoutedProduct, Trend } from '../types';
+import type { Product, ScoutedProduct, Trend, TextModelSelection } from '../../types';
 import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Search, Clock, X, SkipForward, Bot, TrendingUp, DollarSign } from './LucideIcons';
-import { useI18n } from '../hooks/useI18n';
-import { scoutForProducts, huntForTrends } from '../services/geminiService';
+import { useI18n } from '../../hooks/useI18n';
+import { scoutForProducts, huntForTrends } from '../../services/geminiService';
 import { Spinner } from './common/Spinner';
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
@@ -110,16 +111,47 @@ interface ProductScoutProps {
     setPendingProducts: React.Dispatch<React.SetStateAction<ScoutedProduct[]>>;
 }
 
+const ModelSelector: React.FC<{
+    selectedModel: TextModelSelection;
+    onModelChange: (model: TextModelSelection) => void;
+}> = ({ selectedModel, onModelChange }) => {
+    const { t } = useI18n();
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+                {t('modelSelector.title')}
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1 bg-gray-800/50 border border-gray-600 rounded-lg">
+                <button
+                    onClick={() => onModelChange('gemini-2.5-flash')}
+                    className={`px-3 py-2 text-sm rounded-md transition-colors text-left ${selectedModel === 'gemini-2.5-flash' ? 'bg-primary-600 text-white shadow-md' : 'hover:bg-gray-700'}`}
+                >
+                    <p className="font-semibold">{t('modelSelector.fast_label')}</p>
+                    <p className="text-xs text-primary-200/80 hidden sm:block">{t('modelSelector.fast_description')}</p>
+                </button>
+                <button
+                    onClick={() => onModelChange('gemini-2.5-pro')}
+                    className={`px-3 py-2 text-sm rounded-md transition-colors text-left ${selectedModel === 'gemini-2.5-pro' ? 'bg-primary-600 text-white shadow-md' : 'hover:bg-gray-700'}`}
+                >
+                    <p className="font-semibold">{t('modelSelector.quality_label')}</p>
+                    <p className="text-xs text-primary-200/80 hidden sm:block">{t('modelSelector.quality_description')}</p>
+                </button>
+            </div>
+        </div>
+    );
+};
+
 export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate, pendingProducts, setPendingProducts }) => {
     const [isLoading, setIsLoading] = useState(false);
     const [isHunting, setIsHunting] = useState(false);
     const [trends, setTrends] = useState<Trend[]>([]);
     const [topic, setTopic] = useState('');
+    const [textModel, setTextModel] = useState<TextModelSelection>('gemini-2.5-flash');
     const { t } = useI18n();
 
     const handleHuntTrends = async () => {
         setIsHunting(true);
-        const fetchedTrends = await huntForTrends();
+        const fetchedTrends = await huntForTrends(textModel);
         setTrends(fetchedTrends);
         setIsHunting(false);
     };
@@ -127,7 +159,7 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
     const handleScout = async () => {
         if (!topic.trim()) return;
         setIsLoading(true);
-        const products = await scoutForProducts(topic);
+        const products = await scoutForProducts(topic, textModel);
         setPendingProducts(prev => [...prev, ...products]);
         setIsLoading(false);
     };
@@ -165,6 +197,7 @@ export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate
                             className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500"
                         />
                     </div>
+                    <ModelSelector selectedModel={textModel} onModelChange={setTextModel} />
                     <div className="flex justify-center">
                         <Button
                             onClick={handleScout}

@@ -1,18 +1,19 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
-import type { Product, GeneratedContent } from '../types';
-import { GenerationType } from '../types';
+import type { Product, GeneratedContent, TextModelSelection } from '../../types';
+import { GenerationType } from '../../types';
 import {
     generateReviewScript,
     generateVideoTitles,
     generateSeoDescription,
     generateCaptionsAndHashtags,
     translateText
-} from '../services/geminiService';
+} from '../../services/geminiService';
 import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Spinner } from './common/Spinner';
-import { useI18n } from '../hooks/useI18n';
-import { Languages, ChevronDown, Edit, Save, X } from './LucideIcons';
+import { useI18n } from '../../hooks/useI18n';
+import { Languages, ChevronDown, Edit, Save, X, ExternalLink } from './LucideIcons';
 
 interface ContentGeneratorProps {
     products: Product[];
@@ -106,6 +107,36 @@ const GenerationSection: React.FC<{
     );
 };
 
+const ModelSelector: React.FC<{
+    selectedModel: TextModelSelection;
+    onModelChange: (model: TextModelSelection) => void;
+}> = ({ selectedModel, onModelChange }) => {
+    const { t } = useI18n();
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+                {t('modelSelector.title')}
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-1 bg-gray-800/50 border border-gray-600 rounded-lg">
+                <button
+                    onClick={() => onModelChange('gemini-2.5-flash')}
+                    className={`px-3 py-2 text-sm rounded-md transition-colors text-left ${selectedModel === 'gemini-2.5-flash' ? 'bg-primary-600 text-white shadow-md' : 'hover:bg-gray-700'}`}
+                >
+                    <p className="font-semibold">{t('modelSelector.fast_label')}</p>
+                    <p className="text-xs text-primary-200/80 hidden sm:block">{t('modelSelector.fast_description')}</p>
+                </button>
+                <button
+                    onClick={() => onModelChange('gemini-2.5-pro')}
+                    className={`px-3 py-2 text-sm rounded-md transition-colors text-left ${selectedModel === 'gemini-2.5-pro' ? 'bg-primary-600 text-white shadow-md' : 'hover:bg-gray-700'}`}
+                >
+                    <p className="font-semibold">{t('modelSelector.quality_label')}</p>
+                    <p className="text-xs text-primary-200/80 hidden sm:block">{t('modelSelector.quality_description')}</p>
+                </button>
+            </div>
+        </div>
+    );
+};
+
 export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, generatedContent, onContentUpdate, productToAutoGenerate, onGenerationComplete }) => {
     const [selectedProductId, setSelectedProductId] = useState<string | null>(products.length > 0 ? products[0].id : null);
     const [loadingStates, setLoadingStates] = useState<Record<GenerationType, boolean>>({
@@ -120,6 +151,8 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
     const [translatedScript, setTranslatedScript] = useState<string | null>(null);
     const [isTranslating, setIsTranslating] = useState(false);
     const [showTranslation, setShowTranslation] = useState(false);
+    const [selectedTextModel, setSelectedTextModel] = useState<TextModelSelection>('gemini-2.5-flash');
+    const [useGrounding, setUseGrounding] = useState(true);
 
     useEffect(() => {
         setTranslatedScript(null);
@@ -134,29 +167,33 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
 
         try {
             switch (type) {
-                case GenerationType.SCRIPT:
-                    const script = await generateReviewScript(product);
-                    onContentUpdate(product.id, { script });
+                case GenerationType.SCRIPT: {
+                    const { script, sources } = await generateReviewScript(product, selectedTextModel, useGrounding);
+                    onContentUpdate(product.id, { script, sources });
                     break;
-                case GenerationType.TITLES:
-                    const titles = await generateVideoTitles(product.name);
+                }
+                case GenerationType.TITLES: {
+                    const titles = await generateVideoTitles(product.name, selectedTextModel);
                     onContentUpdate(product.id, { titles, selectedTitle: titles[0] || '' });
                     break;
-                case GenerationType.DESCRIPTION:
-                    const seoDescription = await generateSeoDescription(product.name);
+                }
+                case GenerationType.DESCRIPTION: {
+                    const seoDescription = await generateSeoDescription(product.name, selectedTextModel);
                     onContentUpdate(product.id, { seoDescription });
                     break;
-                case GenerationType.CAPTIONS:
-                    const captions = await generateCaptionsAndHashtags(product.name);
+                }
+                case GenerationType.CAPTIONS: {
+                    const captions = await generateCaptionsAndHashtags(product.name, selectedTextModel);
                     onContentUpdate(product.id, { captions });
                     break;
+                }
             }
         } catch (error) {
             console.error(`Error generating ${type}:`, error);
         } finally {
             setLoadingStates(prev => ({ ...prev, [type]: false }));
         }
-    }, [selectedProductId, products, onContentUpdate]);
+    }, [selectedProductId, products, onContentUpdate, selectedTextModel, useGrounding]);
 
     const handleGenerateAll = useCallback(async (overrideProduct?: Product) => {
         const product = overrideProduct || products.find(p => p.id === selectedProductId);
@@ -179,7 +216,6 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                 setSelectedProductId(product.id);
                 handleGenerateAll(product);
             }
-            // Clear the trigger state in App.tsx once generation has been initiated
             onGenerationComplete();
         }
     }, [productToAutoGenerate, products, handleGenerateAll, onGenerationComplete]);
@@ -206,8 +242,8 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         if (!selectedProductContent?.script) return;
         setIsTranslating(true);
         try {
-            const languageName = languages.find(l => l.code === targetLanguage)?.nameKey || 'Vietnamese';
-            const translation = await translateText(selectedProductContent.script, t(languageName));
+            const languageName = languages.find(l => l.code === targetLanguage)?.nameKey || 'contentGenerator.vietnamese';
+            const translation = await translateText(selectedProductContent.script, t(languageName), selectedTextModel);
             setTranslatedScript(translation);
             setShowTranslation(true);
         } catch (error) {
@@ -251,22 +287,38 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                         </select>
                     </div>
                      {selectedProductId && (
-                        <div className="pt-2">
-                             <Button 
-                                className="w-full" 
-                                onClick={() => handleGenerateAll()}
-                                isLoading={isGeneratingAll}
-                                size="lg"
-                            >
-                                {isGeneratingAll ? t('contentGenerator.generatingAll') : t('contentGenerator.generateAll')}
-                            </Button>
-                        </div>
+                        <>
+                            <ModelSelector selectedModel={selectedTextModel} onModelChange={setSelectedTextModel} />
+                            <div className="pt-2">
+                                <Button 
+                                    className="w-full" 
+                                    onClick={() => handleGenerateAll()}
+                                    isLoading={isGeneratingAll}
+                                    size="lg"
+                                >
+                                    {isGeneratingAll ? t('contentGenerator.generatingAll') : t('contentGenerator.generateAll')}
+                                </Button>
+                            </div>
+                        </>
                     )}
                 </div>
             </Card>
 
             {selectedProductId && (
                 <div className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="checkbox"
+                            id="use-grounding"
+                            checked={useGrounding}
+                            onChange={(e) => setUseGrounding(e.target.checked)}
+                            className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-primary-600 focus:ring-primary-500"
+                        />
+                        <label htmlFor="use-grounding" className="text-sm font-medium text-gray-300">
+                            {t('contentGenerator.useGrounding')}
+                        </label>
+                    </div>
+                    
                     <GenerationSection
                         type={GenerationType.SCRIPT}
                         title={t('contentGenerator.videoScript')}
@@ -278,8 +330,24 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                         content={selectedProductContent?.script}
                     >
                         <pre className="whitespace-pre-wrap font-sans">{selectedProductContent?.script}</pre>
+                        {selectedProductContent?.sources && selectedProductContent.sources.length > 0 && (
+                            <div className="mt-4 pt-4 border-t border-gray-700 not-prose">
+                                <h4 className="text-sm font-semibold text-gray-200 mb-2">{t('contentGenerator.groundingSources')}</h4>
+                                <ul className="space-y-1">
+                                    {selectedProductContent.sources.map((source: any, index: number) => (
+                                        <li key={index} className="flex items-center">
+                                            <a href={source.web.uri} target="_blank" rel="noopener noreferrer" className="text-xs text-primary-400 hover:underline truncate">
+                                                <ExternalLink className="w-3 h-3 inline-block mr-1" />
+                                                {source.web.title || source.web.uri}
+                                            </a>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
                          {selectedProductContent?.script && (
                             <div className="mt-4 pt-4 border-t border-gray-700">
+                                <p className="text-xs text-gray-400 not-prose italic mb-2">{t('contentGenerator.scriptTip')}</p>
                                 <div className="flex flex-wrap items-center gap-2">
                                     <select 
                                         value={targetLanguage} 

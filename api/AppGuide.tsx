@@ -1,9 +1,10 @@
 
 
+
 import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
+import { Card, CardHeader, CardTitle, CardDescription } from './components/common/Card';
 import { useI18n } from '../hooks/useI18n';
-import { Info, Server, ClipboardList, GitBranch, HardDriveUpload, Play, Bot, Users, BarChart3, BookOpen } from './LucideIcons';
+import { Info, Server, ClipboardList, GitBranch, HardDriveUpload, Play, Bot, Users, BarChart3, BookOpen } from './components/LucideIcons';
 
 const GuideSection: React.FC<{ title: string, id: string, children: React.ReactNode }> = ({ title, id, children }) => (
     <Card id={id} className="mb-8 scroll-mt-24">
@@ -76,7 +77,6 @@ export const AppGuide: React.FC = () => {
                     <li><strong>Deployment:</strong> The entire application is seamlessly deployed and hosted on <strong>Vercel</strong>, leveraging its CI/CD pipeline for automatic builds and deployments from a Git repository.</li>
                 </ul>
                 <h3>Architecture Diagram (Mermaid)</h3>
-                {/* Fix: Wrapped mermaid diagram in a template literal to prevent JSX parsing errors. */}
                 <pre><code>{`
     graph TD
         A[User Interface (React, Vite)] -->|Manages System| B(Vercel Hosting)
@@ -104,7 +104,7 @@ export const AppGuide: React.FC = () => {
                         <tr><td><strong>Product Scout</strong></td><td>An AI-powered module to discover new, trending digital products. It analyzes their potential profitability and adds them to a queue for user approval.</td></tr>
                         <tr><td><strong>Prompt Templates</strong></td><td>Allows customization of the AI's behavior by editing the core prompts used for content generation, enabling users to fine-tune the style and tone of the output.</td></tr>
                         <tr><td><strong>Content Generator</strong></td><td>Takes an approved product and uses Gemini to generate all necessary text assets: video script, viral titles, SEO-optimized description, and social media captions.</td></tr>
-                        <tr><td><strong>Publisher</strong></td><td>The final step before publishing. Users can select AI models (video and voice), add a starting image, and initiate the video rendering process.</td></tr>
+                        <tr><td><strong>Studio</strong></td><td>The advanced production hub. Configure video models, add reference images, assign voices for multi-speaker scripts, and generate the final video.</td></tr>
                         <tr><td><strong>Render Queue</strong></td><td>Tracks the real-time progress of all video rendering jobs. Allows users to monitor status and download the final video and audio files upon completion.</td></tr>
                         <tr><td><strong>Connections</strong></td><td>A centralized hub for managing credentials for various platforms. In the current version, this data is stored locally.</td></tr>
                         <tr><td><strong>Analytics</strong></td><td>Visualizes performance data, including views over time, revenue per product, and performance breakdowns by platform. (Note: Data is currently simulated).</td></tr>
@@ -120,11 +120,10 @@ export const AppGuide: React.FC = () => {
                     <li><strong>Scouting:</strong> The <strong>Product Scout</strong> agent, either triggered manually or by the automation engine, calls the Gemini API with a specific topic. Gemini returns a list of potential products. The system then enriches this data with an "Opportunity Score".</li>
                     <li><strong>Approval:</strong> Products found by the scout are placed in a pending queue. The user can manually review and approve them, or the automation engine can auto-approve products that meet a predefined score threshold.</li>
                     <li><strong>Content Generation:</strong> Once a product is approved, it moves to the <strong>Content Generator</strong>. Here, the system uses the customized prompts from <strong>Prompt Templates</strong> to ask Gemini to create a script, titles, description, and captions.</li>
-                    <li><strong>Video Production:</strong> The user navigates to the <strong>Publisher</strong>, selects the product with its generated content, chooses video/audio models, and clicks "Create Video". This sends a request to the backend proxy, which calls the Gemini Veo and TTS APIs. A new job appears in the <strong>Render Queue</strong>.</li>
+                    <li><strong>Video Production:</strong> The user navigates to the <strong>Studio</strong>, selects the product with its generated content, chooses video/audio models and reference images, and clicks "Create Video". This sends a request to the backend proxy, which calls the Gemini Veo and TTS APIs. A new job appears in the <strong>Render Queue</strong>.</li>
                     <li><strong>Monitoring & Download:</strong> The system periodically polls the Gemini API to check the status of the rendering job. The progress is updated in the UI. Once completed, a download link for the MP4 video becomes available.</li>
                 </ol>
                 <h3>Workflow Diagram (Mermaid)</h3>
-                {/* Fix: Wrapped mermaid diagram in a template literal to prevent JSX parsing errors. */}
                 <pre><code>{`
     graph LR
         subgraph "1. Setup"
@@ -137,7 +136,7 @@ export const AppGuide: React.FC = () => {
             D -->|Approve| E[Content Generator] -->|Generates Assets| F[Ready for Production]
         end
         subgraph "4. Video Production"
-            F --> G[Publisher] -->|Creates Job| H[Render Queue]
+            F --> G[Studio] -->|Creates Job| H[Render Queue]
         end
         subgraph "5. Finalization"
              H -->|Job Done| I[Download Video] --> J[Analytics]
@@ -160,7 +159,8 @@ export const AppGuide: React.FC = () => {
                     <li>Install dependencies: <br/><code>npm install</code></li>
                     <li>Create a <code>.env.local</code> file in the root directory.</li>
                     <li>Add your Google AI Studio API key to the file: <br/><code>API_KEY="your_gemini_api_key_here"</code></li>
-                    <li>Start the development server: <br/><code>npm run dev</code></li>
+                    <li><strong>In a separate terminal</strong>, start the backend proxy server: <br/><code>node server.js</code></li>
+                    <li>In your original terminal, start the development server: <br/><code>npm run dev</code></li>
                     <li>The application will be available at <code>http://localhost:5173</code> (or another port if 5173 is in use).</li>
                 </ol>
                 <h3>Deployment to Vercel</h3>
@@ -179,7 +179,7 @@ export const AppGuide: React.FC = () => {
                 <h3>Step 1: Initial Setup</h3>
                 <ul>
                     <li>Go to the <strong>Connections</strong> page. For this demo version, you don't need to add any credentials here as they are not used for publishing. However, in a production version, this would be the first step.</li>
-                    <li>Navigate to the <strong>Publisher</strong> page. If you haven't selected an API key for video generation, you will be prompted to. This is a mandatory step to use the Veo model.</li>
+                    <li>Navigate to the <strong>Studio</strong> page. If you haven't selected an API key for video generation, you will be prompted to. This is a mandatory step to use the Veo model.</li>
                 </ul>
                 <h3>Step 2: Configure Automation</h3>
                 <ul>
@@ -200,9 +200,9 @@ export const AppGuide: React.FC = () => {
                 </ul>
                 <h3>Step 5: Create the Video</h3>
                 <ul>
-                    <li>Go to the <strong>Publisher</strong> page. The product you just processed will be listed.</li>
+                    <li>Go to the <strong>Studio</strong> page. The product you just processed will be listed.</li>
                     <li>Select your desired Video Model and Audio Voice from the dropdowns.</li>
-                    <li>(Optional) Upload a starting image for the video.</li>
+                    <li>(Optional) Upload up to 3 reference images to guide the video generation.</li>
                     <li>Click "Create Video". The job will be sent to the <strong>Render Queue</strong>.</li>
                 </ul>
                 <h3>Step 6: Monitor and Download</h3>
@@ -227,7 +227,6 @@ export const AppGuide: React.FC = () => {
                 <h3>Prompt Engineering Best Practices</h3>
                 <ul>
                     <li><strong>Be Specific:</strong> Instead of "write a script", say "Write a concise 60-second video script for a YouTube Shorts review". The more specific your instructions, the better the result.</li>
-                    {/* Fix: Wrapped placeholder examples in template literals to prevent JSX parsing errors. */}
                     <li><strong>Use Placeholders:</strong> The system uses placeholders like <code>{`{{product_name}}`}</code> and <code>{`{{description}}`}</code> to dynamically insert product data into the prompt. Make sure to include these where relevant.</li>
                     <li><strong>Define the Tone:</strong> Explicitly state the desired tone, e.g., "Tone: Energetic, trustworthy, and clear."</li>
                     <li><strong>Provide Examples (Few-shot Prompting):</strong> In the prompt, give examples of the output you want. For instance, the "Video Title Generator" prompt includes examples like "This AI is INSANE!".</li>
@@ -258,8 +257,8 @@ export const AppGuide: React.FC = () => {
                         </tr>
                         <tr>
                             <td><strong>Video Producer</strong></td>
-                            <td>Manages the video production pipeline. Selects AI models in the Publisher, initiates rendering, and handles the final video assets from the Render Queue.</td>
-                            <td>Publisher, Render Queue</td>
+                            <td>Manages the video production pipeline. Selects AI models in the Studio, initiates rendering, and handles the final video assets from the Render Queue.</td>
+                            <td>Studio, Render Queue</td>
                         </tr>
                         <tr>
                             <td><strong>System Administrator</strong></td>
@@ -307,7 +306,7 @@ export const AppGuide: React.FC = () => {
                 </ul>
                 <h3>Common Troubleshooting</h3>
                 <ul>
-                    <li><strong>Video Generation Fails with API Key Error:</strong> This is the most common issue. Go to the <strong>Publisher</strong> page and re-select your Google AI API key. Ensure the key is valid, active, and has billing enabled on its associated Google Cloud project.</li>
+                    <li><strong>Video Generation Fails with API Key Error:</strong> This is the most common issue. Go to the <strong>Studio</strong> page and re-select your Google AI API key. Ensure the key is valid, active, and has billing enabled on its associated Google Cloud project.</li>
                     <li><strong>Application Fails to Load:</strong> Clear your browser cache and cookies. Check the browser's developer console (F12) for any error messages.</li>
                     <li><strong>Vercel Deployment Fails:</strong> Ensure the <code>API_KEY</code> environment variable is correctly set in your Vercel project settings. Check the build logs on Vercel for specific error details.</li>
                 </ul>
@@ -346,7 +345,6 @@ export const AppGuide: React.FC = () => {
                     <li><strong>Triển khai:</strong> Toàn bộ ứng dụng được triển khai và lưu trữ liền mạch trên <strong>Vercel</strong>, tận dụng pipeline CI/CD của nó để tự động build và triển khai từ một kho Git.</li>
                 </ul>
                 <h3>Sơ đồ kiến trúc (Mermaid)</h3>
-                 {/* Fix: Wrapped mermaid diagram in a template literal to prevent JSX parsing errors. */}
                  <pre><code>{`
     graph TD
         A[Giao diện người dùng (React, Vite)] -->|Quản lý hệ thống| B(Vercel Hosting)
@@ -374,7 +372,7 @@ export const AppGuide: React.FC = () => {
                         <tr><td><strong>Trinh Sát Sản Phẩm</strong></td><td>Một module được hỗ trợ bởi AI để khám phá các sản phẩm kỹ thuật số mới, đang thịnh hành. Nó phân tích tiềm năng lợi nhuận và thêm chúng vào hàng chờ để người dùng phê duyệt.</td></tr>
                         <tr><td><strong>Mẫu Prompt</strong></td><td>Cho phép tùy chỉnh hành vi của AI bằng cách chỉnh sửa các prompt cốt lõi được sử dụng để tạo nội dung, cho phép người dùng tinh chỉnh phong cách và giọng điệu của đầu ra.</td></tr>
                         <tr><td><strong>Tạo Nội Dung</strong></td><td>Nhận một sản phẩm đã được phê duyệt và sử dụng Gemini để tạo tất cả các tài sản văn bản cần thiết: kịch bản video, tiêu đề lan truyền, mô tả tối ưu SEO và phụ đề mạng xã hội.</td></tr>
-                        <tr><td><strong>Xuất Bản</strong></td><td>Bước cuối cùng trước khi xuất bản. Người dùng có thể chọn các mô hình AI (video và giọng nói), thêm hình ảnh bắt đầu và khởi tạo quá trình kết xuất video.</td></tr>
+                        <tr><td><strong>Studio</strong></td><td>Trung tâm sản xuất nâng cao. Cấu hình các model video, thêm hình ảnh tham chiếu, gán giọng nói cho kịch bản có nhiều người nói và tạo video cuối cùng.</td></tr>
                         <tr><td><strong>Hàng Chờ Kết Xuất</strong></td><td>Theo dõi tiến trình thời gian thực của tất cả các công việc kết xuất video. Cho phép người dùng theo dõi trạng thái và tải xuống các tệp video và âm thanh cuối cùng khi hoàn thành.</td></tr>
                         <tr><td><strong>Kết Nối</strong></td><td>Một trung tâm tập trung để quản lý thông tin xác thực cho các nền tảng khác nhau. Trong phiên bản hiện tại, dữ liệu này được lưu trữ cục bộ.</td></tr>
                         <tr><td><strong>Phân Tích</strong></td><td>Trực quan hóa dữ liệu hiệu suất, bao gồm lượt xem theo thời gian, doanh thu mỗi sản phẩm và phân tích chi tiết hiệu suất theo nền tảng. (Lưu ý: Dữ liệu hiện đang được giả lập).</td></tr>
@@ -390,11 +388,10 @@ export const AppGuide: React.FC = () => {
                     <li><strong>Trinh sát:</strong> Agent <strong>Trinh Sát Sản Phẩm</strong>, được kích hoạt thủ công hoặc bởi công cụ tự động hóa, gọi API Gemini với một chủ đề cụ thể. Gemini trả về một danh sách các sản phẩm tiềm năng. Hệ thống sau đó làm phong phú dữ liệu này với một "Điểm Cơ Hội".</li>
                     <li><strong>Phê duyệt:</strong> Các sản phẩm được tìm thấy bởi trinh sát được đặt trong hàng chờ. Người dùng có thể xem xét và phê duyệt chúng theo cách thủ công, hoặc công cụ tự động hóa có thể tự động phê duyệt các sản phẩm đáp ứng ngưỡng điểm được xác định trước.</li>
                     <li><strong>Tạo Nội dung:</strong> Khi một sản phẩm được phê duyệt, nó sẽ chuyển đến <strong>Trình tạo Nội dung</strong>. Tại đây, hệ thống sử dụng các prompt đã tùy chỉnh từ <strong>Mẫu Prompt</strong> để yêu cầu Gemini tạo kịch bản, tiêu đề, mô tả và phụ đề.</li>
-                    <li><strong>Sản xuất Video:</strong> Người dùng điều hướng đến <strong>Publisher</strong>, chọn sản phẩm với nội dung đã tạo, chọn model video/âm thanh và nhấp vào "Tạo Video". Thao tác này sẽ gửi một yêu cầu đến proxy backend, proxy này sẽ gọi API Gemini Veo và TTS. Một công việc mới xuất hiện trong <strong>Hàng Chờ Kết Xuất</strong>.</li>
+                    <li><strong>Sản xuất Video:</strong> Người dùng điều hướng đến <strong>Studio</strong>, chọn sản phẩm với nội dung đã tạo, chọn model video/âm thanh và hình ảnh tham chiếu, rồi nhấp vào "Tạo Video". Thao tác này sẽ gửi một yêu cầu đến proxy backend, proxy này sẽ gọi API Gemini Veo và TTS. Một công việc mới xuất hiện trong <strong>Hàng Chờ Kết Xuất</strong>.</li>
                     <li><strong>Giám sát & Tải xuống:</strong> Hệ thống định kỳ thăm dò API Gemini để kiểm tra trạng thái của công việc kết xuất. Tiến trình được cập nhật trong giao diện người dùng. Sau khi hoàn thành, một liên kết tải xuống cho video MP4 sẽ khả dụng.</li>
                 </ol>
                 <h3>Sơ đồ quy trình (Mermaid)</h3>
-                 {/* Fix: Wrapped mermaid diagram in a template literal to prevent JSX parsing errors. */}
                  <pre><code>{`
     graph LR
         subgraph "1. Cài đặt"
@@ -407,7 +404,7 @@ export const AppGuide: React.FC = () => {
             D -->|Phê duyệt| E[Tạo nội dung] -->|Tạo tài sản| F[Sẵn sàng sản xuất]
         end
         subgraph "4. Sản xuất video"
-            F --> G[Xuất bản] -->|Tạo công việc| H[Hàng chờ kết xuất]
+            F --> G[Studio] -->|Tạo công việc| H[Hàng chờ kết xuất]
         end
         subgraph "5. Hoàn thiện"
              H -->|Công việc hoàn tất| I[Tải video] --> J[Phân tích]
@@ -430,7 +427,8 @@ export const AppGuide: React.FC = () => {
                     <li>Cài đặt các gói phụ thuộc: <br/><code>npm install</code></li>
                     <li>Tạo một tệp <code>.env.local</code> ở thư mục gốc.</li>
                     <li>Thêm khóa API Google AI Studio của bạn vào tệp: <br/><code>API_KEY="your_gemini_api_key_here"</code></li>
-                    <li>Khởi động máy chủ phát triển: <br/><code>npm run dev</code></li>
+                    <li><strong>Trong một terminal khác</strong>, khởi động máy chủ proxy backend: <br/><code>node server.js</code></li>
+                    <li>Trong terminal ban đầu của bạn, khởi động máy chủ phát triển: <br/><code>npm run dev</code></li>
                     <li>Ứng dụng sẽ có sẵn tại <code>http://localhost:5173</code> (hoặc một cổng khác nếu 5173 đang được sử dụng).</li>
                 </ol>
                 <h3>Triển khai lên Vercel</h3>
@@ -449,7 +447,7 @@ export const AppGuide: React.FC = () => {
                 <h3>Bước 1: Cài đặt ban đầu</h3>
                 <ul>
                     <li>Truy cập trang <strong>Kết Nối</strong>. Đối với phiên bản demo này, bạn không cần thêm bất kỳ thông tin xác thực nào ở đây vì chúng không được sử dụng để xuất bản. Tuy nhiên, trong phiên bản production, đây sẽ là bước đầu tiên.</li>
-                    <li>Điều hướng đến trang <strong>Publisher</strong>. Nếu bạn chưa chọn khóa API để tạo video, bạn sẽ được yêu cầu. Đây là một bước bắt buộc để sử dụng model Veo.</li>
+                    <li>Điều hướng đến trang <strong>Studio</strong>. Nếu bạn chưa chọn khóa API để tạo video, bạn sẽ được yêu cầu. Đây là một bước bắt buộc để sử dụng model Veo.</li>
                 </ul>
                 <h3>Bước 2: Cấu hình Tự động hóa</h3>
                 <ul>
@@ -470,9 +468,9 @@ export const AppGuide: React.FC = () => {
                 </ul>
                 <h3>Bước 5: Tạo Video</h3>
                 <ul>
-                    <li>Truy cập trang <strong>Publisher</strong>. Sản phẩm bạn vừa xử lý sẽ được liệt kê.</li>
+                    <li>Truy cập trang <strong>Studio</strong>. Sản phẩm bạn vừa xử lý sẽ được liệt kê.</li>
                     <li>Chọn Model Video và Giọng nói Âm thanh mong muốn từ các menu thả xuống.</li>
-                    <li>(Tùy chọn) Tải lên một hình ảnh bắt đầu cho video.</li>
+                    <li>(Tùy chọn) Tải lên tối đa 3 hình ảnh tham chiếu để hướng dẫn việc tạo video.</li>
                     <li>Nhấp vào "Tạo Video". Công việc sẽ được gửi đến <strong>Hàng Chờ Kết Xuất</strong>.</li>
                 </ul>
                 <h3>Bước 6: Theo dõi và Tải xuống</h3>
@@ -493,11 +491,10 @@ export const AppGuide: React.FC = () => {
                     <li>Nhấp vào bất kỳ mẫu nào để tải nó vào trình chỉnh sửa ở bên phải.</li>
                     <li>Sửa đổi văn bản trong khu vực "Nội Dung Prompt". Bạn có thể thay đổi hướng dẫn, giọng điệu, cấu trúc hoặc thêm các yêu cầu mới.</li>
                     <li>Nhấp vào "Lưu Mẫu". Thay đổi của bạn sẽ được sử dụng cho tất cả các lần tạo nội dung thuộc loại đó trong tương lai.</li>
-                </ol>
+                </ul>
                 <h3>Thực hành Kỹ thuật Prompt tốt nhất</h3>
                 <ul>
                     <li><strong>Cụ thể:</strong> Thay vì "viết một kịch bản", hãy nói "Viết một kịch bản video ngắn gọn 60 giây để đánh giá trên YouTube Shorts". Hướng dẫn của bạn càng cụ thể, kết quả càng tốt.</li>
-                    {/* Fix: Wrapped placeholder examples in template literals to prevent JSX parsing errors. */}
                     <li><strong>Sử dụng Placeholder:</strong> Hệ thống sử dụng các placeholder như <code>{`{{product_name}}`}</code> và <code>{`{{description}}`}</code> để chèn dữ liệu sản phẩm một cách linh hoạt vào prompt. Hãy đảm bảo bao gồm chúng ở những nơi thích hợp.</li>
                     <li><strong>Xác định Giọng điệu:</strong> Nêu rõ ràng giọng điệu mong muốn, ví dụ: "Giọng điệu: Năng động, đáng tin cậy và rõ ràng."</li>
                     <li><strong>Cung cấp Ví dụ (Few-shot Prompting):</strong> Trong prompt, hãy đưa ra các ví dụ về kết quả bạn muốn. Ví dụ, prompt "Tạo Tiêu đề Video" bao gồm các ví dụ như "AI này thật ĐIÊN RỒ!".</li>
@@ -528,8 +525,8 @@ export const AppGuide: React.FC = () => {
                         </tr>
                         <tr>
                             <td><strong>Nhà sản xuất Video</strong></td>
-                            <td>Quản lý quy trình sản xuất video. Chọn các model AI trong Publisher, khởi tạo kết xuất và xử lý các tài sản video cuối cùng từ Hàng chờ kết xuất.</td>
-                            <td>Publisher, Hàng chờ kết xuất</td>
+                            <td>Quản lý quy trình sản xuất video. Chọn các model AI trong Studio, khởi tạo kết xuất và xử lý các tài sản video cuối cùng từ Hàng chờ kết xuất.</td>
+                            <td>Studio, Hàng chờ kết xuất</td>
                         </tr>
                         <tr>
                             <td><strong>Quản trị viên Hệ thống</strong></td>
@@ -577,7 +574,7 @@ export const AppGuide: React.FC = () => {
                 </ul>
                 <h3>Xử lý sự cố thường gặp</h3>
                 <ul>
-                    <li><strong>Tạo video thất bại với lỗi Khóa API:</strong> Đây là vấn đề phổ biến nhất. Hãy đến trang <strong>Publisher</strong> và chọn lại khóa API Google AI của bạn. Đảm bảo khóa hợp lệ, đang hoạt động và đã bật thanh toán trên dự án Google Cloud liên quan.</li>
+                    <li><strong>Tạo video thất bại với lỗi Khóa API:</strong> Đây là vấn đề phổ biến nhất. Hãy đến trang <strong>Studio</strong> và chọn lại khóa API Google AI của bạn. Đảm bảo khóa hợp lệ, đang hoạt động và đã bật thanh toán trên dự án Google Cloud liên quan.</li>
                     <li><strong>Ứng dụng không tải được:</strong> Xóa bộ nhớ cache và cookie của trình duyệt. Kiểm tra bảng điều khiển dành cho nhà phát triển của trình duyệt (F12) để tìm bất kỳ thông báo lỗi nào.</li>
                     <li><strong>Triển khai Vercel thất bại:</strong> Đảm bảo biến môi trường <code>API_KEY</code> được đặt chính xác trong cài đặt dự án Vercel của bạn. Kiểm tra nhật ký build trên Vercel để biết chi tiết lỗi cụ thể.</li>
                 </ul>

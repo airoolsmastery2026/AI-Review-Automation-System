@@ -1,86 +1,169 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenAI, Modality, VideoGenerationReferenceType } = require('@google/genai');
+const fetch = require('node-fetch');
 
 const app = express();
-const port = 3001;
+const port = process.env.PORT || 3001;
 
 app.use(cors());
-app.use(express.json({ limit: '50mb' })); // Increase limit for potential large payloads
+app.use(express.json({ limit: '50mb' }));
 
-// This is a proxy, so we create a new instance for each request to ensure
-// we're using the latest API key if it's managed dynamically.
-const getGenAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
-
-
-// Endpoint to handle general Gemini content generation
-app.post('/api/gemini', async (req, res) => {
-    const { params } = req.body;
-    if (!params) {
-        return res.status(400).json({ error: 'Missing parameters in request body' });
+const getGenAI = () => {
+    if (!process.env.API_KEY) {
+        throw new Error("API_KEY environment variable not set.");
     }
+    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+};
+
+const PLATFORM_ENV_MAP = {
+    // Social
+    youtube: ['YOUTUBE_CLIENT_ID', 'YOUTUBE_CLIENT_SECRET'],
+    tiktok: ['TIKTOK_CLIENT_KEY', 'TIKTOK_CLIENT_SECRET'],
+    facebook: ['FACEBOOK_APP_ID', 'FACEBOOK_APP_SECRET'],
+    instagram: ['INSTAGRAM_USER_ACCESS_TOKEN'],
+    x: ['X_CLIENT_ID', 'X_CLIENT_SECRET'],
+    pinterest: ['PINTEREST_APP_ID', 'PINTEREST_APP_SECRET'],
+    telegram: ['TELEGRAM_BOT_TOKEN'],
+    // Global Affiliate
+    clickbank: ['CLICKBANK_API_KEY', 'CLICKBANK_DEVELOPER_KEY'],
+    amazon: ['AMAZON_ASSOCIATE_TAG', 'AMAZON_ACCESS_KEY', 'AMAZON_SECRET_KEY'],
+    shopify: ['SHOPIFY_API_KEY', 'SHOPIFY_API_SECRET_KEY', 'SHOPIFY_STORE_URL'],
+    impact: ['IMPACT_ACCOUNT_SID', 'IMPACT_AUTH_TOKEN'],
+    partnerstack: ['PARTNERSTACK_PUBLIC_KEY', 'PARTNERSTACK_SECRET_KEY'],
+    digistore24: ['DIGISTORE24_API_KEY'],
+    // VN Affiliate
+    lazada: ['LAZADA_APP_KEY', 'LAZADA_APP_SECRET'],
+    shopee: ['SHOPEE_PARTNER_ID', 'SHOPEE_API_KEY'],
+    tiki: ['TIKI_CLIENT_ID', 'TIKI_CLIENT_SECRET'],
+};
+
+// Single proxy endpoint to mirror the Vercel function
+app.post('/api/proxy', async (req, res) => {
+    const { endpoint, ...body } = req.body;
 
     try {
-        const ai = getGenAI();
-        const response = await ai.models.generateContent(params);
-        // Using response.text as per guidelines for direct text output
-        res.json({ text: response.text });
-    } catch (error) {
-        console.error('Gemini API Error:', error);
-        res.status(500).json({ error: 'An error occurred while calling the Gemini API', details: error.message });
-    }
-});
+        if (!endpoint) {
+            return res.status(400).json({ error: 'Missing endpoint in request body' });
+        }
 
-// Endpoint to start video generation
-app.post('/api/generate-video', async (req, res) => {
-    const { script } = req.body;
-    if (!script) {
-        return res.status(400).json({ error: 'Missing script in request body' });
-    }
-
-    try {
         const ai = getGenAI();
-        const operation = await ai.models.generateVideos({
-            model: 'veo-3.1-fast-generate-preview',
-            prompt: script,
-            config: {
-                numberOfVideos: 1,
-                resolution: '720p',
-                aspectRatio: '9:16' // Optimized for Shorts/TikTok
+
+        switch (endpoint) {
+            case 'gemini': {
+                const { params } = body;
+                const response = await ai.models.generateContent(params);
+                return res.status(200).json({ 
+                    text: response.text,
+                    groundingMetadata: response.candidates?.[0]?.groundingMetadata 
+                });
             }
-        });
-        res.json(operation);
-    } catch (error) {
-        console.error('Video Generation Error:', error);
-        if (error.message.includes('API key not valid') || error.message.includes('not found') || error.message.includes('Requested entity was not found')) {
-             return res.status(401).json({ error: 'API key not valid or not found. Please select a valid key.', details: error.message });
+            case 'generate-video': {
+                const { script, model, image, referenceImages } = body;
+                
+                const videoParams = {
+                    model,
+                    prompt: script,
+                    config: { numberOfVideos: 1, resolution: '720p', aspectRatio: '9:16' }
+                };
+
+                if (referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
+                    videoParams.config.referenceImages = referenceImages.map(img => ({
+                        image: { imageBytes: img.data, mimeType: img.mimeType },
+                        referenceType: VideoGenerationReferenceType.ASSET
+                    }));
+                } else if (image) {
+                    videoParams.image = { imageBytes: image.data, mimeType: image.mimeType };
+                }
+
+                const operation = await ai.models.generateVideos(videoParams);
+                return res.status(200).json(operation);
+            }
+            case 'generate-speech': {
+                const { script, voice, speakerVoiceConfig } = body;
+                
+                const speechConfigPayload = {};
+                if (speakerVoiceConfig && Array.isArray(speakerVoiceConfig) && speakerVoiceConfig.length > 0) {
+                    speechConfigPayload.multiSpeakerVoiceConfig = {
+                        speakerVoiceConfigs: speakerVoiceConfig.map(svc => ({
+                            speaker: svc.speaker,
+                            voiceConfig: { prebuiltVoiceConfig: { voiceName: svc.voice } }
+                        }))
+                    };
+                } else {
+                    speechConfigPayload.voiceConfig = { prebuiltVoiceConfig: { voiceName: voice } };
+                }
+
+                const response = await ai.models.generateContent({
+                    model: "gemini-2.5-flash-preview-tts",
+                    contents: [{ parts: [{ text: script }] }],
+                    config: {
+                        responseModalities: [Modality.AUDIO],
+                        speechConfig: speechConfigPayload,
+                    },
+                });
+                const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+                return res.status(200).json({ audioData });
+            }
+            case 'generate-thumbnail': {
+                const { prompt } = body;
+                const response = await ai.models.generateImages({
+                    model: 'imagen-4.0-generate-001',
+                    prompt,
+                    config: { numberOfImages: 1, outputMimeType: 'image/png', aspectRatio: '16:9' }
+                });
+                const imageData = response.generatedImages[0].image.imageBytes;
+                return res.status(200).json({ imageData });
+            }
+            case 'video-status': {
+                const { operationName } = body;
+                const operation = await ai.operations.getVideosOperation({ operation: { name: operationName } });
+                return res.status(200).json(operation);
+            }
+            case 'download-video': {
+                const { videoUrl } = body;
+                const fetchRes = await fetch(`${videoUrl}&key=${process.env.API_KEY}`);
+                if (!fetchRes.ok) throw new Error(`Failed to fetch video: ${fetchRes.statusText}`);
+                res.setHeader('Content-Type', 'video/mp4');
+                fetchRes.body.pipe(res);
+                return; 
+            }
+            case 'check-connections': {
+                const statuses = {};
+                for (const [platform, envVars] of Object.entries(PLATFORM_ENV_MAP)) {
+                    statuses[platform] = {
+                        status: envVars.every(v => process.env[v]) ? 'Configured' : 'Not Configured'
+                    };
+                }
+                return res.status(200).json(statuses);
+            }
+            case 'check-url': {
+                const { url } = body;
+                if (!url) {
+                    return res.status(400).json({ error: 'Missing url in request body' });
+                }
+                try {
+                    const response = await fetch(url, { method: 'HEAD' });
+                    return res.status(200).json({ ok: response.ok, status: response.status, statusText: response.statusText });
+                } catch (fetchError) {
+                    return res.status(200).json({ ok: false, status: 503, statusText: fetchError.message });
+                }
+            }
+            default:
+                return res.status(404).json({ error: `Endpoint '${endpoint}' not found` });
         }
-        res.status(500).json({ error: 'An error occurred while starting video generation', details: error.message });
+    } catch (error) {
+        console.error(`API Proxy Error at endpoint [${endpoint}]:`, error);
+        const errorMessage = error.message || 'An unknown error occurred';
+        let statusCode = 500;
+        if (errorMessage.includes("API key not valid") || errorMessage.includes("not found") || errorMessage.includes("Requested entity was not found") || errorMessage.includes("permission") || errorMessage.includes("billing")) {
+            statusCode = 401;
+        }
+        return res.status(statusCode).json({ error: `An error occurred at endpoint: ${endpoint}`, details: errorMessage });
     }
 });
-
-// Endpoint to check video generation status
-app.post('/api/video-status', async (req, res) => {
-    const { operationName } = req.body;
-    if (!operationName) {
-        return res.status(400).json({ error: 'Missing operationName in request body' });
-    }
-    
-    try {
-        const ai = getGenAI();
-        const operation = await ai.operations.getVideosOperation({ operation: { name: operationName } });
-        res.json(operation);
-    } catch (error) {
-        console.error('Video Status Check Error:', error);
-        if (error.message.includes('API key not valid') || error.message.includes('not found') || error.message.includes('Requested entity was not found')) {
-             return res.status(401).json({ error: 'API key not valid or not found. Please select a valid key.', details: error.message });
-        }
-        res.status(500).json({ error: 'An error occurred while checking video status', details: error.message });
-    }
-});
-
 
 app.listen(port, () => {
-    console.log(`Backend server listening at http://localhost:${port}`);
+    console.log(`Backend proxy server listening at http://localhost:${port}`);
 });

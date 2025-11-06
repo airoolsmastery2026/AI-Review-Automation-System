@@ -1,6 +1,6 @@
+
 import React from 'react';
 
-// Fix: Extend React.HTMLAttributes<HTMLDivElement> to allow passing standard HTML attributes like 'id' to the Card component.
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
     children: React.ReactNode;
 }

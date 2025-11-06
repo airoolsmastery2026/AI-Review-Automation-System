@@ -1,24 +1,26 @@
 
+
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Sidebar } from './components/Sidebar';
-import { Header } from './components/Header';
-import { ProductScout } from './components/ProductScout';
-import { ContentGenerator } from './components/ContentGenerator';
-import { Publisher } from './components/Publisher';
-import { Analytics } from './components/Analytics';
-import { Dashboard } from './components/Dashboard';
-import { Automation } from './components/Automation';
-import { Connections } from './components/Connections';
-import { PromptTemplates } from './components/PromptTemplates';
-import { Finance } from './components/Finance';
-import { Footer } from './components/common/Footer';
-import { RenderQueue } from './components/RenderQueue';
-import { AppGuide } from './components/AppGuide';
-import { SystemStatus } from './components/SystemStatus';
-import { ProjectRoadmap } from './components/ProjectRoadmap';
-import { Starfield } from './components/common/Starfield';
-import { ToastContainer } from './components/ToastContainer';
+// Fix: Add `Transition` type import from framer-motion.
+import { motion, AnimatePresence, type Transition } from 'framer-motion';
+import { Sidebar } from './api/components/Sidebar';
+import { Header } from './api/components/Header';
+import { ProductScout } from './api/components/ProductScout';
+import { ContentGenerator } from './api/components/ContentGenerator';
+import { Studio } from './api/components/Studio';
+import { Analytics } from './api/Analytics';
+import { Dashboard } from './api/components/Dashboard';
+import { Automation } from './api/components/Automation';
+import { Connections } from './api/components/Connections';
+import { PromptTemplates } from './api/components/PromptTemplates';
+import { Finance } from './api/components/Finance';
+import { Footer } from './api/components/common/Footer';
+import { RenderQueue } from './api/components/RenderQueue';
+import { AppGuide } from './api/AppGuide';
+import { SystemStatus } from './api/components/SystemStatus';
+import { ProjectRoadmap } from './api/components/ProjectRoadmap';
+import { Starfield } from './api/components/common/Starfield';
+import { ToastContainer } from './api/components/ToastContainer';
 import type { Product, GeneratedContent, RenderJob, ScoutedProduct, AutomationSettings, ProductWithContent, ProductFinancials, PlatformPerformance } from './types';
 import { Page } from './types';
 import { scoutForProducts } from './services/geminiService';
@@ -106,6 +108,13 @@ const App: React.FC = () => {
         logger.info(`Product "${product.name}" approved for content generation.`);
     }, [addProduct, navigateTo]);
 
+    // Fix: Moved `addRenderJob` before the `useEffect` hook that uses it to resolve the "used before declaration" error.
+    const addRenderJob = useCallback((newJob: Omit<RenderJob, 'id'>) => {
+        setRenderJobs(prev => [{ ...newJob, id: Date.now() }, ...prev]);
+        navigateTo(Page.RENDER_QUEUE);
+        logger.info(`New video render job queued for "${newJob.productName}".`);
+    }, [navigateTo]);
+
     // Central Automation Engine
     useEffect(() => {
         if (!automationSettings.masterEnabled) {
@@ -121,7 +130,7 @@ const App: React.FC = () => {
                 if (now - lastScoutRun.current > frequencyMs) {
                     lastScoutRun.current = now;
                     logger.info("Automation: Scout Agent starting its run.", { topic: automationSettings.scoutAgent.defaultTopic });
-                    const newProducts = await scoutForProducts(automationSettings.scoutAgent.defaultTopic);
+                    const newProducts = await scoutForProducts(automationSettings.scoutAgent.defaultTopic, 'gemini-2.5-flash');
                     const scoutedProducts: ScoutedProduct[] = newProducts.map(p => ({
                         ...p,
                         status: 'pending',
@@ -150,7 +159,7 @@ const App: React.FC = () => {
                     status: 'Queued',
                     progress: 0,
                     createdAt: new Date().toISOString(),
-                    models: ['VEO 3.1', 'Suno']
+                    models: ['VEO 3.1', 'Gemini TTS']
                 });
             } else {
                 // No product to produce, check for skipping inactive ones
@@ -172,7 +181,7 @@ const App: React.FC = () => {
     
         return () => clearInterval(automationInterval);
     
-    }, [automationSettings, pendingProducts, handleApproveAndGenerate]);
+    }, [automationSettings, pendingProducts, handleApproveAndGenerate, addRenderJob]);
 
 
     const updateGeneratedContent = useCallback((productId: string, newContent: Partial<GeneratedContent>) => {
@@ -185,12 +194,6 @@ const App: React.FC = () => {
         }));
     }, []);
     
-    const addRenderJob = useCallback((newJob: Omit<RenderJob, 'id'>) => {
-        setRenderJobs(prev => [{ ...newJob, id: Date.now() }, ...prev]);
-        navigateTo(Page.RENDER_QUEUE);
-        logger.info(`New video render job queued for "${newJob.productName}".`);
-    }, [navigateTo]);
-
     const handlePublishProduct = useCallback(async (productId: string) => {
         const product = products.find(p => p.id === productId);
         if (!product) return;
@@ -251,8 +254,8 @@ const App: React.FC = () => {
                           productToAutoGenerate={productToAutoGenerate}
                           onGenerationComplete={() => setProductToAutoGenerate(null)}
                         />;
-            case Page.PUBLISHER:
-                return <Publisher productsWithContent={productsWithContent} onAddRenderJob={addRenderJob} onPublishProduct={handlePublishProduct} />;
+            case Page.STUDIO:
+                return <Studio productsWithContent={productsWithContent} onAddRenderJob={addRenderJob} onPublishProduct={handlePublishProduct} />;
             case Page.RENDER_QUEUE:
                 return <RenderQueue jobs={renderJobs} setJobs={setRenderJobs} />;
             case Page.CONNECTIONS:
@@ -278,7 +281,10 @@ const App: React.FC = () => {
         out: { opacity: 0, y: -20 }
     };
 
-    const pageTransition = {
+    // Fix: Explicitly type `pageTransition` with the `Transition` type from Framer Motion
+    // to resolve a TypeScript error where the `type` property was being inferred as a generic `string`
+    // instead of the required literal type (e.g., 'tween', 'spring').
+    const pageTransition: Transition = {
         type: 'tween',
         ease: 'anticipate',
         duration: 0.5

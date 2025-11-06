@@ -4,11 +4,12 @@
 
 
 
+
 import React from 'react';
 import { MenuIcon } from './Icons';
-import { useI18n } from '../hooks/useI18n';
+import { useI18n } from '../../hooks/useI18n';
 import { LanguageSwitcher } from './common/LanguageSwitcher';
-import { WorldClock } from './WorldClock';
+import { WorldClock } from '../../WorldClock';
 
 interface HeaderProps {
     toggleSidebar: () => void;

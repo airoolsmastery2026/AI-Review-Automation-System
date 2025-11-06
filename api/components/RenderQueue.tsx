@@ -1,14 +1,15 @@
 
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { Download } from './LucideIcons';
 import { Copy } from './LucideIcons';
-import type { RenderJob } from '../types';
-import { useI18n } from '../hooks/useI18n';
-import { getVideoOperationStatus, downloadVideo } from '../services/geminiService';
-import { logger } from '../services/loggingService';
-import { useNotifier } from '../contexts/NotificationContext';
+import type { RenderJob } from '../../types';
+import { useI18n } from '../../hooks/useI18n';
+import { getVideoOperationStatus, downloadVideo } from '../../services/geminiService';
+import { logger } from '../../services/loggingService';
+import { useNotifier } from '../../contexts/NotificationContext';
 
 interface RenderQueueProps {
     jobs: RenderJob[];
@@ -27,6 +28,7 @@ const statusColors: Record<RenderJob['status'], string> = {
 const modelColors: Record<string, string> = {
     'Sora 2': 'border-purple-500',
     'VEO 3.1': 'border-blue-500',
+    'VEO 3.1 HQ': 'border-indigo-400',
     'Suno': 'border-pink-500',
     'Dreamina': 'border-yellow-500',
     'KlingAI': 'border-green-500',
@@ -219,7 +221,7 @@ export const RenderQueue: React.FC<RenderQueueProps> = ({ jobs, setJobs }) => {
             </CardHeader>
             <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-700">
-                    <thead className="bg-gray-800">
+                    <thead className="bg-gray-800/50">
                         <tr>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.product')}</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('renderQueue.status')}</th>

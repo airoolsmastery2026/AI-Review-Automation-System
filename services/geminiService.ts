@@ -1,6 +1,5 @@
-
-import { Type, Operation } from "@google/genai";
-import type { Product, Trend, ScoutedProduct, ConnectionStatus } from '../types';
+import { Type, Operation, VideoGenerationReferenceType, type VideoGenerationReferenceImage } from "@google/genai";
+import type { Product, Trend, ScoutedProduct, ConnectionStatus, TextModelSelection, VideoModelSelection, AudioVoiceSelection } from '../types';
 import { logger } from './loggingService';
 
 const BACKEND_URL = '/api/proxy'; // Use a relative path for Vercel serverless functions
@@ -12,7 +11,6 @@ const callBackend = async (endpoint: string, body: object): Promise<any> => {
             headers: {
                 'Content-Type': 'application/json',
             },
-            // Pass the original endpoint and body to the single proxy function
             body: JSON.stringify({ endpoint, ...body }),
         });
 
@@ -23,31 +21,30 @@ const callBackend = async (endpoint: string, body: object): Promise<any> => {
         return await response.json();
     } catch (error: any) {
         logger.error(`Failed to call backend at ${endpoint}`, { error: error.message });
-        if (endpoint === '/api/gemini') {
-            return { text: `Error: Could not connect to the backend service. Is it running? Details: ${error.message}` };
+        // The "connection refused" error typically manifests as "Failed to fetch" in browsers.
+        if (error.message.includes('Failed to fetch')) {
+            throw new Error(`Could not connect to the backend service. If you are developing locally, please ensure the proxy server is running ('node server.js') and try again.`);
         }
         throw error;
     }
 };
 
-const generateContentWithProxy = async (params: { model: string, contents: any, config?: any }, identifier: string): Promise<string> => {
+const generateContentWithProxy = async (params: { model: string, contents: any, config?: any }, identifier: string): Promise<any> => {
     logger.info(`Proxying Gemini API call for: ${identifier}`);
     const response = await callBackend('/gemini', { params, type: identifier });
-    return response.text;
+    return response;
 };
 
-const analyzeRpmPotential = async (productName: string, topic: string): Promise<'Low' | 'Medium' | 'High'> => {
+const analyzeRpmPotential = async (productName: string, topic: string, model: TextModelSelection): Promise<'Low' | 'Medium' | 'High'> => {
     const prompt = `As a YouTube monetization expert, assess the RPM (Revenue Per Mille) for a YouTube Shorts video about "${productName}", a product in the "${topic}" niche. Consider factors like advertiser appeal, audience demographics, and topic saturation. Your entire response must be a single word: Low, Medium, or High.`;
     
-    // In a real backend setup, we don't need to mock this. If the backend call fails, it will throw an error.
-    // For now, let's keep a simple fallback for robustness.
     try {
-        const responseText = await generateContentWithProxy({
-            model: "gemini-2.5-flash",
+        const response = await generateContentWithProxy({
+            model: model,
             contents: prompt
         }, `Analyze RPM for ${productName}`);
 
-        const cleanedResponse = responseText.trim();
+        const cleanedResponse = response.text.trim();
         if (cleanedResponse === 'Low' || cleanedResponse === 'Medium' || cleanedResponse === 'High') {
             return cleanedResponse;
         }
@@ -59,7 +56,7 @@ const analyzeRpmPotential = async (productName: string, topic: string): Promise<
     }
 }
 
-export const scoutForProducts = async (topic: string): Promise<ScoutedProduct[]> => {
+export const scoutForProducts = async (topic: string, model: TextModelSelection): Promise<ScoutedProduct[]> => {
     const prompt = `
 Act as an expert affiliate marketing researcher specializing in the digital product and AI tool space. 
 Your task is to identify 5 newly trending or high-potential digital products or AI tools related to "${topic}".
@@ -97,8 +94,8 @@ Focus on products that have launched or gained significant traction in the last 
     let baseProducts: Product[] = [];
     
     try {
-        const responseText = await generateContentWithProxy({
-            model: "gemini-2.5-flash",
+        const response = await generateContentWithProxy({
+            model: model,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -106,29 +103,27 @@ Focus on products that have launched or gained significant traction in the last 
             },
         }, `Scout for products on "${topic}"`);
         
-        if (responseText.startsWith("Error:")) {
-            logger.error("scoutForProducts received an error response from backend.", { responseText });
+        if (response.text.startsWith("Error:")) {
+            logger.error("scoutForProducts received an error response from backend.", { responseText: response.text });
             return [];
         }
         
-        const jsonText = responseText.trim();
+        const jsonText = response.text.trim();
         baseProducts = JSON.parse(jsonText);
     } catch (error) {
         logger.error("Error parsing JSON from scoutForProducts", { error });
         return [];
     }
 
-    // Enrich products with financial analysis
     const enrichedProducts: ScoutedProduct[] = await Promise.all(baseProducts.map(async (p): Promise<ScoutedProduct> => {
-        const rpmPotential = await analyzeRpmPotential(p.name, topic);
-        const affiliateScore = (p.commission || 0) * (p.conversions || 0) / 1000; // Simplified score
+        const rpmPotential = await analyzeRpmPotential(p.name, topic, model);
+        const affiliateScore = (p.commission || 0) * (p.conversions || 0) / 1000;
 
         const rpmValue = { 'Low': 30, 'Medium': 60, 'High': 90 }[rpmPotential];
         
-        // Normalize affiliate score to be roughly in the same range as RPM
         const normalizedAffiliateScore = Math.min(affiliateScore, 100);
 
-        const opportunityScore = Math.round((normalizedAffiliateScore * 0.6) + (rpmValue * 0.4)); // 60% affiliate, 40% RPM
+        const opportunityScore = Math.round((normalizedAffiliateScore * 0.6) + (rpmValue * 0.4));
 
         return {
             ...p,
@@ -144,7 +139,7 @@ Focus on products that have launched or gained significant traction in the last 
     return enrichedProducts;
 };
 
-export const huntForTrends = async (): Promise<Trend[]> => {
+export const huntForTrends = async (model: TextModelSelection): Promise<Trend[]> => {
     const prompt = `
 Act as a market trend analyst for digital content creators. 
 Identify 5 emerging, high-potential trending topics or niches suitable for YouTube Shorts review videos.
@@ -166,8 +161,8 @@ Ensure the response is a valid JSON array matching the provided schema.
     };
 
     try {
-        const responseText = await generateContentWithProxy({
-            model: "gemini-2.5-flash",
+        const response = await generateContentWithProxy({
+            model: model,
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -175,12 +170,12 @@ Ensure the response is a valid JSON array matching the provided schema.
             },
         }, "Hunt for trends");
 
-        if (responseText.startsWith("Error:")) {
-            logger.error("huntForTrends received an error response from backend.", { responseText });
+        if (response.text.startsWith("Error:")) {
+            logger.error("huntForTrends received an error response from backend.", { responseText: response.text });
             return [];
         }
 
-        const jsonText = responseText.trim();
+        const jsonText = response.text.trim();
         return JSON.parse(jsonText);
     } catch (error) {
         logger.error("Error parsing JSON from huntForTrends", { error });
@@ -189,7 +184,7 @@ Ensure the response is a valid JSON array matching the provided schema.
 };
 
 
-export const generateReviewScript = async (product: Product): Promise<string> => {
+export const generateReviewScript = async (product: Product, model: TextModelSelection, useGrounding: boolean): Promise<{ script: string, sources?: any[] }> => {
     const prompt = `
 You are an expert copywriter for viral YouTube Shorts. Write a concise and engaging 60-second video script (approximately 150 words) reviewing a digital product.
 
@@ -205,18 +200,24 @@ You are an expert copywriter for viral YouTube Shorts. Write a concise and engag
 2.  **Intro (5-10 seconds):** Briefly introduce "${product.name}" and the main problem it solves.
 3.  **Key Features (20-25 seconds):** Showcase 3 key features from the list: ${product.features}. Describe each feature's benefit in a simple, impactful way.
 4.  **Social Proof (5-7 seconds):** Naturally integrate the social proof. Example: "It's no wonder over ${product.conversions || 'thousands of'} users gave it a ${product.rating || 'excellent'} out of 5 rating."
-5.  **Call to Action (5-10 seconds):** Create a sense of urgency or exclusivity. Tell viewers exactly what to do. Example: "Try it for yourself with the link in my bio/description. Let me know what you create!"
+5.  **Strong Call to Action (5-10 seconds):** Create a powerful sense of urgency and a clear, direct call to action. Tell viewers to use the affiliate link which is located in the bio or description. Emphasize that using the link is the best way to get the tool and support the channel. Example: "Don't wait on this. I've put the direct link in my bio for you to get it right now. Using that link is a huge help to the channel, so thank you!"
 
 **Tone:** Energetic, trustworthy, and clear.
 **Output:** Provide only the raw script text, without any section titles like "Hook:" or "Intro:". The sections should flow naturally into one another.
 `;
-    return generateContentWithProxy({
-        model: 'gemini-2.5-flash',
-        contents: prompt
+    const response = await generateContentWithProxy({
+        model,
+        contents: prompt,
+        config: useGrounding ? { tools: [{ googleSearch: {} }] } : undefined,
     }, `Generate script for ${product.name}`);
+    
+    return {
+        script: response.text,
+        sources: response.groundingMetadata?.groundingChunks
+    };
 };
 
-export const generateVideoTitles = async (productName: string): Promise<string[]> => {
+export const generateVideoTitles = async (productName: string, model: TextModelSelection): Promise<string[]> => {
     const prompt = `
 Generate 5 viral-style, high-click-through-rate (CTR) titles for a YouTube Shorts review of "${productName}".
 
@@ -235,16 +236,16 @@ Generate 5 viral-style, high-click-through-rate (CTR) titles for a YouTube Short
 Your response must be ONLY a numbered list of the 5 titles. Do not include any other text, explanations, or quotation marks around the titles.
 `;
     const response = await generateContentWithProxy({
-        model: 'gemini-2.5-flash',
+        model: model,
         contents: prompt
     }, `Generate titles for ${productName}`);
     
-    if (response.startsWith("Error:")) return [response];
+    if (response.text.startsWith("Error:")) return [response.text];
 
-    return response.split('\n').filter(line => line.trim().match(/^\d+\./)).map(line => line.replace(/^\d+\.\s*/, '').trim());
+    return response.text.split('\n').filter(line => line.trim().match(/^\d+\./)).map(line => line.replace(/^\d+\.\s*/, '').trim());
 };
 
-export const generateSeoDescription = async (productName: string): Promise<string> => {
+export const generateSeoDescription = async (productName: string, model: TextModelSelection): Promise<string> => {
     const prompt = `
 You are a YouTube SEO expert. Write an optimized video description for a review of "${productName}".
 
@@ -257,13 +258,14 @@ You are a YouTube SEO expert. Write an optimized video description for a review 
 
 The entire description should be concise and easy to read.
 `;
-    return generateContentWithProxy({
-        model: 'gemini-2.5-flash',
+    const response = await generateContentWithProxy({
+        model: model,
         contents: prompt
     }, `Generate SEO description for ${productName}`);
+    return response.text;
 };
 
-export const generateCaptionsAndHashtags = async (productName: string): Promise<{ caption: string, hashtags: string[] }> => {
+export const generateCaptionsAndHashtags = async (productName: string, model: TextModelSelection): Promise<{ caption: string, hashtags: string[] }> => {
     const prompt = `
 You are a social media manager specializing in short-form video content. Create a caption and hashtags for a TikTok/Shorts video about "${productName}".
 
@@ -276,15 +278,15 @@ Caption: [Your generated caption here]
 Hashtags: [#hashtag1 #hashtag2 #hashtag3 ...]
 `;
     const response = await generateContentWithProxy({
-        model: 'gemini-2.5-flash',
+        model: model,
         contents: prompt
     }, `Generate captions for ${productName}`);
 
-    if (response.startsWith("Error:")) {
-        return { caption: response, hashtags: [] };
+    if (response.text.startsWith("Error:")) {
+        return { caption: response.text, hashtags: [] };
     }
 
-    const lines = response.split('\n');
+    const lines = response.text.split('\n');
     const captionLine = lines.find(line => line.toLowerCase().startsWith('caption:')) || '';
     const hashtagsLine = lines.find(line => line.toLowerCase().startsWith('hashtags:')) || '';
 
@@ -294,7 +296,7 @@ Hashtags: [#hashtag1 #hashtag2 #hashtag3 ...]
     return { caption, hashtags };
 };
 
-export const translateText = async (text: string, targetLanguage: string): Promise<string> => {
+export const translateText = async (text: string, targetLanguage: string, model: TextModelSelection): Promise<string> => {
     const prompt = `
 Translate the following text into ${targetLanguage}.
 Provide only the translated text, without any introductory phrases or explanations.
@@ -304,27 +306,41 @@ Text to translate:
 ${text}
 ---
 `;
-    return generateContentWithProxy({
-        model: 'gemini-2.5-flash',
+    const response = await generateContentWithProxy({
+        model: model,
         contents: prompt
     }, `Translate text to ${targetLanguage}`);
+    return response.text;
 };
 
-export const generateVideo = async (script: string, model: string, imageBase64?: string): Promise<Operation<any> | { name: string, done: false }> => {
+export const generateVideo = async (script: string, model: VideoModelSelection, referenceImages: string[]): Promise<Operation<any>> => {
     logger.info("Starting video generation via backend proxy.");
     
-    const payload: { script: string, model: string, image?: { data: string, mimeType: string } } = { script, model };
+    const payload: { 
+        script: string, 
+        model: VideoModelSelection, 
+        image?: { data: string, mimeType: string },
+        referenceImages?: { data: string, mimeType: string }[]
+    } = { script, model };
     
-    if (imageBase64) {
-        // data:image/png;base64,xxxxxxxx
-        const parts = imageBase64.split(';base64,');
-        if (parts.length === 2) {
+    if (referenceImages && referenceImages.length > 0) {
+        const imagePayloads = referenceImages.map(base64Image => {
+            const parts = base64Image.split(';base64,');
+            if (parts.length !== 2) {
+                logger.warn("Invalid base64 image format provided for a reference image.");
+                return null;
+            }
             const mimeType = parts[0].split(':')[1];
             const data = parts[1];
-            payload.image = { data, mimeType };
+            return { data, mimeType };
+        }).filter((p): p is { data: string; mimeType: string; } => p !== null);
+
+        if (imagePayloads.length === 1) {
+            payload.image = imagePayloads[0];
             logger.info("Video generation includes a starting image.");
-        } else {
-            logger.warn("Invalid base64 image format provided.");
+        } else if (imagePayloads.length > 1) {
+            payload.referenceImages = imagePayloads;
+            logger.info(`Video generation includes ${imagePayloads.length} reference images.`);
         }
     }
 
@@ -338,12 +354,12 @@ export const generateVideo = async (script: string, model: string, imageBase64?:
     }
 };
 
-export const generateSpeech = async (script: string, voice: string): Promise<string> => {
+export const generateSpeech = async (script: string, voice: AudioVoiceSelection, speakerVoiceConfig?: { speaker: string, voice: AudioVoiceSelection }[]): Promise<string> => {
     logger.info("Starting speech generation via backend proxy.");
     try {
-        const response = await callBackend('/generate-speech', { script, voice });
+        const response = await callBackend('/generate-speech', { script, voice, speakerVoiceConfig });
         logger.info("Speech generation successful.");
-        return response.audioData; // The backend will return { audioData: 'base64...' }
+        return response.audioData; 
     } catch (error: any) {
         logger.error("Failed to generate speech via backend.", { error: error.message });
         throw error;
@@ -356,8 +372,6 @@ export const generateThumbnail = async (prompt: string): Promise<string> => {
         const response = await callBackend('/generate-thumbnail', { prompt });
         if (response.imageData) {
             logger.info("Thumbnail generation successful.");
-            // The backend returns { imageData: 'base64...' }
-            // Prepend the necessary data URL prefix for use in <img> tags
             return `data:image/png;base64,${response.imageData}`;
         }
         throw new Error("imageData not found in backend response.");
@@ -380,7 +394,6 @@ export const getVideoOperationStatus = async (operationName: string): Promise<Op
 export const downloadVideo = async (videoUrl: string): Promise<Blob> => {
     logger.info("Starting video download via backend proxy.");
     try {
-        // This fetch is different; it expects a blob, not JSON.
         const response = await fetch(BACKEND_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -388,7 +401,6 @@ export const downloadVideo = async (videoUrl: string): Promise<Blob> => {
         });
 
         if (!response.ok) {
-            // Try to parse error JSON, but fall back if it's not JSON
             try {
                  const errorData = await response.json();
                  throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
@@ -411,5 +423,15 @@ export const checkConnections = async (): Promise<Record<string, { status: Conne
     } catch (error: any) {
         logger.error("Failed to check connection statuses.", { error: error.message });
         throw error;
+    }
+};
+
+export const checkUrlStatus = async (url: string): Promise<{ ok: boolean, status: number, statusText: string }> => {
+    logger.info(`Checking URL status via proxy: ${url}`);
+    try {
+        return await callBackend('check-url', { url });
+    } catch (error: any) {
+        logger.error(`Failed to check URL status for ${url}`, { error: error.message });
+        return { ok: false, status: 500, statusText: error.message };
     }
 };

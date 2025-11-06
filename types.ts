@@ -4,7 +4,7 @@ export enum Page {
     PRODUCT_SCOUT = 'Product Scout',
     PROMPT_TEMPLATES = 'Prompt Templates',
     CONTENT_GENERATOR = 'Content Generator',
-    PUBLISHER = 'Publisher',
+    STUDIO = 'Studio',
     RENDER_QUEUE = 'Render Queue',
     CONNECTIONS = 'Connections',
     ANALYTICS = 'Analytics',
@@ -34,6 +34,7 @@ export interface GeneratedContent {
         caption: string;
         hashtags: string[];
     };
+    sources?: any[];
 }
 
 export interface ProductFinancials {
@@ -75,7 +76,9 @@ export type RenderStatus = 'Queued' | 'Rendering' | 'Completed' | 'Failed';
 export type AIModel = 'Sora 2' | 'VEO 3.1' | 'VEO 3.1 HQ' | 'Suno' | 'Dreamina' | 'KlingAI' | 'ElevenLabs Voice AI' | 'Gemini TTS';
 
 export type VideoModelSelection = 'veo-3.1-fast-generate-preview' | 'veo-3.1-generate-preview';
-export type AudioVoiceSelection = 'Kore' | 'Puck' | 'Charon' | 'Fenrir';
+export type AudioVoiceSelection = 'Kore' | 'Puck' | 'Charon' | 'Fenrir' | 'Zephyr';
+
+export type TextModelSelection = 'gemini-2.5-flash' | 'gemini-2.5-pro';
 
 export interface RenderJob {
   id: number;
@@ -125,6 +128,8 @@ export interface AccountConnection {
     username: string;
     credentials: Record<string, string>;
     connectedAt: string;
+    isActive?: boolean;
+    commissionEstimate?: string;
 }
 
 
@@ -134,6 +139,15 @@ export interface ConnectionHealth {
     id: string;
     nameKey: string;
     status: ConnectionHealthStatus;
+    lastChecked: string;
+}
+
+export interface AffiliateHealth {
+    connectionId: string;
+    platformId: string;
+    username: string;
+    status: 'OK' | 'Warning' | 'Error';
+    message: string;
     lastChecked: string;
 }
 
@@ -173,6 +187,18 @@ export interface Notification {
     message: string;
     duration?: number;
 }
+
+export interface Platform {
+    id: string;
+    nameKey: string;
+    docsUrl: string;
+    signupUrl: string;
+    neonColor: string;
+    categoryKey: string;
+    guideKey: string;
+    credentials: { id: string; labelKey: string; placeholderKey: string; type: 'text' | 'password' }[];
+}
+
 // Fix: By defining the AIStudio interface within the `declare global` block, it becomes a globally
 // available type, resolving a TypeScript error where subsequent property declarations could have
 // conflicting types due to module scoping.

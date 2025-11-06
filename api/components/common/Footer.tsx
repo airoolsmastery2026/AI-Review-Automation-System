@@ -1,8 +1,10 @@
 
 
 
+
+
 import React from 'react';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../../hooks/useI18n';
 
 export const Footer: React.FC = () => {
     const { t } = useI18n();

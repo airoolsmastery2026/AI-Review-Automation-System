@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import type { ProductWithContent } from '../types';
+import type { ProductWithContent } from '../../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { useI18n } from '../hooks/useI18n';
+import { useI18n } from '../../hooks/useI18n';
 import { DollarSign, TrendingUp, BarChart3 } from './LucideIcons';
 
 interface FinanceProps {

@@ -1,9 +1,10 @@
+
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import type { ProductWithContent, RenderJob } from '../types';
+import type { ProductWithContent, RenderJob } from '../../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { SystemLog } from './SystemLog';
-import { useI18n } from '../hooks/useI18n';
+import { useI18n } from '../../hooks/useI18n';
 import { TrendingUp, DollarSign, BarChart3, Eye } from './LucideIcons';
 
 interface DashboardProps {

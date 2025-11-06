@@ -1,9 +1,10 @@
+
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { TemplateIcon } from './Icons';
-import { useI18n } from '../hooks/useI18n';
-import { logger } from '../services/loggingService';
+import { useI18n } from '../../hooks/useI18n';
+import { logger } from '../../services/loggingService';
 
 type TemplateType = 'script' | 'titles' | 'description' | 'captions';
 

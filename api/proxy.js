@@ -1,5 +1,4 @@
-
-const { GoogleGenAI, Modality } = require('@google/genai');
+const { GoogleGenAI, Modality, VideoGenerationReferenceType } = require('@google/genai');
 
 // Vercel handles environment variables, which we access via process.env
 const getGenAI = () => {
@@ -33,7 +32,6 @@ const PLATFORM_ENV_MAP = {
 
 // This is the main handler for all requests to /api/proxy
 module.exports = async (req, res) => {
-    // Vercel automatically enables CORS for same-origin, but we can set headers if needed
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -49,137 +47,115 @@ module.exports = async (req, res) => {
     const { endpoint, ...body } = req.body;
 
     try {
+        if (!endpoint) {
+            return res.status(400).json({ error: 'Missing endpoint in request body' });
+        }
+
         const ai = getGenAI();
 
-        switch (endpoint) {
-            case '/gemini': {
-                const { params } = body;
-                if (!params) {
-                    return res.status(400).json({ error: 'Missing parameters for /gemini' });
-                }
-                const response = await ai.models.generateContent(params);
-                return res.status(200).json({ text: response.text });
-            }
+        if (endpoint === 'gemini') {
+            const { params } = body;
+            const response = await ai.models.generateContent(params);
+            return res.status(200).json({ 
+                text: response.text,
+                groundingMetadata: response.candidates?.[0]?.groundingMetadata 
+            });
+        } else if (endpoint === 'generate-video') {
+            const { script, model, image, referenceImages } = body;
+            
+            const videoParams = {
+                model,
+                prompt: script,
+                config: { numberOfVideos: 1, resolution: '720p', aspectRatio: '9:16' }
+            };
 
-            case '/generate-video': {
-                const { script, image, model } = body; // image will be { data: '...', mimeType: '...' }
-                if (!script) {
-                    return res.status(400).json({ error: 'Missing script for /generate-video' });
-                }
-                
-                const videoParams = {
-                    model: model || 'veo-3.1-fast-generate-preview',
-                    prompt: script,
-                    config: {
-                        numberOfVideos: 1,
-                        resolution: '720p',
-                        aspectRatio: '9:16'
-                    }
+            if (referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
+                 videoParams.config.referenceImages = referenceImages.map(img => ({
+                    image: { imageBytes: img.data, mimeType: img.mimeType },
+                    referenceType: VideoGenerationReferenceType.ASSET
+                }));
+            } else if (image) {
+                videoParams.image = { imageBytes: image.data, mimeType: image.mimeType };
+            }
+            
+            const operation = await ai.models.generateVideos(videoParams);
+            return res.status(200).json(operation);
+        } else if (endpoint === 'generate-speech') {
+             const { script, voice, speakerVoiceConfig } = body;
+
+             const speechConfigPayload = {};
+             if (speakerVoiceConfig && Array.isArray(speakerVoiceConfig) && speakerVoiceConfig.length > 0) {
+                 speechConfigPayload.multiSpeakerVoiceConfig = {
+                     speakerVoiceConfigs: speakerVoiceConfig.map(svc => ({
+                         speaker: svc.speaker,
+                         voiceConfig: { prebuiltVoiceConfig: { voiceName: svc.voice } }
+                     }))
+                 };
+             } else {
+                 speechConfigPayload.voiceConfig = { prebuiltVoiceConfig: { voiceName: voice } };
+             }
+
+             const response = await ai.models.generateContent({
+                model: "gemini-2.5-flash-preview-tts",
+                contents: [{ parts: [{ text: script }] }],
+                config: {
+                    responseModalities: [Modality.AUDIO],
+                    speechConfig: speechConfigPayload,
+                },
+            });
+            const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+            return res.status(200).json({ audioData });
+        } else if (endpoint === 'generate-thumbnail') {
+            const { prompt } = body;
+            const response = await ai.models.generateImages({
+                model: 'imagen-4.0-generate-001',
+                prompt,
+                config: { numberOfImages: 1, outputMimeType: 'image/png', aspectRatio: '16:9' }
+            });
+            const imageData = response.generatedImages[0].image.imageBytes;
+            return res.status(200).json({ imageData });
+        } else if (endpoint === 'video-status') {
+            const { operationName } = body;
+            const operation = await ai.operations.getVideosOperation({ operation: { name: operationName } });
+            return res.status(200).json(operation);
+        } else if (endpoint === 'download-video') {
+            const { videoUrl } = body;
+            const fetchRes = await fetch(`${videoUrl}&key=${process.env.API_KEY}`);
+            if (!fetchRes.ok) throw new Error(`Failed to fetch video: ${fetchRes.statusText}`);
+            res.setHeader('Content-Type', 'video/mp4');
+            fetchRes.body.pipe(res);
+            return;
+        } else if (endpoint === 'check-connections') {
+            const statuses = {};
+            for (const [platform, envVars] of Object.entries(PLATFORM_ENV_MAP)) {
+                statuses[platform] = {
+                    status: envVars.every(v => process.env[v]) ? 'Configured' : 'Not Configured'
                 };
-            
-                if (image && image.data && image.mimeType) {
-                    videoParams.image = {
-                        imageBytes: image.data,
-                        mimeType: image.mimeType
-                    };
-                }
-            
-                const operation = await ai.models.generateVideos(videoParams);
-                return res.status(200).json(operation);
             }
-
-            case '/generate-speech': {
-                const { script, voice } = body;
-                if (!script) {
-                    return res.status(400).json({ error: 'Missing script for /generate-speech' });
-                }
-                const response = await ai.models.generateContent({
-                    model: "gemini-2.5-flash-preview-tts",
-                    contents: [{ parts: [{ text: script }] }],
-                    config: {
-                        responseModalities: [Modality.AUDIO],
-                        speechConfig: {
-                            voiceConfig: { prebuiltVoiceConfig: { voiceName: voice || 'Kore' } },
-                        },
-                    },
-                });
-                const audioData = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-                return res.status(200).json({ audioData });
+            return res.status(200).json(statuses);
+        } else if (endpoint === 'check-url') {
+            const { url } = body;
+            if (!url) {
+                return res.status(400).json({ error: 'Missing url in request body' });
             }
-            
-            case '/generate-thumbnail': {
-                const { prompt } = body;
-                if (!prompt) {
-                    return res.status(400).json({ error: 'Missing prompt for /generate-thumbnail' });
-                }
-                const response = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash-image',
-                    contents: { parts: [{ text: prompt }] },
-                    config: {
-                        responseModalities: [Modality.IMAGE],
-                    },
-                });
-
-                // Find the image part in the response
-                const imagePart = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-                if (imagePart && imagePart.inlineData) {
-                    const imageData = imagePart.inlineData.data; // This is the base64 string
-                    return res.status(200).json({ imageData });
-                } else {
-                    return res.status(500).json({ error: 'Failed to generate thumbnail image from AI response' });
-                }
+            try {
+                const response = await fetch(url, { method: 'HEAD' });
+                return res.status(200).json({ ok: response.ok, status: response.status, statusText: response.statusText });
+            } catch (fetchError) {
+                return res.status(200).json({ ok: false, status: 503, statusText: fetchError.message });
             }
-
-            case '/video-status': {
-                const { operationName } = body;
-                if (!operationName) {
-                    return res.status(400).json({ error: 'Missing operationName for /video-status' });
-                }
-                const operation = await ai.operations.getVideosOperation({ operation: { name: operationName } });
-                return res.status(200).json(operation);
-            }
-
-            case '/download-video': {
-                const { videoUrl } = body;
-                if (!videoUrl) {
-                    return res.status(400).json({ error: 'Missing videoUrl for /download-video' });
-                }
-                try {
-                    const videoResponse = await fetch(`${videoUrl}&key=${process.env.API_KEY}`);
-                    if (!videoResponse.ok) {
-                        throw new Error(`Failed to fetch video from source: ${videoResponse.statusText}`);
-                    }
-                    
-                    res.setHeader('Content-Type', 'video/mp4');
-                    res.setHeader('Content-Disposition', `attachment; filename="generated_video.mp4"`);
-                    
-                    const { Readable } = require('stream');
-                    const readableNodeStream = Readable.fromWeb(videoResponse.body);
-                    return readableNodeStream.pipe(res);
-                } catch (error) {
-                    console.error('Video download error:', error);
-                    return res.status(500).json({ error: 'Failed to download video', details: error.message });
-                }
-            }
-
-            case '/check-connections': {
-                const statuses = {};
-                for (const platformId in PLATFORM_ENV_MAP) {
-                    const keys = PLATFORM_ENV_MAP[platformId];
-                    const isConfigured = keys.every(key => process.env[key]);
-                    statuses[platformId] = { status: isConfigured ? 'Configured' : 'Not Configured' };
-                }
-                return res.status(200).json(statuses);
-            }
-
-            default:
-                return res.status(404).json({ error: `Endpoint not found: ${endpoint}` });
+        } else {
+            return res.status(404).json({ error: 'Endpoint not found' });
         }
     } catch (error) {
-        console.error(`Error processing endpoint ${endpoint}:`, error);
-        if (error.message.includes('API key not valid') || error.message.includes('not found') || error.message.includes('Requested entity was not found') || error.message.includes('billing')) {
-            return res.status(401).json({ error: 'API key not valid, not found, or billing not enabled. Please check your key in Vercel environment variables.', details: error.message });
+        console.error(`API Proxy Error at endpoint [${endpoint}]:`, error);
+        const errorMessage = error.message || 'An unknown error occurred';
+        let statusCode = 500;
+
+        if (errorMessage.includes("API key not valid") || errorMessage.includes("not found") || errorMessage.includes("Requested entity was not found") || errorMessage.includes("permission") || errorMessage.includes("billing")) {
+            statusCode = 401;
         }
-        return res.status(500).json({ error: 'An internal server error occurred', details: error.message });
+        
+        return res.status(statusCode).json({ error: `An error occurred at endpoint: ${endpoint}`, details: errorMessage });
     }
 };

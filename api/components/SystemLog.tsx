@@ -1,7 +1,8 @@
+
 import React, { useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { RenderJob } from '../types';
-import { useI18n } from '../hooks/useI18n';
+import { RenderJob } from '../../types';
+import { useI18n } from '../../hooks/useI18n';
 import { EditIcon, PublishIcon } from './Icons';
 import { Search, Video } from './LucideIcons';
 

@@ -1,13 +1,14 @@
 
+
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useI18n } from '../hooks/useI18n';
+import { useI18n } from '../../hooks/useI18n';
 import { Button } from './common/Button';
 import { X, Palette } from './LucideIcons';
-import { generateThumbnail } from '../services/geminiService';
+import { generateThumbnail } from '../../services/geminiService';
 import { Spinner } from './common/Spinner';
-import { useNotifier } from '../contexts/NotificationContext';
-import { logger } from '../services/loggingService';
+import { useNotifier } from '../../contexts/NotificationContext';
+import { logger } from '../../services/loggingService';
 
 interface ThumbnailGeneratorModalProps {
     isOpen: boolean;

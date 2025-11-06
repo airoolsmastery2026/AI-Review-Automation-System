@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from "react";
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Server, Bot, CheckCircle } from "./LucideIcons";
-import type { AutomationSettings } from '../types';
-import { useI18n } from "../hooks/useI18n";
+import type { AutomationSettings } from '../../types';
+import { useI18n } from "../../hooks/useI18n";
 
 interface AutomationProps {
     settings: AutomationSettings;

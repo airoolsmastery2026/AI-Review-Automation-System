@@ -1,10 +1,11 @@
 
+
 import React from 'react';
 import { Page } from '../types';
-import { AnalyticsIcon, DashboardIcon, EditIcon, PublishIcon, SearchIcon, CloseIcon, SparklesIcon, ConnectIcon, TemplateIcon } from './Icons';
-import { Video, BookOpen, ShieldCheck, GitBranch, CreditCard } from './LucideIcons';
-import { useI18n } from '../hooks/useI18n';
-import { pageToSlug } from '../utils/navigation';
+import { AnalyticsIcon, DashboardIcon, EditIcon, CloseIcon, SparklesIcon, ConnectIcon, TemplateIcon } from './Icons';
+import { Video, BookOpen, ShieldCheck, GitBranch, CreditCard, Film } from './LucideIcons';
+import { useI18n } from '../../hooks/useI18n';
+import { pageToSlug } from '../../utils/navigation';
 
 const Logo = () => {
     const { t } = useI18n();
@@ -34,10 +35,10 @@ const Logo = () => {
 const navigation = [
     { name: Page.DASHBOARD, icon: DashboardIcon },
     { name: Page.AUTOMATION, icon: SparklesIcon },
-    { name: Page.PRODUCT_SCOUT, icon: SearchIcon },
+    { name: Page.PRODUCT_SCOUT, icon: EditIcon },
     { name: Page.PROMPT_TEMPLATES, icon: TemplateIcon },
     { name: Page.CONTENT_GENERATOR, icon: EditIcon },
-    { name: Page.PUBLISHER, icon: PublishIcon },
+    { name: Page.STUDIO, icon: Film },
     { name: Page.RENDER_QUEUE, icon: Video },
     { name: Page.CONNECTIONS, icon: ConnectIcon },
     { name: Page.ANALYTICS, icon: AnalyticsIcon },
