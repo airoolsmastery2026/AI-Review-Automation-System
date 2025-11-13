@@ -1,5 +1,4 @@
-
-import React, { useRef, useEffect } from 'react';
+import * as React from 'react';
 import * as THREE from 'three';
 
 interface StarfieldProps {
@@ -8,16 +7,16 @@ interface StarfieldProps {
 }
 
 export const Starfield: React.FC<StarfieldProps> = ({ mouseX, mouseY }) => {
-    const mountRef = useRef<HTMLDivElement>(null);
-    const mousePosRef = useRef({ x: mouseX, y: mouseY });
+    const mountRef = React.useRef<HTMLDivElement>(null);
+    const mousePosRef = React.useRef({ x: mouseX, y: mouseY });
 
     // Update mouse position ref without re-triggering the main effect
-    useEffect(() => {
+    React.useEffect(() => {
         mousePosRef.current = { x: mouseX, y: mouseY };
     }, [mouseX, mouseY]);
 
     // Main Three.js setup effect, runs only once
-    useEffect(() => {
+    React.useEffect(() => {
         if (!mountRef.current) return;
         const currentMount = mountRef.current;
         let cleanup = () => {}; // Start with a no-op cleanup function

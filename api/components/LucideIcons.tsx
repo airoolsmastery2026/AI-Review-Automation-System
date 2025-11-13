@@ -1,6 +1,5 @@
 
-
-import React from 'react';
+import * as React from 'react';
 
 // This file contains Lucide icons as React components for use in the application.
 
@@ -140,9 +139,17 @@ export const Film = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="17" y1="2" x2="17" y2="22"/><line x1="2" y1="12" x2="22" y2="12"/><line x1="2" y1="7" x2="7" y2="7"/><line x1="2" y1="17" x2="7" y2="7"/><line x1="17" y1="17" x2="22" y2="17"/><line x1="17" y1="7" x2="22" y2="7"/></svg>
 );
 
-// Fix: Add missing Image icon
 export const Image = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+);
+
+export const Images = (props: React.SVGProps<SVGSVGElement>) => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+        <path d="M18 22H4a2 2 0 0 1-2-2V6"/>
+        <path d="m22 13-1.296-1.296a2.41 2.41 0 0 0-3.408 0L11 18"/>
+        <circle cx="12" cy="12" r="2"/>
+        <rect width="16" height="16" x="6" y="2" rx="2"/>
+    </svg>
 );
 
 export const Mic2 = (props: React.SVGProps<SVGSVGElement>) => (
@@ -273,7 +280,6 @@ export const FilePenLine = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
 );
 
-// Fix: Add missing Percent icon
 export const Percent = (props: React.SVGProps<SVGSVGElement>) => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
         <line x1="19" y1="5" x2="5" y2="19"/>
@@ -283,4 +289,6 @@ export const Percent = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 // Alias for Telegram
-export const Telegram = BotMessageSquare;
+export const Telegram = (props: React.SVGProps<SVGSVGElement>) => (
+    <BotMessageSquare {...props} />
+);

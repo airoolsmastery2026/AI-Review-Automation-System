@@ -1,12 +1,15 @@
 
 
 
-import React from 'react';
+
+
+
+import * as React from 'react';
 import { XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, AreaChart, Area } from 'recharts';
 import { Card, CardHeader, CardTitle, CardDescription } from './components/common/Card';
 import type { PlatformPerformance, ProductWithContent } from '../types';
 import { Youtube, Instagram, TrendingUp } from './components/LucideIcons';
-import { useI18n } from '../hooks/useI18n';
+import { useI18n } from '../contexts/I18nContext';
 
 interface AnalyticsProps {
     productsWithContent: ProductWithContent[];

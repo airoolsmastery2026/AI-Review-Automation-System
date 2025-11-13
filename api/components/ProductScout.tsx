@@ -1,11 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+
+
+
+import * as React from 'react';
 import type { Product, ScoutedProduct, Trend, TextModelSelection } from '../../types';
 import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Search, Clock, X, SkipForward, Bot, TrendingUp, DollarSign } from './LucideIcons';
-import { useI18n } from '../../hooks/useI18n';
-import { scoutForProducts, huntForTrends } from '../../services/geminiService';
+import { useI18n } from '../../contexts/I18nContext';
+import { scoutForProducts, huntForTrends } from './services/geminiService';
 import { Spinner } from './common/Spinner';
 
 const FIFTEEN_MINUTES = 15 * 60 * 1000;
@@ -13,9 +16,9 @@ const TWO_HOURS = 2 * 60 * 60 * 1000;
 
 const CountdownTimer: React.FC<{ foundAt: number }> = ({ foundAt }) => {
     const { t } = useI18n();
-    const [timeLeft, setTimeLeft] = useState('');
+    const [timeLeft, setTimeLeft] = React.useState('');
 
-    useEffect(() => {
+    React.useEffect(() => {
         const updateTimer = () => {
             const now = Date.now();
             const elapsed = now - foundAt;
@@ -142,11 +145,11 @@ const ModelSelector: React.FC<{
 };
 
 export const ProductScout: React.FC<ProductScoutProps> = ({ onApproveAndGenerate, pendingProducts, setPendingProducts }) => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [isHunting, setIsHunting] = useState(false);
-    const [trends, setTrends] = useState<Trend[]>([]);
-    const [topic, setTopic] = useState('');
-    const [textModel, setTextModel] = useState<TextModelSelection>('gemini-2.5-flash');
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [isHunting, setIsHunting] = React.useState(false);
+    const [trends, setTrends] = React.useState<Trend[]>([]);
+    const [topic, setTopic] = React.useState('');
+    const [textModel, setTextModel] = React.useState<TextModelSelection>('gemini-2.5-flash');
     const { t } = useI18n();
 
     const handleHuntTrends = async () => {

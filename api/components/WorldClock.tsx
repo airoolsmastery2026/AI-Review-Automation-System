@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useI18n } from '../hooks/useI18n';
+
+import * as React from 'react';
+import { useI18n } from '../../contexts/I18nContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from './LucideIcons';
 
@@ -19,9 +20,6 @@ const initialClocks: ClockState[] = [
 
 let timezones: string[] = [];
 try {
-    // Fix: Cast `Intl` to `any` to bypass a TypeScript error for `supportedValuesOf`,
-    // which may not be included in the project's default TS library version. The `try...catch`
-    // block handles the runtime check for browsers that do not support this method.
     timezones = (Intl as any).supportedValuesOf('timeZone');
 } catch (e) {
     console.warn("Intl.supportedValuesOf('timeZone') is not supported, using a fallback list.");
@@ -34,17 +32,17 @@ try {
 
 export const WorldClock: React.FC = () => {
     const { t } = useI18n();
-    const [currentTime, setCurrentTime] = useState(new Date());
-    const [clocks, setClocks] = useState<ClockState[]>(initialClocks);
-    const [isOpen, setIsOpen] = useState(false);
-    const wrapperRef = useRef<HTMLDivElement>(null);
+    const [currentTime, setCurrentTime] = React.useState(new Date());
+    const [clocks, setClocks] = React.useState<ClockState[]>(initialClocks);
+    const [isOpen, setIsOpen] = React.useState(false);
+    const wrapperRef = React.useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const timerId = setInterval(() => setCurrentTime(new Date()), 1000);
         return () => clearInterval(timerId);
     }, []);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
                 setIsOpen(false);

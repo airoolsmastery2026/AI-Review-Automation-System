@@ -1,5 +1,4 @@
-
-import React from 'react';
+import * as React from 'react';
 import { motion } from 'framer-motion';
 import { CheckCircle, AlertTriangle, Info, X } from '../LucideIcons';
 import type { Notification } from '../../types';

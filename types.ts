@@ -80,6 +80,10 @@ export type AudioVoiceSelection = 'Kore' | 'Puck' | 'Charon' | 'Fenrir' | 'Zephy
 
 export type TextModelSelection = 'gemini-2.5-flash' | 'gemini-2.5-pro';
 
+export type VideoResolution = '720p' | '1080p';
+export type VideoAspectRatio = '9:16' | '16:9';
+
+
 export interface RenderJob {
   id: number;
   productName: string;
@@ -90,6 +94,8 @@ export interface RenderJob {
   operationName?: string;
   videoUrl?: string;
   audioData?: string;
+  resolution?: VideoResolution;
+  aspectRatio?: VideoAspectRatio;
 }
 
 export type ScoutStatus = 'pending' | 'approved' | 'declined' | 'skipped' | 'auto-producing';
@@ -199,9 +205,6 @@ export interface Platform {
     credentials: { id: string; labelKey: string; placeholderKey: string; type: 'text' | 'password' }[];
 }
 
-// Fix: By defining the AIStudio interface within the `declare global` block, it becomes a globally
-// available type, resolving a TypeScript error where subsequent property declarations could have
-// conflicting types due to module scoping.
 declare global {
     interface AIStudio {
         openSelectKey: () => Promise<void>;

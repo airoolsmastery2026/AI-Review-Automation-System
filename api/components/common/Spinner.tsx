@@ -1,5 +1,6 @@
 
-import React from 'react';
+
+import * as React from 'react';
 
 export const Spinner: React.FC = () => {
     return (

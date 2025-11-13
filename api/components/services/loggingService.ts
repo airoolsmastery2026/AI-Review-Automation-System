@@ -1,4 +1,5 @@
-import type { LogEntry } from '../types';
+
+import type { LogEntry } from '../../../types';
 
 class LoggingService {
     private logs: LogEntry[] = [];

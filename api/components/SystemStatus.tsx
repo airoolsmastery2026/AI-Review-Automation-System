@@ -1,17 +1,15 @@
 
-
-
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
-import { useI18n } from '../../hooks/useI18n';
-import { logger } from '../../services/loggingService';
+import { useI18n } from '../../contexts/I18nContext';
+import { logger } from './services/loggingService';
 import type { LogEntry, ConnectionHealth, ConnectionHealthStatus, AccountConnection, AffiliateHealth } from '../../types';
 import { ShieldCheck, HardDriveDownload, Server, AlertTriangle, Check, X, RefreshCw } from './LucideIcons';
 import { PlatformLogo } from './PlatformLogo';
 import { LOCAL_STORAGE_KEY, platforms as allPlatforms } from './data/connections';
 import { useNotifier } from '../../contexts/NotificationContext';
-import { checkUrlStatus } from '../../services/geminiService';
+import { checkUrlStatus } from './services/geminiService';
 
 const LOG_STORAGE_KEY = 'ai-automation-affiliate-health';
 const LAST_CHECK_STORAGE_KEY = 'ai-automation-last-affiliate-check';
@@ -60,143 +58,187 @@ const AffiliateStatusIcon: React.FC<{ status: AffiliateHealth['status'] }> = ({ 
 export const SystemStatus: React.FC = () => {
     const { t } = useI18n();
     const notifier = useNotifier();
-    const [logs, setLogs] = useState<LogEntry[]>([]);
-    const [connections, setConnections] = useState<ConnectionHealth[]>([]);
-    const [affiliateHealth, setAffiliateHealth] = useState<AffiliateHealth[]>([]);
-    const [isCheckingAffiliates, setIsCheckingAffiliates] = useState(false);
+    const [logs, setLogs] = React.useState<LogEntry[]>([]);
+    const [connections, setConnections] = React.useState<ConnectionHealth[]>([]);
+    const [affiliateHealth, setAffiliateHealth] = React.useState<AffiliateHealth[]>([]);
+    const [isCheckingAffiliates, setIsCheckingAffiliates] = React.useState(false);
     
-    useEffect(() => {
+    React.useEffect(() => {
         const unsubscribe = logger.subscribe(setLogs);
         return () => unsubscribe();
     }, []);
 
     // Effect for core connection status
-    useEffect(() => {
-        const checkConnectionStatus = () => {
+    React.useEffect(() => {
+        // Mocking core service connections for display
+        const coreServices: ConnectionHealth[] = [
+            { id: 'gemini_api', nameKey: 'connections.gemini', status: 'Connected', lastChecked: new Date().toISOString() },
+        ];
+        setConnections(coreServices);
+
+        const savedHealth = localStorage.getItem(LOG_STORAGE_KEY);
+        if (savedHealth) {
             try {
-                const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-                const storedAccounts: AccountConnection[] = stored ? JSON.parse(stored) : [];
-                const configuredPlatformIds = new Set(storedAccounts.map(acc => acc.platformId));
-                const updatedConnections = allPlatforms.map((connInfo): ConnectionHealth => ({
-                    ...connInfo,
-                    status: configuredPlatformIds.has(connInfo.id) ? 'Connected' : 'Disconnected',
-                    lastChecked: new Date().toISOString()
-                }));
-                const geminiStatus: ConnectionHealth = {
-                    id: 'gemini', nameKey: 'connections.gemini', status: 'Connected', lastChecked: new Date().toISOString()
-                };
-                setConnections([geminiStatus, ...updatedConnections]);
-            } catch (error) {
-                logger.error("Failed to parse connections from localStorage", { error });
+                setAffiliateHealth(JSON.parse(savedHealth));
+            } catch (e) {
+                logger.error("Failed to parse affiliate health from storage.", { error: e });
             }
-        };
-
-        checkConnectionStatus();
-        const interval = setInterval(checkConnectionStatus, 30000);
-        return () => clearInterval(interval);
-    }, []);
-
-    // Effect for affiliate health check (runs once on load and on schedule)
-    useEffect(() => {
-        // Load cached results on mount
-        try {
-            const cachedResults = localStorage.getItem(LOG_STORAGE_KEY);
-            if (cachedResults) {
-                setAffiliateHealth(JSON.parse(cachedResults));
-            }
-        } catch (error) {
-            logger.error("Failed to load cached affiliate health", { error });
-        }
-        
-        const lastCheck = parseInt(localStorage.getItem(LAST_CHECK_STORAGE_KEY) || '0');
-        const oneDay = 24 * 60 * 60 * 1000;
-        if (Date.now() - lastCheck > oneDay) {
-            runAffiliateCheck();
         }
     }, []);
 
-    const runAffiliateCheck = async () => {
+    const handleCheckAffiliates = async () => {
         setIsCheckingAffiliates(true);
-        logger.info("Starting daily affiliate status check...");
+        logger.info("Manual affiliate health check initiated.");
         
-        let storedAccounts: AccountConnection[];
+        let allUserConnections: AccountConnection[] = [];
         try {
             const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-            storedAccounts = stored ? JSON.parse(stored) : [];
-        } catch (error) {
-            logger.error("Failed to read affiliate connections for health check.", { error });
-            setIsCheckingAffiliates(false);
-            return;
-        }
+            if (stored) allUserConnections = JSON.parse(stored);
+        } catch (e) { logger.error("Failed to parse user connections for health check.", { error: e }); }
 
-        const affiliateConnections = storedAccounts.filter(acc => {
-            const platform = allPlatforms.find(p => p.id === acc.platformId);
-            return platform?.categoryKey.startsWith('connections.category_affiliate');
-        });
+        const affiliatePlatforms = allPlatforms.filter(p => p.categoryKey.startsWith('connections.category_affiliate'));
+        const healthResults: AffiliateHealth[] = [];
 
-        if (affiliateConnections.length === 0) {
-            logger.info("No configured affiliate platforms to check.");
-            setAffiliateHealth([]);
-            setIsCheckingAffiliates(false);
-            return;
-        }
-
-        const checkPromises = affiliateConnections.map(async (conn): Promise<AffiliateHealth> => {
-            const platform = allPlatforms.find(p => p.id === conn.platformId);
-            const url = platform?.docsUrl; // Using docsUrl as a proxy for service health
-            let result: AffiliateHealth = {
-                connectionId: conn.id,
-                platformId: conn.platformId,
-                username: conn.username,
-                status: 'Error',
-                message: 'Platform URL not found.',
-                lastChecked: new Date().toISOString()
-            };
-            
-            if (url) {
-                try {
-                    const res = await checkUrlStatus(url);
-                    if (res.ok) {
-                        result = { ...result, status: 'OK', message: `OK (${res.status})` };
-                    } else {
-                        result = { ...result, status: 'Warning', message: `HTTP ${res.status}: ${res.statusText}` };
-                    }
-                } catch (error: any) {
-                    result = { ...result, status: 'Error', message: `Network Error: ${error.message}` };
+        for (const platform of affiliatePlatforms) {
+            const userConnections = allUserConnections.filter(c => c.platformId === platform.id);
+            if (userConnections.length > 0) {
+                for (const conn of userConnections) {
+                    const urlResponse = await checkUrlStatus(platform.signupUrl);
+                    healthResults.push({
+                        connectionId: conn.id,
+                        platformId: conn.platformId,
+                        username: conn.username,
+                        status: urlResponse.ok ? 'OK' : 'Warning',
+                        message: urlResponse.ok ? `Signup URL is active (${urlResponse.status})` : `Signup URL may be down or changed (${urlResponse.status})`,
+                        lastChecked: new Date().toISOString()
+                    });
                 }
             }
-            return result;
-        });
-
-        const results = await Promise.all(checkPromises);
-        setAffiliateHealth(results);
-        
-        try {
-            localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(results));
-            localStorage.setItem(LAST_CHECK_STORAGE_KEY, Date.now().toString());
-        } catch (error) {
-            logger.error("Failed to save affiliate health results", { error });
         }
 
-        logger.info("Affiliate status check complete.", { count: results.length });
-        notifier.success(t('notifications.affiliateCheckComplete'));
+        setAffiliateHealth(healthResults);
+        localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(healthResults));
+        localStorage.setItem(LAST_CHECK_STORAGE_KEY, new Date().getTime().toString());
+        notifier.success(t('systemStatus.runCheckNow') + ' ' + t('projectRoadmap.completed').toLowerCase());
         setIsCheckingAffiliates(false);
     };
-    
-    const connectedCount = connections.filter(c => c.status === 'Connected').length;
-    const securityGrade = "C-"; 
-    const automationReadiness = connections.length > 0 ? `${Math.round((connectedCount / connections.length) * 100)}%` : '0%';
-    const securityColor = "text-red-400";
-    const readinessValue = connections.length > 0 ? connectedCount / connections.length : 0;
-    const readinessColor = readinessValue > 0.7 ? "text-green-400" : readinessValue > 0.3 ? "text-yellow-400" : "text-red-400";
+
+    const connectedAccountsCount = React.useMemo(() => {
+        try {
+            const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+            return stored ? (JSON.parse(stored) as AccountConnection[]).length : 0;
+        } catch {
+            return 0;
+        }
+    }, []);
+
+    const securityScore = Math.min(100, 20 + connectedAccountsCount * 10);
+    const readinessScore = Math.min(100, 10 + connectedAccountsCount * 8);
 
     return (
         <div className="space-y-8">
-             <Card>
-                <CardHeader className="text-center !p-6">
+            <Card>
+                <CardHeader className="text-center">
                     <CardTitle className="text-2xl">{t('systemStatus.title')}</CardTitle>
                     <CardDescription>{t('systemStatus.description')}</CardDescription>
                 </CardHeader>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid---END OF FILE---
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t('systemStatus.securityGrade')}</CardTitle>
+                        <CardDescription>{t('systemStatus.securityGradeDescription')}</CardDescription>
+                    </CardHeader>
+                    <div className="p-4 text-center text-5xl font-bold text-green-400">{securityScore}%</div>
+                </Card>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>{t('systemStatus.automationReadiness')}</CardTitle>
+                        <CardDescription>{t('systemStatus.automationReadinessDescription')}</CardDescription>
+                    </CardHeader>
+                    <div className="p-4 text-center text-5xl font-bold text-blue-400">{readinessScore}%</div>
+                </Card>
+            </div>
+
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>{t('systemStatus.affiliateHealthTitle')}</CardTitle>
+                            <CardDescription>{t('systemStatus.affiliateHealthDescription')}</CardDescription>
+                        </div>
+                        <Button onClick={handleCheckAffiliates} isLoading={isCheckingAffiliates} icon={<RefreshCw className="h-4 w-4" />}>
+                            {isCheckingAffiliates ? t('systemStatus.checking') : t('systemStatus.runCheckNow')}
+                        </Button>
+                    </div>
+                </CardHeader>
+                 <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-700">
+                        <thead className="bg-gray-800/50">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">{t('connections.tablePlatform')}</th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">Status Details</th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-400 uppercase tracking-wider">{t('systemStatus.status')}</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-700">
+                           {affiliateHealth.length > 0 ? affiliateHealth.map(health => (
+                               <tr key={health.connectionId}>
+                                   <td className="px-6 py-4 whitespace-nowrap">
+                                       <div className="flex items-center">
+                                           <PlatformLogo platformId={health.platformId} className="w-6 h-6 mr-3" />
+                                           <span className="text-sm font-medium text-gray-100">{health.username}</span>
+                                       </div>
+                                   </td>
+                                   <td className="px-6 py-4 whitespace-nowrap">
+                                       <p className="text-sm text-gray-300">{health.message}</p>
+                                       <p className="text-xs text-gray-500">{t('systemStatus.lastCheckedAt', { time: new Date(health.lastChecked).toLocaleTimeString() })}</p>
+                                   </td>
+                                   <td className="px-6 py-4 whitespace-nowrap text-right"><AffiliateStatusIcon status={health.status} /></td>
+                               </tr>
+                           )) : (
+                               <tr><td colSpan={3} className="px-6 py-4 text-center text-gray-500">{t('systemStatus.noAffiliatesConnected')}</td></tr>
+                           )}
+                        </tbody>
+                    </table>
+                </div>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('systemStatus.recommendationsTitle')}</CardTitle>
+                    <CardDescription>{t('systemStatus.recommendationsDescription')}</CardDescription>
+                </CardHeader>
+                <ul className="p-4 divide-y divide-gray-700">
+                    <li className="py-3 flex items-start"><AlertTriangle className="h-5 w-5 text-yellow-400 mr-3 mt-0.5 flex-shrink-0" /><div><h4 className="font-semibold text-gray-200">{t('systemStatus.rec1Title')}</h4><p className="text-sm text-gray-400">{t('systemStatus.rec1Description')}</p></div></li>
+                    <li className="py-3 flex items-start"><Server className="h-5 w-5 text-blue-400 mr-3 mt-0.5 flex-shrink-0" /><div><h4 className="font-semibold text-gray-200">{t('systemStatus.rec2Title')}</h4><p className="text-sm text-gray-400">{t('systemStatus.rec2Description')}</p></div></li>
+                    <li className="py-3 flex items-start"><ShieldCheck className="h-5 w-5 text-green-400 mr-3 mt-0.5 flex-shrink-0" /><div><h4 className="font-semibold text-gray-200">{t('systemStatus.rec3Title')}</h4><p className="text-sm text-gray-400">{t('systemStatus.rec3Description')}</p></div></li>
+                </ul>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <div className="flex justify-between items-center">
+                        <div>
+                            <CardTitle>{t('systemStatus.systemLogTitle')}</CardTitle>
+                            <CardDescription>{t('systemStatus.systemLogDescription')}</CardDescription>
+                        </div>
+                        <Button variant="secondary" size="sm" onClick={() => logger.downloadLogs()} icon={<HardDriveDownload className="h-4 w-4" />}>
+                            {t('systemStatus.downloadLogs')}
+                        </Button>
+                    </div>
+                </CardHeader>
+                <div className="p-4 font-mono text-xs text-gray-300 space-y-2 max-h-96 overflow-y-auto">
+                    {logs.length > 0 ? logs.map(log => (
+                        <div key={log.timestamp + log.message} className="flex items-start">
+                            <LogLevelIndicator level={log.level} />
+                            <span className="text-gray-500 mx-2">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                            <span>{log.message}</span>
+                        </div>
+                    )) : <p>{t('systemStatus.noLogs')}</p>}
+                </div>
+            </Card>
+        </div>
+    );
+};

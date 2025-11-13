@@ -1,10 +1,12 @@
 
 
-import React from 'react';
-import { Page } from '../types';
+
+
+import * as React from 'react';
+import { Page } from '../../types';
 import { AnalyticsIcon, DashboardIcon, EditIcon, CloseIcon, SparklesIcon, ConnectIcon, TemplateIcon } from './Icons';
 import { Video, BookOpen, ShieldCheck, GitBranch, CreditCard, Film } from './LucideIcons';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../contexts/I18nContext';
 import { pageToSlug } from '../../utils/navigation';
 
 const Logo = () => {

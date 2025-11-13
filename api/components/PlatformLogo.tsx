@@ -1,5 +1,4 @@
-
-import React from 'react';
+import * as React from 'react';
 
 const defaultProps = {
     className: 'w-10 h-10',

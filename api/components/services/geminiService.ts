@@ -1,16 +1,22 @@
+
+
 import { Type, Operation, VideoGenerationReferenceType, type VideoGenerationReferenceImage } from "@google/genai";
-import type { Product, Trend, ScoutedProduct, ConnectionStatus, TextModelSelection, VideoModelSelection, AudioVoiceSelection } from '../types';
+import type { Product, Trend, ScoutedProduct, ConnectionStatus, TextModelSelection, VideoModelSelection, AudioVoiceSelection, VideoResolution, VideoAspectRatio } from '../../../types';
 import { logger } from './loggingService';
 
 const BACKEND_URL = '/api/proxy'; // Use a relative path for Vercel serverless functions
 
 const callBackend = async (endpoint: string, body: object): Promise<any> => {
     try {
+        const apiKey = localStorage.getItem('gemini_api_key_override');
+        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+        }
+
         const response = await fetch(BACKEND_URL, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers,
             body: JSON.stringify({ endpoint, ...body }),
         });
 
@@ -31,7 +37,7 @@ const callBackend = async (endpoint: string, body: object): Promise<any> => {
 
 const generateContentWithProxy = async (params: { model: string, contents: any, config?: any }, identifier: string): Promise<any> => {
     logger.info(`Proxying Gemini API call for: ${identifier}`);
-    const response = await callBackend('/gemini', { params, type: identifier });
+    const response = await callBackend('gemini', { params, type: identifier });
     return response;
 };
 
@@ -313,39 +319,41 @@ ${text}
     return response.text;
 };
 
-export const generateVideo = async (script: string, model: VideoModelSelection, referenceImages: string[]): Promise<Operation<any>> => {
+export const generateVideo = async (
+    script: string,
+    model: VideoModelSelection,
+    resolution: VideoResolution,
+    aspectRatio: VideoAspectRatio,
+    startImage: string | null,
+    endImage: string | null,
+    referenceImages: string[]
+): Promise<Operation<any>> => {
     logger.info("Starting video generation via backend proxy.");
-    
-    const payload: { 
-        script: string, 
-        model: VideoModelSelection, 
-        image?: { data: string, mimeType: string },
-        referenceImages?: { data: string, mimeType: string }[]
-    } = { script, model };
-    
-    if (referenceImages && referenceImages.length > 0) {
-        const imagePayloads = referenceImages.map(base64Image => {
-            const parts = base64Image.split(';base64,');
-            if (parts.length !== 2) {
-                logger.warn("Invalid base64 image format provided for a reference image.");
-                return null;
-            }
-            const mimeType = parts[0].split(':')[1];
-            const data = parts[1];
-            return { data, mimeType };
-        }).filter((p): p is { data: string; mimeType: string; } => p !== null);
 
-        if (imagePayloads.length === 1) {
-            payload.image = imagePayloads[0];
-            logger.info("Video generation includes a starting image.");
-        } else if (imagePayloads.length > 1) {
-            payload.referenceImages = imagePayloads;
-            logger.info(`Video generation includes ${imagePayloads.length} reference images.`);
+    const toPayload = (base64Image: string | null) => {
+        if (!base64Image) return null;
+        const parts = base64Image.split(';base64,');
+        if (parts.length !== 2) {
+            logger.warn("Invalid base64 image format provided.");
+            return null;
         }
-    }
+        const mimeType = parts[0].split(':')[1];
+        const data = parts[1];
+        return { data, mimeType };
+    };
+
+    const payload = {
+        script,
+        model,
+        resolution,
+        aspectRatio,
+        startImage: toPayload(startImage),
+        endImage: toPayload(endImage),
+        referenceImages: referenceImages.map(toPayload).filter((p): p is { data: string, mimeType: string } => p !== null),
+    };
 
     try {
-        const operation = await callBackend('/generate-video', payload);
+        const operation = await callBackend('generate-video', payload);
         logger.info("Video generation operation started via backend.", { operationName: operation.name });
         return operation;
     } catch (error: any) {
@@ -357,7 +365,7 @@ export const generateVideo = async (script: string, model: VideoModelSelection, 
 export const generateSpeech = async (script: string, voice: AudioVoiceSelection, speakerVoiceConfig?: { speaker: string, voice: AudioVoiceSelection }[]): Promise<string> => {
     logger.info("Starting speech generation via backend proxy.");
     try {
-        const response = await callBackend('/generate-speech', { script, voice, speakerVoiceConfig });
+        const response = await callBackend('generate-speech', { script, voice, speakerVoiceConfig });
         logger.info("Speech generation successful.");
         return response.audioData; 
     } catch (error: any) {
@@ -369,7 +377,7 @@ export const generateSpeech = async (script: string, voice: AudioVoiceSelection,
 export const generateThumbnail = async (prompt: string): Promise<string> => {
     logger.info("Starting thumbnail generation via backend proxy.");
     try {
-        const response = await callBackend('/generate-thumbnail', { prompt });
+        const response = await callBackend('generate-thumbnail', { prompt });
         if (response.imageData) {
             logger.info("Thumbnail generation successful.");
             return `data:image/png;base64,${response.imageData}`;
@@ -384,7 +392,7 @@ export const generateThumbnail = async (prompt: string): Promise<string> => {
 export const getVideoOperationStatus = async (operationName: string): Promise<Operation<any>> => {
     logger.info(`Polling video operation status via backend for: ${operationName}`);
      try {
-        return await callBackend('/video-status', { operationName });
+        return await callBackend('video-status', { operationName });
     } catch (error: any) {
          logger.error(`Failed to get video operation status from backend for ${operationName}`, { error: error.message });
         throw error;
@@ -394,10 +402,16 @@ export const getVideoOperationStatus = async (operationName: string): Promise<Op
 export const downloadVideo = async (videoUrl: string): Promise<Blob> => {
     logger.info("Starting video download via backend proxy.");
     try {
+        const apiKey = localStorage.getItem('gemini_api_key_override');
+        const headers: HeadersInit = { 'Content-Type': 'application/json' };
+        if (apiKey) {
+            headers['X-API-Key'] = apiKey;
+        }
+        
         const response = await fetch(BACKEND_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ endpoint: '/download-video', videoUrl }),
+            headers,
+            body: JSON.stringify({ endpoint: 'download-video', videoUrl }),
         });
 
         if (!response.ok) {
@@ -419,7 +433,7 @@ export const downloadVideo = async (videoUrl: string): Promise<Blob> => {
 export const checkConnections = async (): Promise<Record<string, { status: ConnectionStatus }>> => {
     logger.info("Checking connection statuses from backend.");
     try {
-       return await callBackend('/check-connections', {});
+       return await callBackend('check-connections', {});
     } catch (error: any) {
         logger.error("Failed to check connection statuses.", { error: error.message });
         throw error;

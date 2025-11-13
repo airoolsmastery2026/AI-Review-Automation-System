@@ -1,7 +1,6 @@
-
-import React from 'react';
+import * as React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../contexts/I18nContext';
 import type { RoadmapTask, RoadmapStatus, ChangelogEntry } from '../../types';
 import { GitBranch, ClipboardList, CheckCircle } from './LucideIcons';
 

@@ -1,8 +1,13 @@
 
-import React, { useMemo } from 'react';
+
+
+
+
+
+import * as React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { RenderJob } from '../../types';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../contexts/I18nContext';
 import { EditIcon, PublishIcon } from './Icons';
 import { Search, Video } from './LucideIcons';
 
@@ -26,7 +31,7 @@ const getRelativeTime = (date: Date, locale: string) => {
 export const SystemLog: React.FC<SystemLogProps> = ({ renderJobs }) => {
     const { t, locale } = useI18n();
 
-    const logEvents = useMemo(() => {
+    const logEvents = React.useMemo(() => {
         const events = [
             { id: 1, icon: <Search className="w-4 h-4 text-blue-400" />, text: "Product Scout Agent found 3 new high-commission products.", time: new Date(Date.now() - 2 * 60 * 1000) },
             { id: 2, icon: <EditIcon className="w-4 h-4 text-green-400" />, text: "Content Agent generated a new script for 'VEO 3.1 Suite'.", time: new Date(Date.now() - 5 * 60 * 1000) },

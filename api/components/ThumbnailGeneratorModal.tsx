@@ -1,14 +1,13 @@
 
-
-import React, { useState } from 'react';
+import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../contexts/I18nContext';
 import { Button } from './common/Button';
 import { X, Palette } from './LucideIcons';
-import { generateThumbnail } from '../../services/geminiService';
+import { generateThumbnail } from './services/geminiService';
 import { Spinner } from './common/Spinner';
 import { useNotifier } from '../../contexts/NotificationContext';
-import { logger } from '../../services/loggingService';
+import { logger } from './services/loggingService';
 
 interface ThumbnailGeneratorModalProps {
     isOpen: boolean;
@@ -20,9 +19,9 @@ interface ThumbnailGeneratorModalProps {
 export const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = ({ isOpen, onClose, onAccept, initialPrompt }) => {
     const { t } = useI18n();
     const notifier = useNotifier();
-    const [prompt, setPrompt] = useState(initialPrompt);
-    const [isLoading, setIsLoading] = useState(false);
-    const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+    const [prompt, setPrompt] = React.useState(initialPrompt);
+    const [isLoading, setIsLoading] = React.useState(false);
+    const [generatedImage, setGeneratedImage] = React.useState<string | null>(null);
 
     const handleGenerate = async () => {
         setIsLoading(true);
@@ -65,7 +64,7 @@ export const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = (
                         <div className="flex items-center justify-between p-4 border-b border-gray-700">
                             <div className="flex items-center space-x-3">
                                 <Palette className="w-6 h-6 text-primary-400" />
-                                <h2 className="text-xl font-bold text-gray-100">{t('publisher.generateThumbnailTitle')}</h2>
+                                <h2 className="text-xl font-bold text-gray-100">{t('studio.generateThumbnailTitle')}</h2>
                             </div>
                             <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close"><X className="w-5 h-5" /></Button>
                         </div>
@@ -74,14 +73,14 @@ export const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = (
                             <div className="space-y-4">
                                 <div>
                                     <label htmlFor="thumbnail-prompt" className="block text-sm font-medium text-gray-300 mb-2">
-                                        {t('publisher.promptLabel')}
+                                        {t('studio.promptLabel')}
                                     </label>
                                     <textarea
                                         id="thumbnail-prompt"
                                         rows={8}
                                         value={prompt}
                                         onChange={(e) => setPrompt(e.target.value)}
-                                        placeholder={t('publisher.promptPlaceholder')}
+                                        placeholder={t('studio.promptPlaceholder')}
                                         className="w-full bg-gray-800/50 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 font-sans text-sm"
                                     />
                                 </div>
@@ -90,7 +89,7 @@ export const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = (
                                     isLoading={isLoading}
                                     className="w-full"
                                 >
-                                    {isLoading ? t('publisher.generatingThumbnail') : t('publisher.generateThumbnail')}
+                                    {isLoading ? t('studio.generatingThumbnail') : t('studio.generateThumbnail')}
                                 </Button>
                             </div>
                             <div className="flex items-center justify-center w-full h-72 bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-600">
@@ -99,17 +98,17 @@ export const ThumbnailGeneratorModal: React.FC<ThumbnailGeneratorModalProps> = (
                                     <img src={generatedImage} alt="Generated thumbnail" className="w-full h-full object-contain rounded-md" />
                                 )}
                                 {!isLoading && !generatedImage && (
-                                    <p className="text-gray-500">{t('publisher.generateThumbnailDescription')}</p>
+                                    <p className="text-gray-500">{t('studio.generateThumbnailDescription')}</p>
                                 )}
                             </div>
                         </div>
 
                         <div className="flex items-center justify-end p-4 bg-gray-900/40 rounded-b-xl space-x-2">
                              <Button variant="secondary" onClick={onClose}>
-                                {t('publisher.cancel')}
+                                {t('studio.cancel')}
                             </Button>
                             <Button onClick={handleAccept} disabled={!generatedImage || isLoading}>
-                                {t('publisher.acceptThumbnail')}
+                                {t('studio.acceptThumbnail')}
                             </Button>
                         </div>
                     </motion.div>

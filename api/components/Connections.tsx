@@ -1,17 +1,15 @@
-
-
-import React, { useState, useEffect, useCallback } from 'react';
+import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlatformLogo } from './PlatformLogo';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../contexts/I18nContext';
 import { Button } from './common/Button';
 import { ExternalLink, KeyRound, Save, X, Trash, User, FilePenLine, BookOpen, AlertTriangle, Percent } from './LucideIcons';
-import { logger } from '../../services/loggingService';
+import { logger } from './services/loggingService';
 import { useNotifier } from '../../contexts/NotificationContext';
 import type { AccountConnection, Platform } from '../../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { platforms, LOCAL_STORAGE_KEY } from './data/connections';
-import { AffiliateHub } from '../../AffiliateHub';
+import { AffiliateHub } from './AffiliateHub';
 
 const ToggleSwitch: React.FC<{
     id: string;
@@ -48,12 +46,12 @@ const ConnectionModal: React.FC<{
     const { t } = useI18n();
     const notifier = useNotifier();
     const isEditing = !!existingConnection;
-    const [formData, setFormData] = useState<Record<string, string>>({});
-    const [isSaving, setIsSaving] = useState(false);
-    const [isActive, setIsActive] = useState(true);
-    const [commission, setCommission] = useState('');
+    const [formData, setFormData] = React.useState<Record<string, string>>({});
+    const [isSaving, setIsSaving] = React.useState(false);
+    const [isActive, setIsActive] = React.useState(true);
+    const [commission, setCommission] = React.useState('');
 
-    useEffect(() => {
+    React.useEffect(() => {
         const initialData: Record<string, string> = { username: existingConnection?.username || '' };
         platform.credentials.forEach(cred => {
             initialData[cred.id] = existingConnection?.credentials[cred.id] || '';
@@ -271,13 +269,13 @@ const PlatformCard: React.FC<{
 
 export const Connections: React.FC = () => {
     const { t } = useI18n();
-    const [accounts, setAccounts] = useState<AccountConnection[]>([]);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
-    const [editingConnection, setEditingConnection] = useState<AccountConnection | null>(null);
+    const [accounts, setAccounts] = React.useState<AccountConnection[]>([]);
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
+    const [selectedPlatform, setSelectedPlatform] = React.useState<Platform | null>(null);
+    const [editingConnection, setEditingConnection] = React.useState<AccountConnection | null>(null);
     const notifier = useNotifier();
     
-    useEffect(() => {
+    React.useEffect(() => {
         try {
             const savedAccounts = localStorage.getItem(LOCAL_STORAGE_KEY);
             if (savedAccounts) {
@@ -288,7 +286,7 @@ export const Connections: React.FC = () => {
         }
     }, []);
 
-    const saveAccounts = useCallback((updatedAccounts: AccountConnection[]) => {
+    const saveAccounts = React.useCallback((updatedAccounts: AccountConnection[]) => {
         try {
             setAccounts(updatedAccounts);
             localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedAccounts));
@@ -338,8 +336,6 @@ export const Connections: React.FC = () => {
         }
     };
 
-    // Fix: Rewrote the `reduce` function with explicit typing to resolve an issue where
-    // the accumulator was not being correctly typed, leading to a downstream error with `.map`.
     const groupedPlatforms = platforms.reduce<Record<string, Platform[]>>((acc, platform) => {
         const key = platform.categoryKey;
         if (!acc[key]) {

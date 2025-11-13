@@ -1,10 +1,15 @@
 
-import React, { useState, useEffect } from "react";
+
+
+
+
+
+import * as React from "react";
 import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Server, Bot, CheckCircle } from "./LucideIcons";
 import type { AutomationSettings } from '../../types';
-import { useI18n } from "../../hooks/useI18n";
+import { useI18n } from "../../contexts/I18nContext";
 
 interface AutomationProps {
     settings: AutomationSettings;
@@ -67,9 +72,9 @@ export const Automation: React.FC<AutomationProps> = ({ settings, onSettingsChan
         { labelKey: 'automationControl.freq_24h', value: 1440 },
     ];
     
-    const [isCustomFrequency, setIsCustomFrequency] = useState(false);
+    const [isCustomFrequency, setIsCustomFrequency] = React.useState(false);
 
-    useEffect(() => {
+    React.useEffect(() => {
         const isPredefined = frequencyOptions.some(opt => opt.value === settings.scoutAgent.frequencyMinutes);
         setIsCustomFrequency(!isPredefined);
     }, [settings.scoutAgent.frequencyMinutes]);

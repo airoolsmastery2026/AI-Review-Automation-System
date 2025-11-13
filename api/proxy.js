@@ -1,11 +1,12 @@
 const { GoogleGenAI, Modality, VideoGenerationReferenceType } = require('@google/genai');
 
 // Vercel handles environment variables, which we access via process.env
-const getGenAI = () => {
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set in Vercel.");
+const getGenAI = (req) => {
+    const apiKey = req.headers['x-api-key'] || process.env.API_KEY;
+    if (!apiKey) {
+        throw new Error("API_KEY environment variable not set in Vercel and no override provided.");
     }
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return new GoogleGenAI({ apiKey });
 };
 
 const PLATFORM_ENV_MAP = {
@@ -34,7 +35,7 @@ const PLATFORM_ENV_MAP = {
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-API-Key');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -51,7 +52,7 @@ module.exports = async (req, res) => {
             return res.status(400).json({ error: 'Missing endpoint in request body' });
         }
 
-        const ai = getGenAI();
+        const ai = getGenAI(req);
 
         if (endpoint === 'gemini') {
             const { params } = body;
@@ -61,21 +62,33 @@ module.exports = async (req, res) => {
                 groundingMetadata: response.candidates?.[0]?.groundingMetadata 
             });
         } else if (endpoint === 'generate-video') {
-            const { script, model, image, referenceImages } = body;
+            const { script, model, resolution, aspectRatio, startImage, endImage, referenceImages } = body;
             
             const videoParams = {
                 model,
                 prompt: script,
-                config: { numberOfVideos: 1, resolution: '720p', aspectRatio: '9:16' }
+                config: {
+                    numberOfVideos: 1,
+                    resolution: resolution || '720p',
+                    aspectRatio: aspectRatio || '9:16'
+                }
             };
 
-            if (referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
-                 videoParams.config.referenceImages = referenceImages.map(img => ({
+            if (startImage) {
+                videoParams.image = { imageBytes: startImage.data, mimeType: startImage.mimeType };
+            }
+            if (endImage) {
+                videoParams.config.lastFrame = { imageBytes: endImage.data, mimeType: endImage.mimeType };
+            }
+             if (referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
+                videoParams.config.referenceImages = referenceImages.map(img => ({
                     image: { imageBytes: img.data, mimeType: img.mimeType },
                     referenceType: VideoGenerationReferenceType.ASSET
                 }));
-            } else if (image) {
-                videoParams.image = { imageBytes: image.data, mimeType: image.mimeType };
+                 // Override config based on multi-reference rules from documentation
+                videoParams.model = 'veo-3.1-generate-preview';
+                videoParams.config.resolution = '720p';
+                videoParams.config.aspectRatio = '16:9';
             }
             
             const operation = await ai.models.generateVideos(videoParams);
@@ -120,7 +133,9 @@ module.exports = async (req, res) => {
             return res.status(200).json(operation);
         } else if (endpoint === 'download-video') {
             const { videoUrl } = body;
-            const fetchRes = await fetch(`${videoUrl}&key=${process.env.API_KEY}`);
+            const apiKey = req.headers['x-api-key'] || process.env.API_KEY;
+            if (!apiKey) throw new Error('API key is required for download.');
+            const fetchRes = await fetch(`${videoUrl}&key=${apiKey}`);
             if (!fetchRes.ok) throw new Error(`Failed to fetch video: ${fetchRes.statusText}`);
             res.setHeader('Content-Type', 'video/mp4');
             fetchRes.body.pipe(res);

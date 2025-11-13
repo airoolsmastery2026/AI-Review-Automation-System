@@ -1,10 +1,13 @@
 
-import React, { useState } from 'react';
+
+
+
+import * as React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Button } from './common/Button';
 import { TemplateIcon } from './Icons';
-import { useI18n } from '../../hooks/useI18n';
-import { logger } from '../../services/loggingService';
+import { useI18n } from '../../contexts/I18nContext';
+import { logger } from './services/loggingService';
 
 type TemplateType = 'script' | 'titles' | 'description' | 'captions';
 
@@ -91,10 +94,10 @@ Language: English.`
 
 
 export const PromptTemplates: React.FC = () => {
-    const [templates, setTemplates] = useState(initialTemplates);
-    const [selectedTemplate, setSelectedTemplate] = useState<PromptTemplate | null>(null);
-    const [isCreating, setIsCreating] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
+    const [templates, setTemplates] = React.useState(initialTemplates);
+    const [selectedTemplate, setSelectedTemplate] = React.useState<PromptTemplate | null>(null);
+    const [isCreating, setIsCreating] = React.useState(false);
+    const [isSaving, setIsSaving] = React.useState(false);
     const { t } = useI18n();
     
     const typeStyles: Record<TemplateType, { color: string, label: string }> = {

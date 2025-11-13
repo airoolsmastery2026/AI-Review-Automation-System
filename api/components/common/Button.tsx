@@ -1,6 +1,7 @@
 
 
-import React from 'react';
+
+import * as React from 'react';
 import { Spinner } from './Spinner';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {

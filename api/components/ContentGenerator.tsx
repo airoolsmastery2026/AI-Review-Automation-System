@@ -1,5 +1,4 @@
-
-import React, { useState, useCallback, useEffect } from 'react';
+import * as React from 'react';
 import type { Product, GeneratedContent, TextModelSelection } from '../../types';
 import { GenerationType } from '../../types';
 import {
@@ -8,11 +7,11 @@ import {
     generateSeoDescription,
     generateCaptionsAndHashtags,
     translateText
-} from '../../services/geminiService';
+} from './services/geminiService';
 import { Button } from './common/Button';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
 import { Spinner } from './common/Spinner';
-import { useI18n } from '../../hooks/useI18n';
+import { useI18n } from '../../contexts/I18nContext';
 import { Languages, ChevronDown, Edit, Save, X, ExternalLink } from './LucideIcons';
 
 interface ContentGeneratorProps {
@@ -35,8 +34,8 @@ const GenerationSection: React.FC<{
     content: any;
 }> = ({ title, type, children, onGenerate, onSaveEdit, isLoading, isGenerated, isGeneratingAll, content }) => {
     const { t } = useI18n();
-    const [isEditing, setIsEditing] = useState(false);
-    const [editText, setEditText] = useState('');
+    const [isEditing, setIsEditing] = React.useState(false);
+    const [editText, setEditText] = React.useState('');
 
     const handleEdit = () => {
         if (type === GenerationType.CAPTIONS) {
@@ -138,28 +137,29 @@ const ModelSelector: React.FC<{
 };
 
 export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, generatedContent, onContentUpdate, productToAutoGenerate, onGenerationComplete }) => {
-    const [selectedProductId, setSelectedProductId] = useState<string | null>(products.length > 0 ? products[0].id : null);
-    const [loadingStates, setLoadingStates] = useState<Record<GenerationType, boolean>>({
+    const [selectedProductId, setSelectedProductId] = React.useState<string | null>(products.length > 0 ? products[0].id : null);
+    const [loadingStates, setLoadingStates] = React.useState<Record<GenerationType, boolean>>({
         [GenerationType.SCRIPT]: false,
         [GenerationType.TITLES]: false,
         [GenerationType.DESCRIPTION]: false,
         [GenerationType.CAPTIONS]: false,
     });
-    const [isGeneratingAll, setIsGeneratingAll] = useState(false);
+    const [isGeneratingAll, setIsGeneratingAll] = React.useState(false);
     const { t } = useI18n();
-    const [targetLanguage, setTargetLanguage] = useState('vi');
-    const [translatedScript, setTranslatedScript] = useState<string | null>(null);
-    const [isTranslating, setIsTranslating] = useState(false);
-    const [showTranslation, setShowTranslation] = useState(false);
-    const [selectedTextModel, setSelectedTextModel] = useState<TextModelSelection>('gemini-2.5-flash');
-    const [useGrounding, setUseGrounding] = useState(true);
+    const [targetLanguage, setTargetLanguage] = React.useState('vi');
+    const [translatedScript, setTranslatedScript] = React.useState<string | null>(null);
+    const [isTranslating, setIsTranslating] = React.useState(false);
+    const [customLanguage, setCustomLanguage] = React.useState('');
+    const [showTranslation, setShowTranslation] = React.useState(false);
+    const [selectedTextModel, setSelectedTextModel] = React.useState<TextModelSelection>('gemini-2.5-flash');
+    const [useGrounding, setUseGrounding] = React.useState(true);
 
-    useEffect(() => {
+    React.useEffect(() => {
         setTranslatedScript(null);
         setShowTranslation(false);
     }, [selectedProductId]);
 
-    const handleGeneration = useCallback(async (type: GenerationType, overrideProduct?: Product) => {
+    const handleGeneration = React.useCallback(async (type: GenerationType, overrideProduct?: Product) => {
         const product = overrideProduct || products.find(p => p.id === selectedProductId);
         if (!product) return;
 
@@ -195,7 +195,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         }
     }, [selectedProductId, products, onContentUpdate, selectedTextModel, useGrounding]);
 
-    const handleGenerateAll = useCallback(async (overrideProduct?: Product) => {
+    const handleGenerateAll = React.useCallback(async (overrideProduct?: Product) => {
         const product = overrideProduct || products.find(p => p.id === selectedProductId);
         if (!product) return;
 
@@ -209,7 +209,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         setIsGeneratingAll(false);
     }, [selectedProductId, products, handleGeneration]);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (productToAutoGenerate) {
             const product = products.find(p => p.id === productToAutoGenerate);
             if (product) {
@@ -242,8 +242,15 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         if (!selectedProductContent?.script) return;
         setIsTranslating(true);
         try {
-            const languageName = languages.find(l => l.code === targetLanguage)?.nameKey || 'contentGenerator.vietnamese';
-            const translation = await translateText(selectedProductContent.script, t(languageName), selectedTextModel);
+            let languageToTranslate: string;
+            if (targetLanguage === 'custom') {
+                languageToTranslate = customLanguage;
+            } else {
+                const languageName = languages.find(l => l.code === targetLanguage)?.nameKey || 'contentGenerator.vietnamese';
+                languageToTranslate = t(languageName);
+            }
+
+            const translation = await translateText(selectedProductContent.script, languageToTranslate, selectedTextModel);
             setTranslatedScript(translation);
             setShowTranslation(true);
         } catch (error) {
@@ -259,6 +266,7 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
         { code: 'fr', nameKey: 'contentGenerator.french' },
         { code: 'de', nameKey: 'contentGenerator.german' },
         { code: 'ja', nameKey: 'contentGenerator.japanese' },
+        { code: 'custom', nameKey: 'contentGenerator.customLanguage' },
     ];
 
 
@@ -357,10 +365,19 @@ export const ContentGenerator: React.FC<ContentGeneratorProps> = ({ products, ge
                                     >
                                         {languages.map(lang => <option key={lang.code} value={lang.code}>{t(lang.nameKey)}</option>)}
                                     </select>
+                                    {targetLanguage === 'custom' && (
+                                        <input
+                                            type="text"
+                                            value={customLanguage}
+                                            onChange={(e) => setCustomLanguage(e.target.value)}
+                                            placeholder={t('contentGenerator.customLanguagePlaceholder')}
+                                            className="bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-gray-50 focus:outline-none focus:ring-1 focus:ring-primary-500 sm:text-sm"
+                                        />
+                                    )}
                                     <Button 
                                         onClick={handleTranslate} 
                                         isLoading={isTranslating} 
-                                        disabled={isTranslating}
+                                        disabled={isTranslating || (targetLanguage === 'custom' && !customLanguage.trim())}
                                         icon={<Languages className="h-4 w-4" />}
                                     >
                                         {isTranslating ? t('contentGenerator.translating') : t('contentGenerator.translate')}

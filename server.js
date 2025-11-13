@@ -10,11 +10,12 @@ const port = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-const getGenAI = () => {
-    if (!process.env.API_KEY) {
-        throw new Error("API_KEY environment variable not set.");
+const getGenAI = (req) => {
+    const apiKey = req.headers['x-api-key'] || process.env.API_KEY;
+    if (!apiKey) {
+        throw new Error("API_KEY not provided.");
     }
-    return new GoogleGenAI({ apiKey: process.env.API_KEY });
+    return new GoogleGenAI({ apiKey });
 };
 
 const PLATFORM_ENV_MAP = {
@@ -48,7 +49,7 @@ app.post('/api/proxy', async (req, res) => {
             return res.status(400).json({ error: 'Missing endpoint in request body' });
         }
 
-        const ai = getGenAI();
+        const ai = getGenAI(req);
 
         switch (endpoint) {
             case 'gemini': {
@@ -60,21 +61,33 @@ app.post('/api/proxy', async (req, res) => {
                 });
             }
             case 'generate-video': {
-                const { script, model, image, referenceImages } = body;
+                const { script, model, resolution, aspectRatio, startImage, endImage, referenceImages } = body;
                 
                 const videoParams = {
                     model,
                     prompt: script,
-                    config: { numberOfVideos: 1, resolution: '720p', aspectRatio: '9:16' }
+                    config: {
+                        numberOfVideos: 1,
+                        resolution: resolution || '720p',
+                        aspectRatio: aspectRatio || '9:16'
+                    }
                 };
 
-                if (referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
+                if (startImage) {
+                    videoParams.image = { imageBytes: startImage.data, mimeType: startImage.mimeType };
+                }
+                if (endImage) {
+                    videoParams.config.lastFrame = { imageBytes: endImage.data, mimeType: endImage.mimeType };
+                }
+                 if (referenceImages && Array.isArray(referenceImages) && referenceImages.length > 0) {
                     videoParams.config.referenceImages = referenceImages.map(img => ({
                         image: { imageBytes: img.data, mimeType: img.mimeType },
                         referenceType: VideoGenerationReferenceType.ASSET
                     }));
-                } else if (image) {
-                    videoParams.image = { imageBytes: image.data, mimeType: image.mimeType };
+                    // Override config based on multi-reference rules from documentation
+                    videoParams.model = 'veo-3.1-generate-preview';
+                    videoParams.config.resolution = '720p';
+                    videoParams.config.aspectRatio = '16:9';
                 }
 
                 const operation = await ai.models.generateVideos(videoParams);
@@ -123,7 +136,9 @@ app.post('/api/proxy', async (req, res) => {
             }
             case 'download-video': {
                 const { videoUrl } = body;
-                const fetchRes = await fetch(`${videoUrl}&key=${process.env.API_KEY}`);
+                const apiKey = req.headers['x-api-key'] || process.env.API_KEY;
+                if (!apiKey) throw new Error('API key is required for download.');
+                const fetchRes = await fetch(`${videoUrl}&key=${apiKey}`);
                 if (!fetchRes.ok) throw new Error(`Failed to fetch video: ${fetchRes.statusText}`);
                 res.setHeader('Content-Type', 'video/mp4');
                 fetchRes.body.pipe(res);

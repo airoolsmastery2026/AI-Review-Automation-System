@@ -127,6 +127,8 @@ export const translations = {
       useGrounding: "Use Google Search for up-to-date information",
       groundingSources: "Sources from Google Search:",
       scriptTip: "Tip: Use 'SpeakerName:' format for dialogues.",
+      customLanguage: "Custom...",
+      customLanguagePlaceholder: "Enter language name (e.g., 'Korean')",
     },
 
     // Studio (previously Publisher)
@@ -137,6 +139,8 @@ export const translations = {
       noProductsReady: "No products with generated content are ready. Please visit the Content Generator.",
       videoOptions: "Video Generation Options",
       videoModel: "Video Model",
+      resolution: "Resolution",
+      aspectRatio: "Aspect Ratio",
       audioOptions: "Audio Generation Options",
       audioVoice: "Audio Voice",
       multiSpeakerTitle: "Multi-Speaker Audio",
@@ -617,6 +621,8 @@ export const translations = {
       useGrounding: "Sử dụng Google Search để có thông tin mới nhất",
       groundingSources: "Nguồn từ Google Search:",
       scriptTip: "Mẹo: Sử dụng định dạng 'TênNgườiNói:' cho các đoạn hội thoại.",
+      customLanguage: "Tùy chỉnh...",
+      customLanguagePlaceholder: "Nhập tên ngôn ngữ (ví dụ: 'Tiếng Hàn')",
     },
 
     // Studio (previously Publisher)
@@ -627,6 +633,8 @@ export const translations = {
       noProductsReady: "Chưa có sản phẩm nào có nội dung được tạo sẵn sàng. Vui lòng truy cập Trình tạo nội dung.",
       videoOptions: "Tùy chọn tạo video",
       videoModel: "Mô hình video",
+      resolution: "Độ phân giải",
+      aspectRatio: "Tỷ lệ khung hình",
       audioOptions: "Tùy chọn tạo âm thanh",
       audioVoice: "Giọng nói",
       multiSpeakerTitle: "Âm thanh đa giọng nói",

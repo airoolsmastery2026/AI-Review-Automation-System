@@ -1,5 +1,4 @@
-
-import React, { createContext, useState, useCallback, useMemo } from 'react';
+import * as React from 'react';
 import { translations } from '../locales/translations';
 
 type Locale = 'en' | 'vi';
@@ -10,43 +9,41 @@ interface I18nContextType {
     t: (key: string, options?: { [key: string]: string }) => string;
 }
 
-export const I18nContext = createContext<I18nContextType>({
-    locale: 'en',
-    setLocale: () => {},
-    t: (key: string) => key,
-});
+// --- Context ---
+export const I18nContext = React.createContext<I18nContextType | null>(null);
 
+// --- Provider ---
 export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [locale, setLocale] = useState<Locale>('en');
+    const [locale, setLocale] = React.useState<Locale>('en');
 
-    const t = useCallback((key: string, options?: { [key: string]: string }): string => {
-        const keys = key.split('.');
-        
-        const findTranslation = (lang: Locale) => {
+    const t = React.useCallback((key: string, options?: { [key: string]: string }): string => {
+        const findTranslation = (lang: Locale, translationKey: string): string | undefined => {
+            const keys = translationKey.split('.');
             let result: any = translations[lang];
             for (const k of keys) {
                 result = result?.[k];
                 if (result === undefined) return undefined;
             }
-            return result;
+            // Ensure we only return strings, not objects.
+            if (typeof result === 'string') {
+                return result;
+            }
+            return undefined;
         };
 
-        let translation = findTranslation(locale);
+        let translation = findTranslation(locale, key) ?? findTranslation('en', key) ?? key;
 
-        if (translation === undefined) {
-            translation = findTranslation('en') || key; // Fallback to English
-        }
-        
-        if (typeof translation === 'string' && options) {
+        if (options) {
             return translation.replace(/\{(\w+)\}/g, (placeholder, placeholderKey) => {
                 return options[placeholderKey] || placeholder;
             });
         }
-
+        
         return translation;
     }, [locale]);
 
-    const value = useMemo(() => ({
+
+    const value = React.useMemo(() => ({
         locale,
         setLocale,
         t,
@@ -57,4 +54,18 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
             {children}
         </I18nContext.Provider>
     );
+};
+
+// --- Hook ---
+export const useI18n = (): I18nContextType => {
+  const context = React.useContext(I18nContext);
+  if (!context) {
+    console.warn('⚠️ useI18n called outside I18nProvider — using fallback.');
+    return {
+      locale: 'en',
+      setLocale: () => {},
+      t: (key: string) => key,
+    };
+  }
+  return context;
 };

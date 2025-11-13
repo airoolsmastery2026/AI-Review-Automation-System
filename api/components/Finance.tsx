@@ -1,9 +1,9 @@
-
-import React from 'react';
+import * as React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import type { ProductWithContent } from '../../types';
 import { Card, CardHeader, CardTitle, CardDescription } from './common/Card';
-import { useI18n } from '../../hooks/useI18n';
+// FIX: Correct the import path for useI18n hook.
+import { useI18n } from '../../contexts/I18nContext';
 import { DollarSign, TrendingUp, BarChart3 } from './LucideIcons';
 
 interface FinanceProps {
